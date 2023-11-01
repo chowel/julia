@@ -1,0 +1,69 @@
+group 'com.julia'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        maven {
+            url 'https://maven.aliyun.com/repository/public/'
+        }
+        maven {
+            url 'https://maven.aliyun.com/repository/central'
+        }
+//        mavenLocal()
+//        mavenCentral()
+    }
+    //用来打包
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.5.5")
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+//spring boot 插件
+apply plugin: 'org.springframework.boot'
+//Gradle插件，提供类似Maven的依赖关系管理功能
+apply plugin: 'io.spring.dependency-management'
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.5.5'
+    implementation 'org.springframework.boot:spring-boot-starter-aop:2.5.5'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    implementation group: 'org.apache.commons', name: 'commons-pool2', version: '2.11.1'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis:2.5.5'
+    implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.20'
+    implementation 'com.baomidou:mybatis-plus-boot-starter:3.5.1'
+    implementation group: 'org.apache.ant', name: 'ant', version: '1.10.9'
+    implementation 'cn.dev33:sa-token-spring-boot-starter:1.30.0'
+    implementation 'cn.dev33:sa-token-dao-redis-jackson:1.30.0'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
+    implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
+    implementation 'io.swagger:swagger-annotations:1.6.2'
+    implementation 'io.swagger:swagger-models:1.6.2'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.3'
+//    implementation group: 'com.alipay.sdk', name: 'alipay-sdk-java', version: '4.38.98.ALL'
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.5.5'
+
+}
+
+bootJar {
+    archiveBaseName = 'Julia'
+    archiveVersion = '1.0.0'
+}
+jar {
+    manifest {
+        attributes "Manifest-Version": 1.0,
+                'Main-Class': 'com.julia.Application'
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
