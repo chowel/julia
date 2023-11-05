@@ -14,7 +14,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2023-11-01
+ * @since 2023-11-05
  */
 @Getter
 @Setter
@@ -58,16 +58,28 @@ public class RocketEntity extends BaseEntity {
     private String lastName;
 
     /**
-     * 操作人id
+     * c用户id
      */
-    @TableField("yao_id")
-    private Integer yaoId;
+    @TableField("c_id")
+    private Integer cId;
+
+    /**
+     * p用户id
+     */
+    @TableField("p_id")
+    private Integer pId;
 
     /**
      * 状态 0 : 未操作 1: 已操作
      */
     @TableField("status")
     private Integer status;
+
+    /**
+     * p用户回调 0:未通知  1:收到成功 2:收到失败
+     */
+    @TableField("check_callback")
+    private Integer checkCallback;
 
     /**
      * 操作时间 时间戳

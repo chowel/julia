@@ -12,8 +12,10 @@
         <result column="order_id" property="orderId" />
         <result column="first_name" property="firstName" />
         <result column="last_name" property="lastName" />
-        <result column="yao_id" property="yaoId" />
+        <result column="c_id" property="cId" />
+        <result column="p_id" property="pId" />
         <result column="status" property="status" />
+        <result column="check_callback" property="checkCallback" />
         <result column="done_time" property="doneTime" />
     </resultMap>
 
@@ -21,7 +23,7 @@
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        rocket_id, url, amount, order_id, first_name, last_name, yao_id, status, done_time
+        rocket_id, url, amount, order_id, first_name, last_name, c_id, p_id, status, check_callback, done_time
     </sql>
 
 </mapper>

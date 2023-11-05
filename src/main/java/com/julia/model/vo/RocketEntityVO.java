@@ -19,7 +19,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2023-11-01
+ * @since 2023-11-05
  */
 @Getter
 @Setter
@@ -44,11 +44,17 @@ public class RocketEntityVO extends BaseEntity {
     @ApiModelProperty("名")
     private String lastName;
 
-    @ApiModelProperty("操作人id")
-    private Integer yaoId;
+    @ApiModelProperty("c用户id")
+    private Integer cId;
+
+    @ApiModelProperty("p用户id")
+    private Integer pId;
 
     @ApiModelProperty("状态 0 : 未操作 1: 已操作")
     private Integer status;
+
+    @ApiModelProperty("p用户回调 0:未通知  1:收到成功 2:收到失败")
+    private Integer checkCallback;
 
     @ApiModelProperty("操作时间 时间戳")
     private Long doneTime;
@@ -62,8 +68,10 @@ public class RocketEntityVO extends BaseEntity {
             ", orderId = " + orderId +
             ", firstName = " + firstName +
             ", lastName = " + lastName +
-            ", yaoId = " + yaoId +
+            ", cId = " + cId +
+            ", pId = " + pId +
             ", status = " + status +
+            ", checkCallback = " + checkCallback +
             ", doneTime = " + doneTime +
         "}";
     }
