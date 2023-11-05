@@ -86,4 +86,10 @@ public class YaoEntity extends BaseEntity {
      */
     @TableField("remark")
     private String remark;
+
+    /**
+     * 回调地址
+     */
+    @TableField("callback")
+    private String callback;
 }

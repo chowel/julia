@@ -64,23 +64,27 @@ public class YaoEntityVO extends BaseEntity {
     @ApiModelProperty("token")
     private String token;
 
+    @ApiModelProperty("回调地址")
+    private String callback;
+
     @ApiModelProperty("菜单组")
     private List<PactEntityVO> menus;
 
     @Override
     public String toString() {
         return "{" +
-            "yaoId = " + yaoId +
-            ", loginName = " + loginName +
-            ", userName = " + userName +
-            ", email = " + email +
-            ", phone = " + phone +
-            ", avatar = " + avatar +
-            ", password = " + password +
-            ", cheDel = " + cheDel +
-            ", roleId = " + roleId +
-            ", authId = " + authId +
-            ", remark = " + remark +
-        "}";
+                "yaoId = " + yaoId +
+                ", loginName = " + loginName +
+                ", userName = " + userName +
+                ", email = " + email +
+                ", phone = " + phone +
+                ", avatar = " + avatar +
+                ", password = " + password +
+                ", cheDel = " + cheDel +
+                ", roleId = " + roleId +
+                ", authId = " + authId +
+                ", remark = " + remark +
+                ", callback = " + callback +
+                "}";
     }
 }

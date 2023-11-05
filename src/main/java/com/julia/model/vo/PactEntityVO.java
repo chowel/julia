@@ -13,6 +13,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * <p>
  * 菜单/接口权限項
@@ -52,6 +54,9 @@ public class PactEntityVO extends BaseEntity {
 
     @ApiModelProperty("0:删除 1:正常 555")
     private Integer cheDel;
+
+    @ApiModelProperty("子菜单")
+    private List<PactEntity> childern;
 
     @Override
     public String toString() {

@@ -17,13 +17,14 @@
         <result column="role_id" property="roleId" />
         <result column="auth_id" property="authId" />
         <result column="remark" property="remark" />
+        <result column="callback" property="callback" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        yao_id, login_name, user_name, email, phone, avatar, password, che_del, role_id, auth_id, remark
+        yao_id, login_name, user_name, email, phone, avatar, password, che_del, role_id, auth_id, remark, callback
     </sql>
 
 </mapper>
