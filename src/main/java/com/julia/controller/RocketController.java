@@ -28,11 +28,11 @@ public class RocketController {
     @Resource
     IRocketService serviceImpl;
 
-    @ApiOperation("分页查找")
-    @PostMapping("/querywhitpage")
-    public Rv<Page<RocketEntityVO>> queryRocketEntityWhitPage(@RequestBody QueryPagement queryPagement) {
-        return new Rv<>(serviceImpl.findForPage(queryPagement));
-    }
+//    @ApiOperation("分页查找")
+//    @PostMapping("/querywhitpage")
+//    public Rv<Page<RocketEntityVO>> queryRocketEntityWhitPage(@RequestBody QueryPagement queryPagement) {
+//        return new Rv<>(serviceImpl.findForPage(queryPagement));
+//    }
 
     @ApiOperation("根据id查找")
     @GetMapping("/query/{id}")

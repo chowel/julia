@@ -1,6 +1,8 @@
 package com.julia.service;
 
 import com.julia.entity.RocketEntity;
+import com.julia.model.dto.CarOperaDTO;
+import com.julia.model.vo.CarOrderVO;
 import com.julia.model.vo.RocketEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -22,7 +24,7 @@ public interface IRocketService extends IService<RocketEntity> {
     * @Author: chowel
     * @Date: 2023-11-01
     */
-    Page<RocketEntityVO> findForPage(QueryPagement queryPagement);
+    Page<CarOrderVO> findForPage(QueryPagement queryPagement);
 
     /**
     * @Description: 根据id查找
@@ -59,5 +61,14 @@ public interface IRocketService extends IService<RocketEntity> {
     * @Date: 2023-11-01
     */
     Boolean remove(Long id);
+
+    /**
+    * @Description: 车队收单操作
+    * @Param:
+    * @return:
+    * @Author: chowel
+    * @Date:
+    */
+    Boolean carOpera(CarOperaDTO dto);
 }
 

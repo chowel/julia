@@ -56,7 +56,7 @@ public class PactEntityVO extends BaseEntity {
     private Integer cheDel;
 
     @ApiModelProperty("子菜单")
-    private List<PactEntity> childern;
+    private List<PactEntity> children;
 
     @Override
     public String toString() {

@@ -14,7 +14,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2023-11-05
+ * @since 2023-11-07
  */
 @Getter
 @Setter
@@ -38,6 +38,12 @@ public class RocketEntity extends BaseEntity {
      */
     @TableField("amount")
     private Integer amount;
+
+    /**
+     * 实际收款
+     */
+    @TableField("real_pay")
+    private Integer realPay;
 
     /**
      * 订单号

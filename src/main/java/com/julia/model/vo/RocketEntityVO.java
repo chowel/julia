@@ -19,7 +19,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2023-11-05
+ * @since 2023-11-07
  */
 @Getter
 @Setter
@@ -34,6 +34,9 @@ public class RocketEntityVO extends BaseEntity {
 
     @ApiModelProperty("金额")
     private Integer amount;
+
+    @ApiModelProperty("实际收款")
+    private Integer realPay;
 
     @ApiModelProperty("订单号")
     private String orderId;
@@ -65,6 +68,7 @@ public class RocketEntityVO extends BaseEntity {
             "rocketId = " + rocketId +
             ", url = " + url +
             ", amount = " + amount +
+            ", realPay = " + realPay +
             ", orderId = " + orderId +
             ", firstName = " + firstName +
             ", lastName = " + lastName +
