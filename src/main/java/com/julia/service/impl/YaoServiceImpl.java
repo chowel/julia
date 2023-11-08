@@ -94,5 +94,20 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
         vo.setPassword("******");
         return vo;
     }
+
+    @Override
+    public YaoEntityVO mySelf(Integer id) {
+        YaoEntity entity = getById(id);
+        YaoEntityVO vo = JuliaUtils.convertTo(new YaoEntityVO(),entity);
+        vo.setToken(StpUtil.getTokenValue());
+        return vo;
+    }
+
+    @Override
+    public String createToken(Integer id) {
+        YaoEntity entity = getById(id);
+        StpUtil.login(entity.getYaoId());
+        return StpUtil.getTokenValue();
+    }
 }
 

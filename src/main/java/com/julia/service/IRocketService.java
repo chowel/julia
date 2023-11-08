@@ -9,6 +9,7 @@ import com.julia.model.vo.RocketEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
+
 /**
  * <p>
  * 火箭业务 服务类
@@ -20,61 +21,93 @@ import com.julia.model.QueryPagement;
 
 public interface IRocketService extends IService<RocketEntity> {
     /**
-    * @Description: 分页查找
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date: 2023-11-01
-    */
+     * @Description: 分页查找
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date: 2023-11-01
+     */
     Page<CarOrderVO> findForPage(QueryPagement queryPagement);
 
     /**
-    * @Description: 根据id查找
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date: 2023-11-01
-    */
+     * @Description: 根据id查找
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date: 2023-11-01
+     */
     RocketEntityVO findOneById(Long id);
 
     /**
-    * @Description: 添加
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date: 2023-11-01
-    */
+     * @Description: 添加
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date: 2023-11-01
+     */
     Boolean saveRocketEntity(RocketEntityVO vo);
 
     /**
-    * @Description: 修改
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date: 2023-11-01
-    */
+     * @Description: 修改
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date: 2023-11-01
+     */
     Boolean alter(RocketEntityVO vo);
 
     /**
-    * @Description: 删除
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date: 2023-11-01
-    */
+     * @Description: 删除
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date: 2023-11-01
+     */
     Boolean remove(Long id);
 
     /**
-    * @Description: 车队收单操作
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date:
-    */
+     * @Description: 车队收单操作
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
     Boolean carOpera(CarOperaDTO dto);
 
-    Boolean inputRocketBatch(InputRocketListDTO lsit,int pId);
+    /**
+     * @Description: 盘方输入批量
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    Boolean inputRocketBatch(InputRocketListDTO lsit, int pId);
 
+    /**
+     * @Description: 盘方输入单条
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
     Boolean inputRocket(InputRocketDTO dto, int pId);
+
+    /**
+     * @Description: 根据订单号查询订单
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    CarOrderVO queryRocketByOrderId(String orderId, int pId);
+
+    /**
+     * @Description: 订单发起回调
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    Boolean noticeRocketByOrderId(String orderId, int pId);
 }
 

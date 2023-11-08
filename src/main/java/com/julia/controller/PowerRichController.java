@@ -7,14 +7,14 @@ import com.julia.model.dto.CarOperaDTO;
 import com.julia.model.dto.InputRocketDTO;
 import com.julia.model.dto.InputRocketListDTO;
 import com.julia.model.vo.CarOrderVO;
+import com.julia.model.vo.YaoEntityVO;
+import com.julia.service.IPowerService;
 import com.julia.service.IRocketService;
+import com.julia.service.IYaoService;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Map;
@@ -34,36 +34,56 @@ public class PowerRichController {
     @Resource
     IRocketService serviceImpl;
 
+    @Resource
+    IYaoService yaoService;
+
     @ApiOperation("分页查找")
-    @PostMapping("/querywhitpage")
-    public Rv<Page<CarOrderVO>> queryRocketEntityWhitPage(@RequestBody QueryPagement queryPagement) {
+    @PostMapping("/queryRich")
+    public Rv<Page<CarOrderVO>> queryRich(@RequestBody QueryPagement queryPagement) {
+        Map<String, Object> searchFields = queryPagement.getSearchFields();
+        searchFields.put("pId", StpUtil.getLoginIdAsInt());
         return new Rv<>(serviceImpl.findForPage(queryPagement));
     }
 
     @ApiOperation("批量输入")
     @PostMapping("/inputRockets")
     public Rv<Boolean> inputRockets(@RequestBody InputRocketListDTO list) {
-        return new Rv<>(serviceImpl.inputRocketBatch(list,StpUtil.getLoginIdAsInt()));
+        return new Rv<>(serviceImpl.inputRocketBatch(list, StpUtil.getLoginIdAsInt()));
     }
 
     @ApiOperation("单挑输入")
-    @PostMapping("/inputRockets")
+    @PostMapping("/inputRocket")
     public Rv<Boolean> inputRocket(@RequestBody InputRocketDTO dto) {
-        return new Rv<>(serviceImpl.inputRocket(dto,StpUtil.getLoginIdAsInt()));
+        return new Rv<>(serviceImpl.inputRocket(dto, StpUtil.getLoginIdAsInt()));
     }
 
-    @ApiOperation("分页查找")
-    @PostMapping("/carOpera")
-    public Rv<Boolean> carOpera(@RequestBody CarOperaDTO dto) {
-        dto.setCId(StpUtil.getLoginIdAsInt());
-        return new Rv<>(serviceImpl.carOpera(dto));
+    @ApiOperation("订单查询")
+    @GetMapping("/queryRocket/{orderId}")
+    public Rv<CarOrderVO> carOpera(@PathVariable("orderId") String orderId) {
+        return new Rv<>(serviceImpl.queryRocketByOrderId(orderId, StpUtil.getLoginIdAsInt()));
     }
 
-    @ApiOperation("查找完成订单byId")
-    @PostMapping("/queryRocketById")
-    public Rv<Page<CarOrderVO>> queryRocketById(@RequestBody QueryPagement queryPagement) {
-        Map<String,Object> searchFields = queryPagement.getSearchFields();
-        searchFields.put("yaoId",StpUtil.getLoginIdAsInt());
-        return new Rv<>(serviceImpl.findForPage(queryPagement));
+    @ApiOperation("发起订单回调")
+    @GetMapping("/notification/{orderId}")
+    public Rv<Boolean> notification(@PathVariable("orderId") String orderId) {
+        return new Rv<>(serviceImpl.noticeRocketByOrderId(orderId, StpUtil.getLoginIdAsInt()));
+    }
+
+    @ApiOperation("个人信息")
+    @GetMapping("/querySelf")
+    public Rv<YaoEntityVO> querySelf() {
+        return new Rv<>(yaoService.mySelf(StpUtil.getLoginIdAsInt()));
+    }
+
+    @ApiOperation("生成token")
+    @GetMapping("/getToken")
+    public Rv<String> getToken() {
+        return new Rv<>(yaoService.createToken(StpUtil.getLoginIdAsInt()));
+    }
+
+    @ApiOperation("修改")
+    @PostMapping("/changed")
+    public Rv<Boolean> changedYaoEntityOne(@RequestBody YaoEntityVO vo) {
+        return new Rv<>(yaoService.alter(vo));
     }
 }

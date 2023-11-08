@@ -35,3 +35,5 @@ swagger:
   enabled: true
 file:
   uploadurl: "/home/upload/images/"
+sign:
+  salt: ID6IxM1YzwDMN

@@ -41,7 +41,7 @@ public class PowerCarController {
         return new Rv<>(serviceImpl.findForPage(queryPagement));
     }
 
-    @ApiOperation("分页查找")
+    @ApiOperation("订单操作")
     @PostMapping("/carOpera")
     public Rv<Boolean> carOpera(@RequestBody CarOperaDTO dto) {
         dto.setCId(StpUtil.getLoginIdAsInt());
@@ -52,7 +52,7 @@ public class PowerCarController {
     @PostMapping("/queryRocketById")
     public Rv<Page<CarOrderVO>> queryRocketById(@RequestBody QueryPagement queryPagement) {
         Map<String,Object> searchFields = queryPagement.getSearchFields();
-        searchFields.put("yaoId",StpUtil.getLoginIdAsInt());
+        searchFields.put("cId",StpUtil.getLoginIdAsInt());
         return new Rv<>(serviceImpl.findForPage(queryPagement));
     }
 }
