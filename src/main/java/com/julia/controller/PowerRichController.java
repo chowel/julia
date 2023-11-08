@@ -4,20 +4,19 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
 import com.julia.model.dto.CarOperaDTO;
+import com.julia.model.dto.InputRocketDTO;
+import com.julia.model.dto.InputRocketListDTO;
 import com.julia.model.vo.CarOrderVO;
-import com.julia.model.vo.RocketEntityVO;
 import com.julia.service.IRocketService;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -27,10 +26,10 @@ import java.util.Map;
  * @create: 2023-11-07 17:08
  **/
 
-@Api(tags = "车队接口")
+@Api(tags = "盘方接口")
 @RestController
-@RequestMapping("/julia/car")
-public class PowerCarController {
+@RequestMapping("/julia/rich")
+public class PowerRichController {
 
     @Resource
     IRocketService serviceImpl;
@@ -39,6 +38,18 @@ public class PowerCarController {
     @PostMapping("/querywhitpage")
     public Rv<Page<CarOrderVO>> queryRocketEntityWhitPage(@RequestBody QueryPagement queryPagement) {
         return new Rv<>(serviceImpl.findForPage(queryPagement));
+    }
+
+    @ApiOperation("批量输入")
+    @PostMapping("/inputRockets")
+    public Rv<Boolean> inputRockets(@RequestBody InputRocketListDTO list) {
+        return new Rv<>(serviceImpl.inputRocketBatch(list,StpUtil.getLoginIdAsInt()));
+    }
+
+    @ApiOperation("单挑输入")
+    @PostMapping("/inputRockets")
+    public Rv<Boolean> inputRocket(@RequestBody InputRocketDTO dto) {
+        return new Rv<>(serviceImpl.inputRocket(dto,StpUtil.getLoginIdAsInt()));
     }
 
     @ApiOperation("分页查找")

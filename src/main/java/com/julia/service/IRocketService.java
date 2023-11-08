@@ -2,6 +2,8 @@ package com.julia.service;
 
 import com.julia.entity.RocketEntity;
 import com.julia.model.dto.CarOperaDTO;
+import com.julia.model.dto.InputRocketDTO;
+import com.julia.model.dto.InputRocketListDTO;
 import com.julia.model.vo.CarOrderVO;
 import com.julia.model.vo.RocketEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -70,5 +72,9 @@ public interface IRocketService extends IService<RocketEntity> {
     * @Date:
     */
     Boolean carOpera(CarOperaDTO dto);
+
+    Boolean inputRocketBatch(InputRocketListDTO lsit,int pId);
+
+    Boolean inputRocket(InputRocketDTO dto, int pId);
 }
 
