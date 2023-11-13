@@ -23,7 +23,6 @@ public class InputRocketDTO {
     @ApiModelProperty("金额")
     private Integer amount;
 
-
     @ApiModelProperty("订单号")
     private String orderId;
 
@@ -32,5 +31,8 @@ public class InputRocketDTO {
 
     @ApiModelProperty("名")
     private String lastName;
+
+    @ApiModelProperty("pId")
+    private Integer pId;
 
 }

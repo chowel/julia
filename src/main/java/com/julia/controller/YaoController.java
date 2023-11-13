@@ -25,7 +25,7 @@ import java.util.List;
  */
 @Api(tags = "账号")
 @RestController
-@RequestMapping("/profess/yaoEntity")
+@RequestMapping("/julia/profess/yaoEntity")
 public class YaoController {
     @Resource
     IYaoService serviceImpl;
@@ -49,7 +49,7 @@ public class YaoController {
 
     @ApiOperation("修改")
     @PostMapping("/changed")
-    public Rv<Boolean> changedYaoEntityOne(@RequestBody YaoEntityVO vo) {
+    public Rv<Boolean> changedYao(@RequestBody YaoEntityVO vo) {
         return new Rv<>(serviceImpl.alter(vo));
     }
 

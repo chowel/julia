@@ -23,7 +23,7 @@ import javax.annotation.Resource;
  */
 @Api(tags = "权限表")
 @RestController
-@RequestMapping("/profess/powerEntity")
+@RequestMapping("/julia/profess/powerEntity")
 public class PowerController {
     @Resource
     IPowerService serviceImpl;

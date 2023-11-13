@@ -22,17 +22,18 @@ import org.springframework.stereotype.Service;
 import com.julia.model.vo.RocketEntityVO;
 import com.julia.tool.JuliaUtils;
 import com.julia.model.QueryPagement;
-import org.springframework.util.DigestUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.ObjectUtils;
+import org.springframework.util.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +57,9 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
 
     @Value("${sign.salt}")
     private String SIGNSALT;
+
+    @Value("${file.uploadurl}")
+    private String uploadPath;
 
     @Override
     public Page<CarOrderVO> findForPage(QueryPagement queryPagement) {
@@ -125,7 +129,13 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
         params.put("payTime", entity.getDoneTime());
         params.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
 
-        handleCallBack(pYao.getCallback(),params);
+
+        String callbackReturn = handleCallBack(pYao.getCallback(), params);
+        if ("success".equals(callbackReturn)) {
+            entity.setCheckCallback(1);
+        } else {
+            entity.setCheckCallback(2);
+        }
         entity.setStatus(1);
         entity.setDoneTime(System.currentTimeMillis());
         return updateById(entity);
@@ -175,20 +185,69 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
         params.put("payTime", entity.getDoneTime());
         params.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
 
-        handleCallBack(yao.getCallback(),params);
+        String callbackReturn = handleCallBack(yao.getCallback(), params);
+        if ("success".equals(callbackReturn)) {
+            if (entity.getCheckCallback() != 1) {
+                entity.setCheckCallback(1);
+                entity.setDoneTime(System.currentTimeMillis());
+                this.updateById(entity);
+            }
+        }
         return true;
     }
 
-    protected String handleCallBack(String url,Map<String, Object> params){
+    @Override
+    public Boolean Deposit(MultipartFile file, InputRocketDTO dto) {
+        if (file.isEmpty()) {
+            throw new JuliaException("请选择文件！");
+        }
+        String imageUrl;
+        String fileLateName;
+        try {
+            // 获取文件名
+            String oldFileName = file.getOriginalFilename();
+            fileLateName = oldFileName.substring(oldFileName.lastIndexOf("."));
+
+
+            String realyFileName = UUID.randomUUID().toString().replace("-", "")
+                    + fileLateName;
+
+            logger.info(realyFileName);
+            File fileDir = new File(uploadPath + "/");
+            if (!fileDir.isDirectory()) {
+                //递归生成文件夹
+                fileDir.mkdirs();
+            }
+            file.transferTo(new File(fileDir, realyFileName));
+
+            RocketEntity rocket = new RocketEntity();
+            rocket.setPId(dto.getPId());
+            rocket.setAmount(dto.getAmount());
+            rocket.setOrderId(dto.getOrderId());
+            rocket.setFirstName(dto.getFirstName());
+            if(StringUtils.hasLength(dto.getLastName())){
+                rocket.setLastName(dto.getLastName());
+            }
+            rocket.setUrl(realyFileName);
+            save(rocket);
+
+        } catch (Exception e) {
+            throw new JuliaException("文件上传失败！");
+        }
+        return true;
+    }
+
+    protected String handleCallBack(String url, Map<String, Object> params) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(params, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
         if (response.getStatusCode() == HttpStatus.OK) {
-            logger.info("回调友商成功!");
+            logger.info(response.getBody());
+            return response.getBody();
         }
-        return "";
+        return null;
     }
 
 

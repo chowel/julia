@@ -2,6 +2,7 @@ package com.julia.service;
 
 import com.julia.entity.YaoEntity;
 import com.julia.model.dto.LoginDto;
+import com.julia.model.dto.MidPasswordDto;
 import com.julia.model.vo.YaoEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -80,7 +81,17 @@ public interface IYaoService extends IService<YaoEntity> {
      */
     YaoEntityVO mySelf(Integer id);
 
+    /**
+     * @Description: 更新token
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
     String createToken(Integer id);
+
+
+    Boolean alterPassword(MidPasswordDto dto);
 
 }
 

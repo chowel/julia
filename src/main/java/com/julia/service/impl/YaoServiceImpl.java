@@ -10,6 +10,7 @@ import com.julia.entity.YaoEntity;
 import com.julia.mapper.PactMapper;
 import com.julia.mapper.YaoMapper;
 import com.julia.model.dto.LoginDto;
+import com.julia.model.dto.MidPasswordDto;
 import com.julia.model.vo.PactEntityVO;
 import com.julia.service.IYaoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -19,6 +20,7 @@ import com.julia.model.vo.YaoEntityVO;
 import com.julia.tool.JuliaUtils;
 import com.julia.model.QueryPagement;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -35,8 +37,6 @@ import java.util.stream.Collectors;
 @Service
 public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements IYaoService {
 
-    @Resource
-    PactMapper pactMapper;
 
     @Override
     public Page<YaoEntityVO> findForPage(QueryPagement queryPagement) {
@@ -55,6 +55,9 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
 
     @Override
     public Boolean saveYaoEntity(YaoEntityVO vo) {
+        if(StringUtils.hasLength(vo.getPassword())){
+            vo.setPassword(BCrypt.hashpw(vo.getPassword()));
+        }
         return save(JuliaUtils.convertTo(new YaoEntity(), vo));
     }
 
@@ -108,6 +111,16 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
         YaoEntity entity = getById(id);
         StpUtil.login(entity.getYaoId());
         return StpUtil.getTokenValue();
+    }
+
+    @Override
+    public Boolean alterPassword(MidPasswordDto dto) {
+        YaoEntity entity = getById(dto.getYaoId());
+        if (!BCrypt.checkpw(dto.getPassword(), entity.getPassword())) {
+            throw new JuliaException("旧密码错误");
+        }
+        entity.setPassword(BCrypt.hashpw(dto.getNewPassword()));
+        return updateById(entity);
     }
 }
 

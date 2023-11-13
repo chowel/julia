@@ -9,6 +9,7 @@ import com.julia.model.vo.RocketEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -109,5 +110,14 @@ public interface IRocketService extends IService<RocketEntity> {
      * @Date:
      */
     Boolean noticeRocketByOrderId(String orderId, int pId);
+
+    /**
+     * @Description: 收款
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    Boolean Deposit(MultipartFile file, InputRocketDTO dto);
 }
 

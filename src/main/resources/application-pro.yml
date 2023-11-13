@@ -2,7 +2,7 @@ server:
   port: 9022
 spring:
   datasource:
-    url: jdbc:mysql://8.130.91.109:3306/yaoyao?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://mysql:3306/yaoyao?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
     password: PgFrPRbs5uY
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,7 +16,7 @@ spring:
       max-lifetime: 60000
   redis:
     database: 0
-    host: 8.130.91.109
+    host: redis
     password: PDY1k6wFxN
     port: 6379
     lettuce:
@@ -34,6 +34,6 @@ spring:
 swagger:
   enabled: true
 file:
-  uploadurl: "/Users/chenchengwei/project/chowel_master/resources/upload"
+  uploadurl: "/home/upload/images/"
 sign:
   salt: ID6IxM1YzwDMN

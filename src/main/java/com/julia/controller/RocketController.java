@@ -23,7 +23,7 @@ import javax.annotation.Resource;
  */
 @Api(tags = "火箭业务")
 @RestController
-@RequestMapping("/profess/rocketEntity")
+@RequestMapping("/julia/profess/rocketEntity")
 public class RocketController {
     @Resource
     IRocketService serviceImpl;

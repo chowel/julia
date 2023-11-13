@@ -6,6 +6,7 @@ import com.julia.model.QueryPagement;
 import com.julia.model.dto.CarOperaDTO;
 import com.julia.model.dto.InputRocketDTO;
 import com.julia.model.dto.InputRocketListDTO;
+import com.julia.model.dto.MidPasswordDto;
 import com.julia.model.vo.CarOrderVO;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IPowerService;
@@ -15,6 +16,7 @@ import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.util.Map;
@@ -28,7 +30,7 @@ import java.util.Map;
 
 @Api(tags = "盘方接口")
 @RestController
-@RequestMapping("/julia/rich")
+@RequestMapping("/julia/profess/rich")
 public class PowerRichController {
 
     @Resource
@@ -55,6 +57,13 @@ public class PowerRichController {
     @PostMapping("/inputRocket")
     public Rv<Boolean> inputRocket(@RequestBody InputRocketDTO dto) {
         return new Rv<>(serviceImpl.inputRocket(dto, StpUtil.getLoginIdAsInt()));
+    }
+
+    @ApiOperation("收银")
+    @PostMapping("/rocketByDeposit")
+    public Rv<Boolean> rocketByDeposit(@RequestParam("file") MultipartFile file, InputRocketDTO dto) {
+        dto.setPId(StpUtil.getLoginIdAsInt());
+        return new Rv<>(serviceImpl.Deposit(file, dto));
     }
 
     @ApiOperation("订单查询")
@@ -85,5 +94,12 @@ public class PowerRichController {
     @PostMapping("/changed")
     public Rv<Boolean> changedYaoEntityOne(@RequestBody YaoEntityVO vo) {
         return new Rv<>(yaoService.alter(vo));
+    }
+
+    @ApiOperation("修改密码")
+    @PostMapping("/changedpw")
+    public Rv<Boolean> changedpw(@RequestBody MidPasswordDto dto) {
+        dto.setYaoId(StpUtil.getLoginIdAsInt());
+        return new Rv<>(yaoService.alterPassword(dto));
     }
 }

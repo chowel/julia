@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 @Api(tags = "菜单/接口权限項")
 @RestController
-@RequestMapping("/profess/pactEntity")
+@RequestMapping("/julia/profess/pactEntity")
 public class PactController {
     @Resource
     IPactService serviceImpl;
