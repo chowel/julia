@@ -18,13 +18,14 @@
         <result column="status" property="status" />
         <result column="check_callback" property="checkCallback" />
         <result column="done_time" property="doneTime" />
+        <result column="msg" property="msg" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        rocket_id, url, amount, real_pay, order_id, first_name, last_name, c_id, p_id, status, check_callback, done_time
+        rocket_id, url, amount, real_pay, order_id, first_name, last_name, c_id, p_id, status, check_callback, done_time, msg
     </sql>
 
 </mapper>

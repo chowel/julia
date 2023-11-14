@@ -1,14 +1,17 @@
 package com.julia.controller;
 
+import com.julia.model.CaptchaVo;
 import com.julia.model.dto.LoginDto;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IYaoService;
+import com.julia.tool.Captcha;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 
 /**
  * @program: julia
@@ -33,7 +36,13 @@ public class ApiController {
 
     @ApiOperation("test")
     @GetMapping("/test")
-    public Rv<String> test() {
-        return new Rv<>("Test Ok: ");
+    public Rv<CaptchaVo> test() {
+        try {
+            CaptchaVo vo = Captcha.createCode();
+            return new Rv<>(vo);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

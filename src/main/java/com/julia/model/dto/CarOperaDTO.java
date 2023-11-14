@@ -23,4 +23,10 @@ public class CarOperaDTO {
 
     @ApiModelProperty("c用户id")
     private Integer cId;
+
+    @ApiModelProperty("操作标识 1:成功  2 失败")
+    private Integer flag;
+
+    @ApiModelProperty("失败理由")
+    private String msg;
 }

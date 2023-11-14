@@ -46,7 +46,7 @@ public class CarOrderVO {
     @ApiModelProperty("名")
     private String lastName;
 
-    @ApiModelProperty("状态 0 : 未操作 1: 已操作")
+    @ApiModelProperty("状态 0 : 未操作 1: 已操作成功  2:已操作失败")
     private Integer status;
 
     @ApiModelProperty("p用户回调 0:未通知  1:收到成功 2:收到失败")
@@ -54,6 +54,9 @@ public class CarOrderVO {
 
     @ApiModelProperty("操作时间 时间戳")
     private Long doneTime;
+
+    @ApiModelProperty("操作时间 时间戳")
+    private String msg;
 
     /**
      * 创建时间

@@ -14,7 +14,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2023-11-07
+ * @since 2023-11-13
  */
 @Getter
 @Setter
@@ -76,7 +76,7 @@ public class RocketEntity extends BaseEntity {
     private Integer pId;
 
     /**
-     * 状态 0 : 未操作 1: 已操作
+     * 状态 0 : 未操作 1: 已操作成功  2:已操作失败
      */
     @TableField("status")
     private Integer status;
@@ -92,4 +92,10 @@ public class RocketEntity extends BaseEntity {
      */
     @TableField("done_time")
     private Long doneTime;
+
+    /**
+     * 失败原因
+     */
+    @TableField("msg")
+    private String msg;
 }

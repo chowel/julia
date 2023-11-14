@@ -34,6 +34,6 @@ spring:
 swagger:
   enabled: true
 file:
-  uploadurl: "/home/upload/images/"
+  uploadurl: "/home/upload/images/julia/"
 sign:
   salt: ID6IxM1YzwDMN
