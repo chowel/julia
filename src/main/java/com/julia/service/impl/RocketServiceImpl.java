@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import com.julia.model.vo.RocketEntityVO;
 import com.julia.tool.JuliaUtils;
 import com.julia.model.QueryPagement;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -110,7 +111,17 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
     }
 
     @Override
+    @Transactional
     public Boolean carOpera(CarOperaDTO dto) {
+
+        YaoEntity cYao = yaoMapper.selectById(dto.getCId());
+        int cyaoCoin = cYao.getCoin();
+        if (cyaoCoin < dto.getRealPay()) {
+            throw new JuliaException("车队押金不足");
+        }
+        cYao.setCoin(cyaoCoin - dto.getRealPay());
+        yaoMapper.updateById(cYao);
+
         RocketEntity entity = getById(dto.getRocketId());
         if (ObjectUtils.isEmpty(entity)) {
             throw new JuliaException("操作异常");
@@ -118,7 +129,7 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
         entity.setRealPay(dto.getRealPay());
         entity.setCId(dto.getCId());
         entity.setStatus(dto.getFlag());
-        if(StringUtils.hasLength(dto.getMsg())){
+        if (StringUtils.hasLength(dto.getMsg())) {
             entity.setMsg(dto.getMsg());
         }
         entity.setDoneTime(System.currentTimeMillis());
@@ -138,7 +149,7 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
 
 
         String callbackReturn = handleCallBack(pYao.getCallback(), params);
-        logger.info("回调返回: "+callbackReturn);
+        logger.info("回调返回: " + callbackReturn);
         if ("success".equals(callbackReturn)) {
             entity.setCheckCallback(1);
         } else {
@@ -231,7 +242,7 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
             rocket.setAmount(dto.getAmount());
             rocket.setOrderId(dto.getOrderId());
             rocket.setFirstName(dto.getFirstName());
-            if(StringUtils.hasLength(dto.getLastName())){
+            if (StringUtils.hasLength(dto.getLastName())) {
                 rocket.setLastName(dto.getLastName());
             }
             rocket.setUrl(realyFileName);

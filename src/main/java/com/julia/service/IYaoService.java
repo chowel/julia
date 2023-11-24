@@ -90,8 +90,16 @@ public interface IYaoService extends IService<YaoEntity> {
      */
     String createToken(Integer id);
 
-
+/**
+* @Description: 修改密码
+* @Param:
+* @return:
+* @Author: chowel
+* @Date:
+*/
     Boolean alterPassword(MidPasswordDto dto);
+
+    Boolean altercCoin(YaoEntityVO vo,int pId);
 
 }
 

@@ -1,5 +1,6 @@
 package com.julia.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.julia.model.vo.PactEntityVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.model.QueryPagement;
 import com.julia.tool.Rv;
+
 import javax.annotation.Resource;
 import java.util.List;
 
@@ -39,12 +41,13 @@ public class YaoController {
     @ApiOperation("根据id查找")
     @GetMapping("/query/{id}")
     public Rv<YaoEntityVO> getYaoEntityOne(@PathVariable Long id) {
-        return new Rv<>(serviceImpl.findOneById(id)); }
+        return new Rv<>(serviceImpl.findOneById(id));
+    }
 
     @ApiOperation("添加")
     @PostMapping("/add")
     public Rv<Boolean> addYaoEntityOne(@RequestBody YaoEntityVO vo) {
-            return new Rv<>(serviceImpl.saveYaoEntity(vo));
+        return new Rv<>(serviceImpl.saveYaoEntity(vo));
     }
 
     @ApiOperation("修改")
@@ -56,7 +59,13 @@ public class YaoController {
     @ApiOperation("删除")
     @GetMapping("/del/{id}")
     public Rv<Boolean> delYaoEntityById(@PathVariable Long id) {
-          return new Rv<>(serviceImpl.remove(id));
+        return new Rv<>(serviceImpl.remove(id));
+    }
+
+    @ApiOperation("加金")
+    @PostMapping("/addGold")
+    public Rv<Boolean> addGold(@RequestBody YaoEntityVO vo) {
+        return new Rv<>(serviceImpl.altercCoin(vo, StpUtil.getLoginIdAsInt()));
     }
 
 }

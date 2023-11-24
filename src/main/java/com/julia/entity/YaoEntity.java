@@ -14,7 +14,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2023-11-01
+ * @since 2023-11-22
  */
 @Getter
 @Setter
@@ -92,4 +92,10 @@ public class YaoEntity extends BaseEntity {
      */
     @TableField("callback")
     private String callback;
+
+    /**
+     * 车队押金
+     */
+    @TableField("coin")
+    private Integer coin;
 }

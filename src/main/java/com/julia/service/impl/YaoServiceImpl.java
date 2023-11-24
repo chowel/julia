@@ -5,8 +5,10 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.julia.entity.CoinLogEntity;
 import com.julia.entity.PactEntity;
 import com.julia.entity.YaoEntity;
+import com.julia.mapper.CoinLogMapper;
 import com.julia.mapper.PactMapper;
 import com.julia.mapper.YaoMapper;
 import com.julia.model.dto.LoginDto;
@@ -19,11 +21,13 @@ import org.springframework.stereotype.Service;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.tool.JuliaUtils;
 import com.julia.model.QueryPagement;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -37,10 +41,21 @@ import java.util.stream.Collectors;
 @Service
 public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements IYaoService {
 
+    @Resource
+    CoinLogMapper coinLogMapper;
+
 
     @Override
     public Page<YaoEntityVO> findForPage(QueryPagement queryPagement) {
-        Page<YaoEntity> p = new LambdaQueryChainWrapper<YaoEntity>(getBaseMapper()).page(new Page<YaoEntity>(queryPagement.getStartPage(),
+        int roleId = 0;
+        Map<String, Object> searchFields = queryPagement.getSearchFields();
+        if (searchFields.containsKey("roleId")) {
+            roleId = (int) queryPagement.getSearchFields().get("roleId");
+        }
+
+        Page<YaoEntity> p = new LambdaQueryChainWrapper<YaoEntity>(getBaseMapper())
+                .eq(roleId>0,YaoEntity::getRoleId,roleId)
+                .page(new Page<YaoEntity>(queryPagement.getStartPage(),
                 queryPagement.getPageSize()));
         Page<YaoEntityVO> page = JuliaUtils.convertTo(new Page<YaoEntityVO>(), p);
         page.setRecords(p.getRecords().stream().map(e -> JuliaUtils.convertTo(new YaoEntityVO(), e)).collect(Collectors.toList()));
@@ -55,7 +70,7 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
 
     @Override
     public Boolean saveYaoEntity(YaoEntityVO vo) {
-        if(StringUtils.hasLength(vo.getPassword())){
+        if (StringUtils.hasLength(vo.getPassword())) {
             vo.setPassword(BCrypt.hashpw(vo.getPassword()));
         }
         return save(JuliaUtils.convertTo(new YaoEntity(), vo));
@@ -83,13 +98,13 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
             throw new JuliaException("用户禁用");
         }
 
-        if (!BCrypt.checkpw(dto.getPassword(),yao.getPassword())) {
+        if (!BCrypt.checkpw(dto.getPassword(), yao.getPassword())) {
             throw new JuliaException("密码错误");
         }
 
 //        List<PactEntity> pactList  =  pactMapper.getPackByPowerId(yao.getRoleId());
 
-        YaoEntityVO vo = JuliaUtils.convertTo(new YaoEntityVO(),yao);
+        YaoEntityVO vo = JuliaUtils.convertTo(new YaoEntityVO(), yao);
 
 //        vo.setMenus();
         StpUtil.login(yao.getYaoId());
@@ -101,7 +116,7 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
     @Override
     public YaoEntityVO mySelf(Integer id) {
         YaoEntity entity = getById(id);
-        YaoEntityVO vo = JuliaUtils.convertTo(new YaoEntityVO(),entity);
+        YaoEntityVO vo = JuliaUtils.convertTo(new YaoEntityVO(), entity);
         vo.setToken(StpUtil.getTokenValue());
         return vo;
     }
@@ -121,6 +136,26 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
         }
         entity.setPassword(BCrypt.hashpw(dto.getNewPassword()));
         return updateById(entity);
+    }
+
+    @Override
+    @Transactional
+    public Boolean altercCoin(YaoEntityVO vo,int pId) {
+        YaoEntity entity = getById(vo.getYaoId());
+        // todo 加锁
+        int coin = entity.getCoin() + vo.getCoin();
+        if (coin < 0) {
+            coin = 0;
+        }
+        entity.setCoin(coin);
+        updateById(entity);
+
+        CoinLogEntity coinLog = new CoinLogEntity();
+        coinLog.setCId(vo.getYaoId());
+        coinLog.setCoin(vo.getCoin());
+        coinLog.setYId(pId);
+        coinLogMapper.insert(coinLog);
+        return true;
     }
 }
 

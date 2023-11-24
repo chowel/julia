@@ -70,6 +70,9 @@ public class YaoEntityVO extends BaseEntity {
     @ApiModelProperty("菜单组")
     private List<PactEntityVO> menus;
 
+    @ApiModelProperty("车队押金")
+    private Integer coin;
+
     @Override
     public String toString() {
         return "{" +

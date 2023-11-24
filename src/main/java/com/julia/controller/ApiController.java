@@ -4,6 +4,7 @@ import com.julia.model.CaptchaVo;
 import com.julia.model.dto.LoginDto;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IYaoService;
+import com.julia.service.impl.WebSocketService;
 import com.julia.tool.Captcha;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @program: julia
@@ -28,6 +31,9 @@ public class ApiController {
     @Resource
     IYaoService yaoService;
 
+    @Resource
+    WebSocketService webSocketService;
+
     @ApiOperation("登陆/获取token")
     @PostMapping("/login")
     public Rv<YaoEntityVO> platLogin(@RequestBody LoginDto dto) {
@@ -36,13 +42,10 @@ public class ApiController {
 
     @ApiOperation("test")
     @GetMapping("/test")
-    public Rv<CaptchaVo> test() {
-        try {
-            CaptchaVo vo = Captcha.createCode();
-            return new Rv<>(vo);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public Rv<String> test() {
+
+        List<String> set = webSocketService.getAliveByZset();
+        System.out.println(set.size());
+        return new Rv<>("OK");
     }
 }

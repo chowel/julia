@@ -50,7 +50,8 @@ dependencies {
 //    implementation group: 'com.alipay.sdk', name: 'alipay-sdk-java', version: '4.38.98.ALL'
     compileOnly 'org.projectlombok:lombok:1.18.12'
     testImplementation 'org.springframework.boot:spring-boot-starter-test:2.5.5'
-
+    implementation 'io.netty:netty-all:4.1.77.Final'
+    implementation 'com.google.code.gson:gson:2.8.5'
 }
 
 bootJar {
