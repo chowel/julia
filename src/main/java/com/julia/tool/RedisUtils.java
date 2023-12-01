@@ -775,4 +775,14 @@ public class RedisUtils {
     public Long removeByValue(String key,String value){
        return redisTemplate.opsForZSet().remove(key, value);
     }
+    /**
+    * @Description: 查找指定前缀的key
+    * @Param:
+    * @return:
+    * @Author: chowel
+    * @Date:
+    */
+    public Set<String> getSetByKey(String prefix){
+        return redisTemplate.keys(prefix + "*");
+    }
 }

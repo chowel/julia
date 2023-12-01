@@ -9,9 +9,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Objects;
@@ -203,5 +201,24 @@ public class JuliaUtils {
             arr[j] = (char) a;
         }
         return String.valueOf(System.currentTimeMillis()) + String.valueOf(orderId) + String.valueOf(arr);
+    }
+
+    /**
+     * @Description: 获取今天11:59:59时间戳
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public static Long todayTime() {
+        // 定义日期格式
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        // 获取今天的日期时间
+        LocalDateTime today = LocalDateTime.now();
+        // 设置时间为11:59:59
+        LocalDateTime targetTime = LocalDateTime.of(today.getYear(), today.getMonth(), today.getDayOfMonth(), 23, 59,
+                59);
+        return targetTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+
     }
 }

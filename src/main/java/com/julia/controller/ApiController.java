@@ -5,10 +5,14 @@ import com.julia.model.dto.LoginDto;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IYaoService;
 import com.julia.service.impl.WebSocketService;
+import com.julia.socket.ChannelPond;
 import com.julia.tool.Captcha;
+import com.julia.tool.JuliaUtils;
 import com.julia.tool.Rv;
+import io.netty.channel.Channel;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -22,7 +26,7 @@ import java.util.Set;
  * @author: Chowel.Master
  * @create: 2023-11-01 14:49
  **/
-
+@Log4j2
 @Api(tags = "通用接口不要token")
 @RestController
 @RequestMapping("/julia/api")
@@ -43,9 +47,10 @@ public class ApiController {
     @ApiOperation("test")
     @GetMapping("/test")
     public Rv<String> test() {
-
-        List<String> set = webSocketService.getAliveByZset();
-        System.out.println(set.size());
-        return new Rv<>("OK");
+        Long n = System.currentTimeMillis();
+        Long t = JuliaUtils.todayTime();
+        log.info("t:{}",t-n);
+        int s = (int) ((t-n)/1000);
+        return new Rv<>("OK: "+s);
     }
 }

@@ -54,6 +54,9 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
     YaoMapper yaoMapper;
 
     @Resource
+    WebSocketService webSocketService;
+
+    @Resource
     private RestTemplate restTemplate;
 
     @Value("${sign.salt}")
@@ -247,6 +250,10 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
             }
             rocket.setUrl(realyFileName);
             save(rocket);
+
+            RocketEntity saved = this.getById(rocket.getRocketId());
+
+            webSocketService.handleDeposit(saved);
 
         } catch (Exception e) {
             throw new JuliaException("文件上传失败！");

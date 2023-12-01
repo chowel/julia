@@ -70,8 +70,8 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         //断开连接
-        log.info("客户端断开连接：" + ctx.channel());
         String removeId = ChannelPond.removeChannel(ctx.channel());
+        log.info("客户端断开连接：" + removeId);
         nioWebSocketHandler.service.delByUserid(removeId);
     }
 
@@ -104,7 +104,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         // 业务处理
 //        nioWebSocketHandler.service.handleMsg(request);
         // 需要当前频道的业务处理
-//        nioWebSocketHandler.service.handleMsgByChannel(request,ctx.channel());
+        nioWebSocketHandler.service.handleMsgWhitChannel(request,ctx.channel());
 
     }
 
@@ -140,6 +140,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
             String id = (String) StpUtil.getLoginIdByToken(uriArr[2]);
             ChannelPond.addChannel(ctx.channel(),id);
+            // 加入
             nioWebSocketHandler.service.joinZset(id);
         } else {
             sendHttpResponse(ctx, req, new DefaultFullHttpResponse(

@@ -22,42 +22,58 @@ import java.util.concurrent.ConcurrentMap;
  **/
 public class ChannelPond {
 
-    private static final ChannelGroup GlobalGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+    private static final ChannelGroup GLOBAL_GROUP = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
-    private static ConcurrentMap<String, ChannelId> POND = new ConcurrentHashMap();
+    private static final ConcurrentHashMap<String, ChannelId> POND = new ConcurrentHashMap();
 
     public static void addChannel(Channel channel, String userId) {
         ChannelId temp = POND.get(userId);
         if (ObjectUtils.isEmpty(temp)) {
-            GlobalGroup.add(channel);
-            POND.put(userId, channel.id());
+            GLOBAL_GROUP.add(channel);
+            POND.putIfAbsent(userId, channel.id());
         } else {
-            Channel c = GlobalGroup.find(temp);
-
+            Channel c = GLOBAL_GROUP.find(temp);
             if(ObjectUtils.isEmpty(c)){
-                GlobalGroup.add(channel);
+                GLOBAL_GROUP.add(channel);
             }
         }
+        ChannelId bemp = POND.get(userId);
+        bemp.asShortText();
     }
 
     public static String removeChannel(Channel channel) {
-        GlobalGroup.remove(channel);
-        String UserId = "";
+        String userId = "";
         Iterator<ConcurrentMap.Entry<String, ChannelId>> iterator = POND.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, ChannelId> next = iterator.next();
-            UserId = next.getKey();
             ChannelId value = next.getValue();
-            if (channel.id() == value) {
+            if (channel.id().equals(value)) {
+                userId = next.getKey();
                 iterator.remove();
             }
         }
+        return userId;
+    }
 
-        return UserId;
+    public static String findUserIdByChannel(Channel c){
+        String userId = "";
+        Iterator<ConcurrentMap.Entry<String, ChannelId>> iterator = POND.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, ChannelId> next = iterator.next();
+            ChannelId value = next.getValue();
+            if (c.id() == value) {
+                userId = next.getKey();
+            }
+        }
+        return userId;
     }
 
     public static Channel findChannel(String userId) {
-        return GlobalGroup.find(POND.get(userId));
+        ChannelId channelId = POND.get(userId);
+        if(ObjectUtils.isEmpty(channelId)){
+            return null;
+        }
+        return GLOBAL_GROUP.find(channelId);
     }
 
     public static List<String> getAliveCheChe(){

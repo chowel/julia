@@ -76,7 +76,7 @@ public class RocketEntity extends BaseEntity {
     private Integer pId;
 
     /**
-     * 状态 0 : 未操作 1: 已操作成功  2:已操作失败
+     * 状态 0 : 未操作 1: 已操作成功  2:已操作失败 3:过期未操作
      */
     @TableField("status")
     private Integer status;
