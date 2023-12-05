@@ -165,7 +165,28 @@ public class WebSocketService {
         }
     }
 
-    private List<RocketEntity> getRocketsByUserId(String userId){
+    /**
+     * @Description: 处理车队操作
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public void handleCarOpera(YaoEntity yao, RocketEntity rocket) {
+        // 车队个人池中删除
+        redisUtils.hdel(RedisKeyEnum.CAR_POND.getKey() + yao.getYaoId(), rocket.getOrderId());
+        // 公共池中删除
+        redisUtils.del(RedisKeyEnum.COMMON_POND.getKey() + yao.getYaoId() + rocket.getOrderId());
+
+        String yaoId = String.valueOf(yao.getYaoId());
+
+        redisUtils.addZset(RedisKeyEnum.CAR_ALIVE.getKey(), yaoId, yao.getCoin());
+
+        Channel userChannel = ChannelPond.findChannel(String.valueOf(yao.getYaoId()));
+        handleConnect(userChannel);
+    }
+
+    private List<RocketEntity> getRocketsByUserId(String userId) {
         Map<Object, Object> map = redisUtils.hmget(RedisKeyEnum.CAR_POND.getKey() + userId);
         List<Object> list = new ArrayList<>(map.values());
         return list.stream().map(e -> (RocketEntity) e).collect(Collectors.toList());

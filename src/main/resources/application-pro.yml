@@ -29,8 +29,8 @@ spring:
   application:
     name: weal-dev
 # 日志配置
-#logging:
-#  config: classpath:logback-spring-dev.xml
+logging:
+  config: classpath:logback-spring-pro.xml
 swagger:
   enabled: true
 file:

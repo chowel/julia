@@ -65,6 +65,7 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
     @Value("${file.uploadurl}")
     private String uploadPath;
 
+
     @Override
     public Page<CarOrderVO> findForPage(QueryPagement queryPagement) {
         int status = -1;
@@ -136,6 +137,8 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
             entity.setMsg(dto.getMsg());
         }
         entity.setDoneTime(System.currentTimeMillis());
+
+        webSocketService.handleCarOpera(cYao,entity);
 
         YaoEntity pYao = yaoMapper.selectById(entity.getPId());
 
@@ -256,8 +259,10 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
             webSocketService.handleDeposit(saved);
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new JuliaException("文件上传失败！");
         }
+
         return true;
     }
 

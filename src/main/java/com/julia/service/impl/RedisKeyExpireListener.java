@@ -11,6 +11,7 @@ import org.springframework.data.redis.listener.KeyExpirationEventMessageListener
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 
@@ -23,8 +24,6 @@ import javax.annotation.Resource;
 @Component
 @Slf4j
 public class RedisKeyExpireListener extends KeyExpirationEventMessageListener {
-    @Resource
-    RedisUtils redisUtils;
 
     @Resource
     IRocketService rocketService;
@@ -39,8 +38,10 @@ public class RedisKeyExpireListener extends KeyExpirationEventMessageListener {
         log.info("监听到Key过期:{}", key);
         String[] keyArray = key.split(":");
         String orderId = "";
+        String cId = "";
         if ("COMMON_POND".equals(keyArray[1])) {
             log.info("有车队公共池过期:{}", key);
+            cId = keyArray[2];
             orderId = keyArray[3];
         }
 
@@ -51,6 +52,9 @@ public class RedisKeyExpireListener extends KeyExpirationEventMessageListener {
 
         RocketEntity entity = rocketService.getOne(new QueryWrapper<RocketEntity>().eq("order_id", orderId));
         if (!ObjectUtils.isEmpty(entity)) {
+            if(StringUtils.hasLength(cId)){
+                entity.setCId(Integer.valueOf(cId));
+            }
             entity.setStatus(3);
             rocketService.updateById(entity);
         }
