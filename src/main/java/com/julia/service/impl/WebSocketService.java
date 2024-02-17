@@ -1,11 +1,13 @@
 package com.julia.service.impl;
 
 import com.google.gson.Gson;
+import com.julia.entity.FortuneEntity;
 import com.julia.entity.RocketEntity;
 import com.julia.entity.YaoEntity;
 import com.julia.enums.RedisKeyEnum;
 import com.julia.mapper.YaoMapper;
 import com.julia.model.WebSocketMsgBO;
+import com.julia.model.WsFortunneBO;
 import com.julia.socket.ChannelPond;
 import com.julia.tool.JuliaUtils;
 import com.julia.tool.RedisUtils;
@@ -45,6 +47,32 @@ public class WebSocketService {
         if ("GETROCKET".equals(bo.getSub())) {
             handleConnect(channel);
         }
+        if ("GETFORTUNE".equals(bo.getSub())) {
+            fortuneToCar(channel);
+        }
+    }
+
+    /**
+    * @Description:  分发fortune
+    * @Param:
+    * @return:
+    * @Author: chowel
+    * @Date:
+    */
+    public void fortuneToCar(Channel c){
+
+        String userId = ChannelPond.findUserIdByChannel(c);
+        log.info("userId: " + userId);
+        Channel userChannel = ChannelPond.findChannel(userId);
+        if (ObjectUtils.isEmpty(userChannel)) {
+            log.info("userChannel: false");
+        } else {
+            WsFortunneBO bo = new WsFortunneBO();
+            bo.setSub("FORLIST");
+            bo.setList(getFortuneByCarId(userId));
+            userChannel.writeAndFlush(new TextWebSocketFrame(gson.toJson(bo)));
+        }
+
     }
 
     /**
@@ -166,6 +194,37 @@ public class WebSocketService {
     }
 
     /**
+    * @Description: 处理财神单
+    * @Param:
+    * @return:
+    * @Author: chowel
+    * @Date:
+    */
+    public void hanldeFortune(FortuneEntity entity){
+        List<String> userlist = getAliveByZset(entity.getAmount());
+        if (userlist.size() > 0) {
+            // 放入财神池 过期时间10 分钟
+            redisUtils.set(RedisKeyEnum.FORTUNE_POOL+entity.getOrderId(),entity,600);
+            int rc = randomCarer(userlist.size());
+            String car_yao_id = userlist.get(rc);
+
+            // 放入车队个人池 map
+            redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + car_yao_id, entity.getOrderId(), entity);
+
+            Channel userChannel = ChannelPond.findChannel(car_yao_id);
+
+            if (ObjectUtils.isEmpty(userChannel)) {
+                log.info("userChannel: false");
+            } else {
+                WsFortunneBO bo = new WsFortunneBO();
+                bo.setSub("FORLIST");
+                bo.setList(getFortuneByCarId(car_yao_id));
+                userChannel.writeAndFlush(new TextWebSocketFrame(gson.toJson(bo)));
+            }
+        }
+    }
+
+    /**
      * @Description: 处理车队操作
      * @Param:
      * @return:
@@ -190,5 +249,16 @@ public class WebSocketService {
         Map<Object, Object> map = redisUtils.hmget(RedisKeyEnum.CAR_POND.getKey() + userId);
         List<Object> list = new ArrayList<>(map.values());
         return list.stream().map(e -> (RocketEntity) e).collect(Collectors.toList());
+    }
+
+    private List<FortuneEntity> getFortuneByCarId(String userId){
+        Map<Object, Object> map = redisUtils.hmget(RedisKeyEnum.CAR_POND.getKey() + userId);
+        List<Object> list = new ArrayList<>(map.values());
+        return list.stream().map(e -> (FortuneEntity) e).collect(Collectors.toList());
+    }
+
+    private int randomCarer(int max){
+        Random random = new Random();
+        return random.nextInt(max);
     }
 }

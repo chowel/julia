@@ -26,6 +26,10 @@ public enum RedisKeyEnum {
      */
     COMMON_POOL("JULIA:COMMON_POOL:"),
     /**
+     * 财神公共池
+     */
+    FORTUNE_POOL("JULIA:FORTUNE_POOL:"),
+    /**
      * 车队池
      */
     CAR_POND("JULIA:CAR_POND:"),
