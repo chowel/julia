@@ -2,6 +2,7 @@ package com.julia.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.julia.model.dto.FortuneDTO;
+import com.julia.model.dto.HandOutDTO;
 import com.julia.model.dto.InputRocketDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -17,6 +18,8 @@ import com.julia.tool.Rv;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -37,6 +40,30 @@ public class FortuneController {
     @PostMapping("/querywhitpage")
     public Rv<Page<FortuneEntityVO>> queryFortuneEntityWhitPage(@RequestBody QueryPagement queryPagement) {
         return new Rv<>(serviceImpl.findForPage(queryPagement));
+    }
+
+    @ApiOperation("车队分页查找")
+    @PostMapping("/queryPageByCar")
+    public Rv<Page<FortuneEntityVO>> queryPageByCar(@RequestBody QueryPagement queryPagement) {
+        Map<String, Object> sf = new HashMap<>();
+        sf.put("cid",StpUtil.getLoginIdAsInt());
+        queryPagement.setSearchFields(sf);
+        return new Rv<>(serviceImpl.findForPage(queryPagement));
+    }
+
+    @ApiOperation("盘方分页查找")
+    @PostMapping("/queryPageForPan")
+    public Rv<Page<FortuneEntityVO>> queryPageForPan(@RequestBody QueryPagement queryPagement) {
+        Map<String, Object> sf = queryPagement.getSearchFields();
+        sf.put("panid",StpUtil.getLoginIdAsInt());
+        queryPagement.setSearchFields(sf);
+        return new Rv<>(serviceImpl.queryPage(queryPagement));
+    }
+
+    @ApiOperation("分页查找")
+    @PostMapping("/queryPage")
+    public Rv<Page<FortuneEntityVO>> queryPage(@RequestBody QueryPagement queryPagement) {
+        return new Rv<>(serviceImpl.queryPage(queryPagement));
     }
 
     @ApiOperation("根据id查找")
@@ -65,7 +92,25 @@ public class FortuneController {
     @ApiOperation("财神")
     @PostMapping("/fortuneInput")
     public Rv<Boolean> fortuneByDeposit(@RequestBody FortuneDTO dto) {
-        return new Rv<>(serviceImpl.input(dto,StpUtil.getLoginIdAsInt()));
+        return new Rv<>(serviceImpl.handIn(dto,StpUtil.getLoginIdAsInt()));
+    }
+
+    @ApiOperation("车队分发收款账号")
+    @PostMapping("/handOut")
+    public Rv<Boolean> handOut(@RequestBody HandOutDTO dto) {
+        return new Rv<>(serviceImpl.handOut(dto,StpUtil.getLoginIdAsInt()));
+    }
+
+    @ApiOperation("财神操作")
+    @PostMapping("/handleFortune")
+    public Rv<Boolean> fortuneBus(@RequestBody FortuneEntityVO dto) {
+        return new Rv<>(serviceImpl.overFortune(dto));
+    }
+
+    @ApiOperation("发起回调")
+    @PostMapping("/handCallBack")
+    public Rv<Boolean> handCallBack(@RequestBody FortuneDTO dto) {
+        return new Rv<>(serviceImpl.callBack(dto,StpUtil.getLoginIdAsInt()));
     }
 }
 

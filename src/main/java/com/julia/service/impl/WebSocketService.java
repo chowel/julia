@@ -1,6 +1,7 @@
 package com.julia.service.impl;
 
-import com.google.gson.Gson;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.julia.entity.FortuneEntity;
 import com.julia.entity.RocketEntity;
 import com.julia.entity.YaoEntity;
@@ -13,6 +14,7 @@ import com.julia.tool.JuliaUtils;
 import com.julia.tool.RedisUtils;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -36,14 +38,17 @@ public class WebSocketService {
     @Resource
     YaoMapper yaoMapper;
 
-    private final Gson gson = new Gson();
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    @SneakyThrows
     public void handleMsg(String requestMsg) {
-        WebSocketMsgBO bo = gson.fromJson(requestMsg, WebSocketMsgBO.class);
+        WebSocketMsgBO bo = mapper.readValue(requestMsg, WebSocketMsgBO.class);
     }
 
+    @SneakyThrows
     public void handleMsgWhitChannel(String requestMsg, Channel channel) {
-        WebSocketMsgBO bo = gson.fromJson(requestMsg, WebSocketMsgBO.class);
+        WebSocketMsgBO bo = mapper.readValue(requestMsg, WebSocketMsgBO.class);
         if ("GETROCKET".equals(bo.getSub())) {
             handleConnect(channel);
         }
@@ -53,13 +58,14 @@ public class WebSocketService {
     }
 
     /**
-    * @Description:  分发fortune
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date:
-    */
-    public void fortuneToCar(Channel c){
+     * @Description: 分发fortune
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    @SneakyThrows
+    public void fortuneToCar(Channel c) {
 
         String userId = ChannelPond.findUserIdByChannel(c);
         log.info("userId: " + userId);
@@ -70,7 +76,8 @@ public class WebSocketService {
             WsFortunneBO bo = new WsFortunneBO();
             bo.setSub("FORLIST");
             bo.setList(getFortuneByCarId(userId));
-            userChannel.writeAndFlush(new TextWebSocketFrame(gson.toJson(bo)));
+            userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
+
         }
 
     }
@@ -82,6 +89,7 @@ public class WebSocketService {
      * @Author: chowel
      * @Date:
      */
+    @SneakyThrows
     public void handleConnect(Channel c) {
         String userId = ChannelPond.findUserIdByChannel(c);
         log.info("userId: " + userId);
@@ -92,7 +100,8 @@ public class WebSocketService {
             WebSocketMsgBO bo = new WebSocketMsgBO();
             bo.setSub("CURARR");
             bo.setData(getRocketsByUserId(userId));
-            userChannel.writeAndFlush(new TextWebSocketFrame(gson.toJson(bo)));
+            userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
+
         }
     }
 
@@ -103,6 +112,7 @@ public class WebSocketService {
      * @Author: chowel
      * @Date:
      */
+    @SneakyThrows
     public void dispatcherRocket(String userId) {
         Channel userChannel = ChannelPond.findChannel(userId);
 
@@ -112,7 +122,7 @@ public class WebSocketService {
             WebSocketMsgBO bo = new WebSocketMsgBO();
             bo.setSub("DISARR");
             bo.setData(getRocketsByUserId(userId));
-            userChannel.writeAndFlush(new TextWebSocketFrame(gson.toJson(bo)));
+            userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
         }
     }
 
@@ -194,17 +204,18 @@ public class WebSocketService {
     }
 
     /**
-    * @Description: 处理财神单
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date:
-    */
-    public void hanldeFortune(FortuneEntity entity){
+     * @Description: 处理财神单
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    @SneakyThrows
+    public void hanldeFortune(FortuneEntity entity) {
         List<String> userlist = getAliveByZset(entity.getAmount());
         if (userlist.size() > 0) {
             // 放入财神池 过期时间10 分钟
-            redisUtils.set(RedisKeyEnum.FORTUNE_POOL+entity.getOrderId(),entity,600);
+            redisUtils.set(RedisKeyEnum.FORTUNE_POOL + entity.getOrderId(), entity, 600);
             int rc = randomCarer(userlist.size());
             String car_yao_id = userlist.get(rc);
 
@@ -219,9 +230,21 @@ public class WebSocketService {
                 WsFortunneBO bo = new WsFortunneBO();
                 bo.setSub("FORLIST");
                 bo.setList(getFortuneByCarId(car_yao_id));
-                userChannel.writeAndFlush(new TextWebSocketFrame(gson.toJson(bo)));
+                userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
             }
         }
+    }
+
+    /**
+    * @Description:
+    * @Param:
+    * @return:
+    * @Author: chowel
+    * @Date:
+    */
+    public void handOutRedis(FortuneEntity entity){
+        redisUtils.hdel(RedisKeyEnum.CAR_POND.getKey() + entity.getCId(),entity.getOrderId());
+        redisUtils.del(RedisKeyEnum.FORTUNE_POOL + entity.getOrderId());
     }
 
     /**
@@ -251,13 +274,13 @@ public class WebSocketService {
         return list.stream().map(e -> (RocketEntity) e).collect(Collectors.toList());
     }
 
-    private List<FortuneEntity> getFortuneByCarId(String userId){
+    private List<FortuneEntity> getFortuneByCarId(String userId) {
         Map<Object, Object> map = redisUtils.hmget(RedisKeyEnum.CAR_POND.getKey() + userId);
         List<Object> list = new ArrayList<>(map.values());
         return list.stream().map(e -> (FortuneEntity) e).collect(Collectors.toList());
     }
 
-    private int randomCarer(int max){
+    private int randomCarer(int max) {
         Random random = new Random();
         return random.nextInt(max);
     }

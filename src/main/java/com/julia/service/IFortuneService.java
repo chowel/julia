@@ -2,6 +2,7 @@ package com.julia.service;
 
 import com.julia.entity.FortuneEntity;
 import com.julia.model.dto.FortuneDTO;
+import com.julia.model.dto.HandOutDTO;
 import com.julia.model.vo.FortuneEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -25,6 +26,16 @@ public interface IFortuneService extends IService<FortuneEntity> {
      * @Date: 2024-02-15
      */
     Page<FortuneEntityVO> findForPage(QueryPagement queryPagement);
+
+
+    /**
+     * @Description: 多条件分页查找
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date: 2024-02-15
+     */
+    Page<FortuneEntityVO> queryPage(QueryPagement queryPagement);
 
     /**
      * @Description: 根据id查找
@@ -69,6 +80,34 @@ public interface IFortuneService extends IService<FortuneEntity> {
      * @Author: chowel
      * @Date:
      */
-    Boolean input(FortuneDTO dto, int pid);
+    Boolean handIn(FortuneDTO dto, int pid);
+
+    /**
+     * @Description: 车队分发收款
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    Boolean handOut(HandOutDTO dto, int cid);
+    /**
+     * @Description: 收款结果
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    Boolean overFortune(FortuneEntityVO dto);
+
+    /**
+     * @Description: 重新回调
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    Boolean callBack(FortuneDTO dto, int pid);
+
+
 }
 

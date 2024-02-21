@@ -19,7 +19,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2024-02-15
+ * @since 2024-02-18
  */
 @Getter
 @Setter
@@ -35,7 +35,7 @@ public class FortuneEntityVO extends BaseEntity {
     @ApiModelProperty("金额")
     private Integer amount;
 
-    @ApiModelProperty("支付id")
+    @ApiModelProperty("收款账号")
     private String payId;
 
     @ApiModelProperty("盘方id")
@@ -50,7 +50,7 @@ public class FortuneEntityVO extends BaseEntity {
     @ApiModelProperty("名")
     private String lastName;
 
-    @ApiModelProperty("0 : 未操作 1: 已操作成功  2:已操作失败 3:过期未操作")
+    @ApiModelProperty("0 : 未操作 1: 收款单已发送  2:收款成功 3:收款失败")
     private Integer status;
 
     @ApiModelProperty("p用户回调 0:未通知  1:收到成功 2:收到失败")
@@ -59,8 +59,14 @@ public class FortuneEntityVO extends BaseEntity {
     @ApiModelProperty("操作时间 时间戳")
     private Long doneTime;
 
+    @ApiModelProperty("车队发送收款时间")
+    private Long handoutTime;
+
     @ApiModelProperty("失败原因")
     private String msg;
+
+    @ApiModelProperty("付款人账号")
+    private String drawer;
 
     @Override
     public String toString() {
@@ -76,7 +82,9 @@ public class FortuneEntityVO extends BaseEntity {
             ", status = " + status +
             ", checkCallback = " + checkCallback +
             ", doneTime = " + doneTime +
+            ", handoutTime = " + handoutTime +
             ", msg = " + msg +
+            ", drawer = " + drawer +
         "}";
     }
 }

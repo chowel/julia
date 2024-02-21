@@ -35,7 +35,7 @@ public class NettyServer {
         ServerBootstrap b = new ServerBootstrap();
         b.group(boss,work)
                 .channel(NioServerSocketChannel.class)
-                .localAddress(new InetSocketAddress(9099))
+                .localAddress(new InetSocketAddress(9098))
                 .childHandler(new ChannelInitializer<SocketChannel>() {
 
                     @Override
@@ -60,7 +60,7 @@ public class NettyServer {
 
         ChannelFuture channelFuturef = b.bind().sync();
         if (channelFuturef.isSuccess()){
-            log.info("netty 启动成功 端口:8804");
+            log.info("netty 启动成功 端口:9098");
         }
 
 

@@ -14,7 +14,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2024-02-15
+ * @since 2024-02-18
  */
 @Getter
 @Setter
@@ -40,7 +40,7 @@ public class FortuneEntity extends BaseEntity {
     private Integer amount;
 
     /**
-     * 支付id
+     * 收款账号
      */
     @TableField("pay_id")
     private String payId;
@@ -70,7 +70,7 @@ public class FortuneEntity extends BaseEntity {
     private String lastName;
 
     /**
-     * 0 : 未操作 1: 已操作成功  2:已操作失败 3:过期未操作
+     * 0 : 未操作 1: 收款单已发送  2:已操作失败 3:过期未操作
      */
     @TableField("status")
     private Integer status;
@@ -88,8 +88,20 @@ public class FortuneEntity extends BaseEntity {
     private Long doneTime;
 
     /**
+     * 车队发送收款时间
+     */
+    @TableField("handout_time")
+    private Long handoutTime;
+
+    /**
      * 失败原因
      */
     @TableField("msg")
     private String msg;
+
+    /**
+     * 付款人账号
+     */
+    @TableField("drawer")
+    private String drawer;
 }
