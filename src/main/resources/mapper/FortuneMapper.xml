@@ -29,4 +29,11 @@
         fortune_id, order_id, amount, pay_id, p_id, c_id, first_name, last_name, status, check_callback, done_time, handout_time, msg, drawer
     </sql>
 
+    <select id="metricsfortune" resultType="com.julia.entity.MetricsFortuneEntity">
+        SELECT COUNT(*) as quantity,status,SUM(amount) as amount FROM fortune WHERE create_time BETWEEN #{st} AND #{et}
+         GROUP
+         BY
+        status
+    </select>
+
 </mapper>

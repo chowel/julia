@@ -70,7 +70,7 @@ public class FortuneEntity extends BaseEntity {
     private String lastName;
 
     /**
-     * 0 : 未操作 1: 收款单已发送  2:已操作失败 3:过期未操作
+     * 0 : 未操作 1: 收款单已发送  2:失败 3:过期未操作 4:成功
      */
     @TableField("status")
     private Integer status;

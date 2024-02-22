@@ -2,6 +2,7 @@ package com.julia.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.julia.model.dto.FortuneDTO;
+import com.julia.model.dto.FortuneWhitPageAndMetriVO;
 import com.julia.model.dto.HandOutDTO;
 import com.julia.model.dto.InputRocketDTO;
 import io.swagger.annotations.Api;
@@ -53,17 +54,24 @@ public class FortuneController {
 
     @ApiOperation("盘方分页查找")
     @PostMapping("/queryPageForPan")
-    public Rv<Page<FortuneEntityVO>> queryPageForPan(@RequestBody QueryPagement queryPagement) {
+    public Rv<FortuneWhitPageAndMetriVO> queryPageForPan(@RequestBody QueryPagement queryPagement) {
         Map<String, Object> sf = queryPagement.getSearchFields();
         sf.put("panid",StpUtil.getLoginIdAsInt());
         queryPagement.setSearchFields(sf);
-        return new Rv<>(serviceImpl.queryPage(queryPagement));
+
+        FortuneWhitPageAndMetriVO vo = new FortuneWhitPageAndMetriVO();
+        vo.setPage(serviceImpl.queryPage(queryPagement));
+        vo.setList(serviceImpl.mertric(queryPagement));
+        return new Rv<>(vo);
     }
 
     @ApiOperation("分页查找")
     @PostMapping("/queryPage")
-    public Rv<Page<FortuneEntityVO>> queryPage(@RequestBody QueryPagement queryPagement) {
-        return new Rv<>(serviceImpl.queryPage(queryPagement));
+    public Rv<FortuneWhitPageAndMetriVO> queryPage(@RequestBody QueryPagement queryPagement) {
+        FortuneWhitPageAndMetriVO vo = new FortuneWhitPageAndMetriVO();
+        vo.setPage(serviceImpl.queryPage(queryPagement));
+        vo.setList(serviceImpl.mertric(queryPagement));
+        return new Rv<>(vo);
     }
 
     @ApiOperation("根据id查找")

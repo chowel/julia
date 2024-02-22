@@ -50,7 +50,7 @@ public class FortuneEntityVO extends BaseEntity {
     @ApiModelProperty("名")
     private String lastName;
 
-    @ApiModelProperty("0 : 未操作 1: 收款单已发送  2:收款成功 3:收款失败")
+    @ApiModelProperty("0 : 未操作 1: 收款单已发送  2:失败 3:过期未操作 4:成功")
     private Integer status;
 
     @ApiModelProperty("p用户回调 0:未通知  1:收到成功 2:收到失败")

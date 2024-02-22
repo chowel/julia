@@ -3,6 +3,7 @@ package com.julia.service.impl;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.entity.FortuneEntity;
+import com.julia.entity.MetricsFortuneEntity;
 import com.julia.entity.YaoEntity;
 import com.julia.mapper.FortuneMapper;
 import com.julia.mapper.YaoMapper;
@@ -27,6 +28,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -96,6 +98,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                         queryPagement.getPageSize()));
         Page<FortuneEntityVO> page = JuliaUtils.convertTo(new Page<FortuneEntityVO>(), p);
         page.setRecords(p.getRecords().stream().map(e -> JuliaUtils.convertTo(new FortuneEntityVO(), e)).collect(Collectors.toList()));
+
         return page;
     }
 
@@ -156,7 +159,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         FortuneEntity entity = getById(dto.getFortuneId());
         if (!ObjectUtils.isEmpty(entity)) {
             entity.setStatus(dto.getStatus());
-            if (dto.getStatus() == 3) {
+            if (dto.getStatus() == 2) {
                 entity.setMsg(dto.getMsg());
             }
 
@@ -232,6 +235,12 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         }
         return false;
 
+    }
+
+    @Override
+    public List<MetricsFortuneEntity> mertric(QueryPagement queryPagement) {
+        Map<String, Object> sf = queryPagement.getSearchFields();
+        return getBaseMapper().metricsfortune((String) sf.get("st"), (String) sf.get("et"));
     }
 
     protected String handleCallBack(String url, Map<String, Object> params) {

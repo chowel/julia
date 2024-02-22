@@ -1,12 +1,15 @@
 package com.julia.service;
 
 import com.julia.entity.FortuneEntity;
+import com.julia.entity.MetricsFortuneEntity;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.HandOutDTO;
 import com.julia.model.vo.FortuneEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
+
+import java.util.List;
 
 /**
  * <p>
@@ -107,6 +110,14 @@ public interface IFortuneService extends IService<FortuneEntity> {
      * @Date:
      */
     Boolean callBack(FortuneDTO dto, int pid);
+    /**
+    * @Description: 收单统计
+    * @Param:
+    * @return:
+    * @Author: chowel
+    * @Date:
+    */
+    List<MetricsFortuneEntity> mertric(QueryPagement queryPagement);
 
 
 }
