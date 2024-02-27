@@ -97,6 +97,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                 .like(StringUtils.hasLength((String) sf.get("orderid")), FortuneEntity::getOrderId, sf.get("orderid"))
                 .between(StringUtils.hasLength((String) sf.get("st")), FortuneEntity::getCreateTime, (String) sf.get("st"),
                         (String) sf.get("et"))
+                .orderByDesc(FortuneEntity::getFortuneId)
                 .page(new Page<FortuneEntity>(queryPagement.getStartPage(),
                         queryPagement.getPageSize()));
         Page<FortuneEntityVO> page = JuliaUtils.convertTo(new Page<FortuneEntityVO>(), p);
@@ -280,7 +281,9 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     @Override
     public List<MetricsFortuneEntity> mertric(QueryPagement queryPagement) {
         Map<String, Object> sf = queryPagement.getSearchFields();
-        return getBaseMapper().metricsfortune((String) sf.get("st"), (String) sf.get("et"));
+        int panid = ObjectUtils.isEmpty(sf.get("panid")) ? -1 : (int) sf.get("panid");
+        int carid = ObjectUtils.isEmpty(sf.get("carid")) ? -1 : (int) sf.get("carid");
+        return getBaseMapper().metricsfortune((String) sf.get("st"), (String) sf.get("et"),carid,panid);
     }
 
     protected String handleCallBack(String url, Map<String, Object> params) {

@@ -30,9 +30,15 @@
     </sql>
 
     <select id="metricsfortune" resultType="com.julia.entity.MetricsFortuneEntity">
-        SELECT COUNT(*) as quantity,status,SUM(amount) as amount FROM fortune WHERE create_time BETWEEN #{st} AND #{et}
-         GROUP
-         BY
+        SELECT COUNT(*) as quantity,status,SUM(amount) as amount FROM fortune WHERE
+        <if test="cid > 0">
+            c_id = #{cid} AND
+        </if>
+        <if test="pid > 0">
+            p_id = #{pid} AND
+        </if>
+         create_time BETWEEN #{st} AND #{et}
+         GROUP  BY
         status
     </select>
 

@@ -44,12 +44,16 @@ public class FortuneController {
     }
 
     @ApiOperation("车队分页查找")
-    @PostMapping("/queryPageByCar")
-    public Rv<Page<FortuneEntityVO>> queryPageByCar(@RequestBody QueryPagement queryPagement) {
-        Map<String, Object> sf = new HashMap<>();
-        sf.put("cid",StpUtil.getLoginIdAsInt());
+    @PostMapping("/queryPageForCar")
+    public Rv<FortuneWhitPageAndMetriVO> queryPageForCar(@RequestBody QueryPagement queryPagement) {
+        Map<String, Object> sf = queryPagement.getSearchFields();
+        sf.put("carid",StpUtil.getLoginIdAsInt());
         queryPagement.setSearchFields(sf);
-        return new Rv<>(serviceImpl.findForPage(queryPagement));
+
+        FortuneWhitPageAndMetriVO vo = new FortuneWhitPageAndMetriVO();
+        vo.setPage(serviceImpl.queryPage(queryPagement));
+        vo.setList(serviceImpl.mertric(queryPagement));
+        return new Rv<>(vo);
     }
 
     @ApiOperation("盘方分页查找")

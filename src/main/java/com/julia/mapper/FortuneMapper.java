@@ -18,5 +18,5 @@ import java.util.List;
 @Mapper
 public interface FortuneMapper extends BaseMapper<FortuneEntity> {
 
-   List<MetricsFortuneEntity> metricsfortune(String st,String et);
+   List<MetricsFortuneEntity> metricsfortune(String st,String et,int cid,int pid);
 }
