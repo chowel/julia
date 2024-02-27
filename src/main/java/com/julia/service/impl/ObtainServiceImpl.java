@@ -2,6 +2,7 @@ package com.julia.service.impl;
 
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.julia.entity.FortuneEntity;
 import com.julia.entity.ObtainEntity;
 import com.julia.mapper.ObtainMapper;
 import com.julia.service.IObtainService;
@@ -12,6 +13,7 @@ import com.julia.tool.JuliaUtils;
 import com.julia.model.QueryPagement;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 /**
 * <p>
@@ -25,8 +27,10 @@ import java.util.stream.Collectors;
 public class ObtainServiceImpl extends ServiceImpl<ObtainMapper, ObtainEntity> implements IObtainService {
     @Override
     public Page<ObtainEntityVO> findForPage(QueryPagement queryPagement) {
-        Page<ObtainEntity> p = new LambdaQueryChainWrapper<ObtainEntity>(getBaseMapper()).page(new Page<ObtainEntity>(queryPagement.getStartPage(),
-        queryPagement.getPageSize()));
+        Map<String, Object> sf = queryPagement.getSearchFields();
+        Page<ObtainEntity> p = new LambdaQueryChainWrapper<ObtainEntity>(getBaseMapper())
+                .eq( ObtainEntity::getYaoId, sf.get("carid"))
+                .page(new Page<ObtainEntity>(queryPagement.getStartPage(), queryPagement.getPageSize()));
         Page<ObtainEntityVO> page = JuliaUtils.convertTo(new Page<ObtainEntityVO>(), p);
                 page.setRecords(p.getRecords().stream().map(e -> JuliaUtils.convertTo(new ObtainEntityVO(), e)).collect(Collectors.toList()));
                 return page;

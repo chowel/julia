@@ -15,6 +15,7 @@ import com.julia.tool.Rv;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -34,6 +35,9 @@ public class ObtainController {
     @ApiOperation("分页查找")
     @PostMapping("/querywhitpage")
     public Rv<Page<ObtainEntityVO>> queryObtainEntityWhitPage(@RequestBody QueryPagement queryPagement) {
+        Map<String, Object> sf = queryPagement.getSearchFields();
+        sf.put("carid",StpUtil.getLoginIdAsInt());
+        queryPagement.setSearchFields(sf);
         return new Rv<>(serviceImpl.findForPage(queryPagement));
     }
 

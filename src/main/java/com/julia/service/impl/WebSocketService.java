@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -211,12 +212,14 @@ public class WebSocketService {
      * @Date:
      */
     @SneakyThrows
-    public void hanldeFortune(FortuneEntity entity) {
+    public Boolean hanldeFortune(FortuneEntity entity) {
         List<String> userlist = getAliveByZset(entity.getAmount());
         if (userlist.size() > 0) {
             // 放入财神池 过期时间10 分钟
-            redisUtils.set(RedisKeyEnum.FORTUNE_POOL + entity.getOrderId(), entity, 600);
+            redisUtils.set(RedisKeyEnum.FORTUNE_POOL.getKey() + entity.getOrderId(), entity, 600);
             int rc = randomCarer(userlist.size());
+            log.info("Size：{}",userlist.size());
+            log.info("rc：{}",rc);
             String car_yao_id = userlist.get(rc);
 
             // 放入车队个人池 map
@@ -225,14 +228,17 @@ public class WebSocketService {
             Channel userChannel = ChannelPond.findChannel(car_yao_id);
 
             if (ObjectUtils.isEmpty(userChannel)) {
-                log.info("userChannel: false");
+                log.info("no car on line");
+                return false;
             } else {
                 WsFortunneBO bo = new WsFortunneBO();
                 bo.setSub("FORLIST");
                 bo.setList(getFortuneByCarId(car_yao_id));
                 userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
+                return true;
             }
         }
+        return false;
     }
 
     /**
@@ -244,7 +250,7 @@ public class WebSocketService {
     */
     public void handOutRedis(FortuneEntity entity){
         redisUtils.hdel(RedisKeyEnum.CAR_POND.getKey() + entity.getCId(),entity.getOrderId());
-        redisUtils.del(RedisKeyEnum.FORTUNE_POOL + entity.getOrderId());
+        redisUtils.del(RedisKeyEnum.FORTUNE_POOL.getKey() + entity.getOrderId());
     }
 
     /**
@@ -281,7 +287,7 @@ public class WebSocketService {
     }
 
     private int randomCarer(int max) {
-        Random random = new Random();
-        return random.nextInt(max);
+        SecureRandom secureRandom = new SecureRandom();
+        return secureRandom.nextInt(max);
     }
 }

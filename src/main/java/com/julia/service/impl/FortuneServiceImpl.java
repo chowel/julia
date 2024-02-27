@@ -27,6 +27,9 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,27 +128,64 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
     @Override
     public Boolean handIn(FortuneDTO dto, int pid) {
-        FortuneEntity entity = new FortuneEntity();
+        FortuneEntity entity =
+                new LambdaQueryChainWrapper<FortuneEntity>(getBaseMapper()).eq(FortuneEntity::getOrderId,
+                        dto.getOrderId()).one();
+        if(!ObjectUtils.isEmpty(entity)){
+            throw new JuliaException("订单已存在");
+        }
+        entity = new FortuneEntity();
         entity.setAmount(dto.getAmount());
         entity.setPId(pid);
         entity.setOrderId(dto.getOrderId());
         entity.setDrawer(dto.getDrawer());
 
         if (save(entity)) {
-            webSocketService.hanldeFortune(entity);
-            return true;
+            if (webSocketService.hanldeFortune(entity)) {
+                return true;
+            } else {
+                entity.setStatus(2);
+                entity.setMsg("no Car");
+                updateById(entity);
+                throw new JuliaException("暂无车队");
+            }
         }
-        return false;
+        throw new JuliaException("业务异常");
     }
 
     @Override
     public Boolean handOut(HandOutDTO dto, int cid) {
         FortuneEntity entity = getById(dto.getFortuneId());
         if (!ObjectUtils.isEmpty(entity)) {
+            //
+            if (entity.getStatus() != 0) {
+                entity.setCId(cid);
+                webSocketService.handOutRedis(entity);
+                throw new JuliaException("改单已处理");
+            }
+            //
+            LocalDateTime localDateTime = entity.getCreateTime();
+
+            ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.systemDefault());
+            logger.info("ZonedDateTime: " + zonedDateTime);
+
+            long timestamp = zonedDateTime.toInstant().toEpochMilli();
+            logger.info("Timestamp (milliseconds): " + timestamp);
+            long ct = System.currentTimeMillis();
+            if (ct - timestamp > 6000000) {
+                entity.setCId(cid);
+                entity.setPayId(dto.getPid());
+                entity.setStatus(3);
+                entity.setHandoutTime(ct);
+                updateById(entity);
+                webSocketService.handOutRedis(entity);
+                throw new JuliaException("订单过期");
+            }
+
             entity.setCId(cid);
             entity.setPayId(dto.getPid());
             entity.setStatus(1);
-            entity.setHandoutTime(System.currentTimeMillis());
+            entity.setHandoutTime(ct);
             updateById(entity);
             // 处理redis中数据
             webSocketService.handOutRedis(entity);

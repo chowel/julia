@@ -1,8 +1,10 @@
 package com.julia.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.julia.entity.FortuneEntity;
 import com.julia.entity.RocketEntity;
 import com.julia.enums.RedisKeyEnum;
+import com.julia.service.IFortuneService;
 import com.julia.service.IRocketService;
 import com.julia.tool.RedisUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 
@@ -26,7 +29,7 @@ import javax.annotation.Resource;
 public class RedisKeyExpireListener extends KeyExpirationEventMessageListener {
 
     @Resource
-    IRocketService rocketService;
+    IFortuneService fortuneService;
 
     public RedisKeyExpireListener(RedisMessageListenerContainer listenerContainer) {
         super(listenerContainer);
@@ -37,26 +40,17 @@ public class RedisKeyExpireListener extends KeyExpirationEventMessageListener {
         String key = message.toString().replace("\"", "");
         log.info("监听到Key过期:{}", key);
         String[] keyArray = key.split(":");
-        String orderId = "";
         String cId = "";
-        if ("COMMON_POND".equals(keyArray[1])) {
-            log.info("有车队公共池过期:{}", key);
-            cId = keyArray[2];
-            orderId = keyArray[3];
-        }
 
-        if ("COMMON_POOL".equals(keyArray[1])) {
-            log.info("无车队公共池过期:{}", keyArray[2]);
-            orderId = keyArray[2];
-        }
-
-        RocketEntity entity = rocketService.getOne(new QueryWrapper<RocketEntity>().eq("order_id", orderId));
-        if (!ObjectUtils.isEmpty(entity)) {
-            if(StringUtils.hasLength(cId)){
-                entity.setCId(Integer.valueOf(cId));
+        if ("FORTUNE_POOL".equals(keyArray[1])) {
+            log.info("FORTUNE-收单过期-key:{}", key);
+            String orderId = keyArray[2];
+            FortuneEntity fortune = fortuneService.getOne(new QueryWrapper<FortuneEntity>().eq("order_id", orderId));
+            if (!ObjectUtils.isEmpty(fortune)) {
+                fortune.setStatus(3);
+                fortuneService.updateById(fortune);
             }
-            entity.setStatus(3);
-            rocketService.updateById(entity);
         }
+
     }
 }
