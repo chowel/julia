@@ -19,7 +19,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2024-02-18
+ * @since 2024-02-29
  */
 @Getter
 @Setter
@@ -28,6 +28,12 @@ public class FortuneEntityVO extends BaseEntity {
 
     @ApiModelProperty("主键id")
     private Long fortuneId;
+
+    @ApiModelProperty("平台交易号")
+    private String fortuneNo;
+
+    @ApiModelProperty("外部交易号")
+    private String transactNo;
 
     @ApiModelProperty("订单号")
     private String orderId;
@@ -72,6 +78,8 @@ public class FortuneEntityVO extends BaseEntity {
     public String toString() {
         return "{" +
             "fortuneId = " + fortuneId +
+            ", fortuneNo = " + fortuneNo +
+            ", transactNo = " + transactNo +
             ", orderId = " + orderId +
             ", amount = " + amount +
             ", payId = " + payId +

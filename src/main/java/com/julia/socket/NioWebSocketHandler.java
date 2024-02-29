@@ -54,8 +54,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
             //以http请求形式接入，但是走的是websocket
             handleHttpRequest(ctx, (FullHttpRequest) msg);
         } else if (msg instanceof WebSocketFrame) {
-
-            log.info("处理websocket客户端的消息: " + msg);
+//            log.info("处理websocket客户端的消息: " + msg);
             handlerWebSocketFrame(ctx, (WebSocketFrame) msg);
         }
     }

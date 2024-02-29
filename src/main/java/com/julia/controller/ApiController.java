@@ -53,4 +53,18 @@ public class ApiController {
         int s = (int) ((t-n)/1000);
         return new Rv<>("OK: "+s);
     }
+
+    @ApiOperation("addScore")
+    @GetMapping("/addScore/{userid}")
+    public Rv<String> addScore(@PathVariable String userid) {
+        webSocketService.incrementScore(userid,99999);
+        return new Rv<>("OK: ");
+    }
+
+    @ApiOperation("testPoll")
+    @GetMapping("/testPoll/{count}")
+    public Rv<String> testPoll(@PathVariable Integer count) {
+        webSocketService.pollingCarId(count);
+        return new Rv<>("OK: ");
+    }
 }

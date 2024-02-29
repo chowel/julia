@@ -24,4 +24,7 @@ public class FortuneDTO {
 
     @ApiModelProperty("付款人账号")
     private String drawer;
+
+    @ApiModelProperty("fortuneId")
+    private Long fortuneId;
 }

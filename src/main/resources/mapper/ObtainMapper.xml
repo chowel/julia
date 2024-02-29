@@ -12,13 +12,15 @@
         <result column="first_name" property="firstName" />
         <result column="last_name" property="lastName" />
         <result column="status" property="status" />
+        <result column="cout" property="cout" />
+        <result column="note" property="note" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        obtain_id, yao_id, name, first_name, last_name, status
+        obtain_id, yao_id, name, first_name, last_name, status, cout, note
     </sql>
 
 </mapper>

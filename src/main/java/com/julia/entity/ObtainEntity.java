@@ -14,7 +14,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2024-02-23
+ * @since 2024-02-29
  */
 @Getter
 @Setter
@@ -56,4 +56,16 @@ public class ObtainEntity extends BaseEntity {
      */
     @TableField("status")
     private Integer status;
+
+    /**
+     * 每日使用次数
+     */
+    @TableField("cout")
+    private Integer cout;
+
+    /**
+     * 备注
+     */
+    @TableField("note")
+    private String note;
 }

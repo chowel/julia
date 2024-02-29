@@ -56,6 +56,10 @@ public class WebSocketService {
         if ("GETFORTUNE".equals(bo.getSub())) {
             fortuneToCar(channel);
         }
+        // 心跳
+        if ("PING".equals(bo.getSub())) {
+            handleHeart(channel);
+        }
     }
 
     /**
@@ -101,6 +105,22 @@ public class WebSocketService {
             WebSocketMsgBO bo = new WebSocketMsgBO();
             bo.setSub("CURARR");
             bo.setData(getRocketsByUserId(userId));
+            userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
+
+        }
+    }
+
+    @SneakyThrows
+    public void handleHeart(Channel c) {
+        String userId = ChannelPond.findUserIdByChannel(c);
+        log.info("HEART-userId: " + userId);
+        Channel userChannel = ChannelPond.findChannel(userId);
+        if (ObjectUtils.isEmpty(userChannel)) {
+            log.info("userChannel: false");
+        } else {
+            WebSocketMsgBO bo = new WebSocketMsgBO();
+            bo.setSub("PONG");
+            bo.setData("");
             userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
 
         }
@@ -216,16 +236,17 @@ public class WebSocketService {
         List<String> userlist = getAliveByZset(entity.getAmount());
         if (userlist.size() > 0) {
             // 放入财神池 过期时间10 分钟
-            redisUtils.set(RedisKeyEnum.FORTUNE_POOL.getKey() + entity.getOrderId(), entity, 600);
-            int rc = randomCarer(userlist.size());
-            log.info("Size：{}",userlist.size());
-            log.info("rc：{}",rc);
-            String car_yao_id = userlist.get(rc);
+            redisUtils.set(RedisKeyEnum.FORTUNE_POOL.getKey() + entity.getFortuneNo(), entity, 600);
+//            int rc = randomCarer(userlist.size());
+            int rc = pollingCarId(userlist.size());
+            log.info("Size：{}", userlist.size());
+            log.info("rc：{}", rc);
+            String carYaoId = userlist.get(rc);
 
             // 放入车队个人池 map
-            redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + car_yao_id, entity.getOrderId(), entity);
+            redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + carYaoId, entity.getFortuneNo(), entity);
 
-            Channel userChannel = ChannelPond.findChannel(car_yao_id);
+            Channel userChannel = ChannelPond.findChannel(carYaoId);
 
             if (ObjectUtils.isEmpty(userChannel)) {
                 log.info("no car on line");
@@ -233,7 +254,7 @@ public class WebSocketService {
             } else {
                 WsFortunneBO bo = new WsFortunneBO();
                 bo.setSub("FORLIST");
-                bo.setList(getFortuneByCarId(car_yao_id));
+                bo.setList(getFortuneByCarId(carYaoId));
                 userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
                 return true;
             }
@@ -242,15 +263,15 @@ public class WebSocketService {
     }
 
     /**
-    * @Description:
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date:
-    */
-    public void handOutRedis(FortuneEntity entity){
-        redisUtils.hdel(RedisKeyEnum.CAR_POND.getKey() + entity.getCId(),entity.getOrderId());
-        redisUtils.del(RedisKeyEnum.FORTUNE_POOL.getKey() + entity.getOrderId());
+     * @Description:
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public void handOutRedis(FortuneEntity entity) {
+        redisUtils.hdel(RedisKeyEnum.CAR_POND.getKey() + entity.getCId(), entity.getFortuneNo());
+        redisUtils.del(RedisKeyEnum.FORTUNE_POOL.getKey() + entity.getFortuneNo());
     }
 
     /**
@@ -289,5 +310,30 @@ public class WebSocketService {
     private int randomCarer(int max) {
         SecureRandom secureRandom = new SecureRandom();
         return secureRandom.nextInt(max);
+    }
+
+    /**
+     * @Description: 轮询
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public int pollingCarId(int size) {
+        if (redisUtils.hasKey(RedisKeyEnum.POLLING.getKey())) {
+            int curPolling = (int) redisUtils.get(RedisKeyEnum.POLLING.getKey());
+            if (curPolling >= size) {
+                redisUtils.decr(RedisKeyEnum.POLLING.getKey(), curPolling);
+                return 0;
+            } else {
+                redisUtils.incr(RedisKeyEnum.POLLING.getKey(), 1);
+                return (int) curPolling;
+            }
+        }else{
+            redisUtils.set(RedisKeyEnum.POLLING.getKey(), 0);
+            return 0;
+        }
+
+
     }
 }

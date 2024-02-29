@@ -7,6 +7,8 @@
         <id column="fortune_id" property="fortuneId" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
+        <result column="fortune_no" property="fortuneNo" />
+        <result column="transact_no" property="transactNo" />
         <result column="order_id" property="orderId" />
         <result column="amount" property="amount" />
         <result column="pay_id" property="payId" />
@@ -26,9 +28,8 @@
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        fortune_id, order_id, amount, pay_id, p_id, c_id, first_name, last_name, status, check_callback, done_time, handout_time, msg, drawer
+        fortune_id, fortune_no, transact_no, order_id, amount, pay_id, p_id, c_id, first_name, last_name, status, check_callback, done_time, handout_time, msg, drawer
     </sql>
-
     <select id="metricsfortune" resultType="com.julia.entity.MetricsFortuneEntity">
         SELECT COUNT(*) as quantity,status,SUM(amount) as amount FROM fortune WHERE
         <if test="cid > 0">
@@ -37,9 +38,8 @@
         <if test="pid > 0">
             p_id = #{pid} AND
         </if>
-         create_time BETWEEN #{st} AND #{et}
-         GROUP  BY
+        create_time BETWEEN #{st} AND #{et}
+        GROUP  BY
         status
     </select>
-
 </mapper>

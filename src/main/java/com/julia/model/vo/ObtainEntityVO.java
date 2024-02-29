@@ -19,7 +19,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2024-02-23
+ * @since 2024-02-29
  */
 @Getter
 @Setter
@@ -44,6 +44,12 @@ public class ObtainEntityVO extends BaseEntity {
     @ApiModelProperty("状态 0 停用 1启用")
     private Integer status;
 
+    @ApiModelProperty("每日使用次数")
+    private Integer cout;
+
+    @ApiModelProperty("备注")
+    private String note;
+
     @Override
     public String toString() {
         return "{" +
@@ -53,6 +59,8 @@ public class ObtainEntityVO extends BaseEntity {
             ", firstName = " + firstName +
             ", lastName = " + lastName +
             ", status = " + status +
+            ", cout = " + cout +
+            ", note = " + note +
         "}";
     }
 }

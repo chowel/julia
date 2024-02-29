@@ -31,6 +31,9 @@ public class RedisKeyExpireListener extends KeyExpirationEventMessageListener {
     @Resource
     IFortuneService fortuneService;
 
+    @Resource
+    WebSocketService webSocketService;
+
     public RedisKeyExpireListener(RedisMessageListenerContainer listenerContainer) {
         super(listenerContainer);
     }
@@ -45,10 +48,11 @@ public class RedisKeyExpireListener extends KeyExpirationEventMessageListener {
         if ("FORTUNE_POOL".equals(keyArray[1])) {
             log.info("FORTUNE-收单过期-key:{}", key);
             String orderId = keyArray[2];
-            FortuneEntity fortune = fortuneService.getOne(new QueryWrapper<FortuneEntity>().eq("order_id", orderId));
+            FortuneEntity fortune = fortuneService.getOne(new QueryWrapper<FortuneEntity>().eq("fortune_no", orderId));
             if (!ObjectUtils.isEmpty(fortune)) {
                 fortune.setStatus(3);
                 fortuneService.updateById(fortune);
+                webSocketService.handOutRedis(fortune);
             }
         }
 

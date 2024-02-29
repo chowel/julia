@@ -33,6 +33,7 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -128,41 +129,51 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     }
 
     @Override
-    public Boolean handIn(FortuneDTO dto, int pid) {
-        FortuneEntity entity =
-                new LambdaQueryChainWrapper<FortuneEntity>(getBaseMapper()).eq(FortuneEntity::getOrderId,
-                        dto.getOrderId()).one();
-        if(!ObjectUtils.isEmpty(entity)){
-            throw new JuliaException("订单已存在");
-        }
-        entity = new FortuneEntity();
+    public String handIn(FortuneDTO dto, int pid) {
+        FortuneEntity entity = new FortuneEntity();
+
+        // 生成本平台订单号；
+        String fortuneNo = GeneratorFortuneNo(pid);
+
+        entity.setFortuneNo(fortuneNo);
         entity.setAmount(dto.getAmount());
         entity.setPId(pid);
         entity.setOrderId(dto.getOrderId());
         entity.setDrawer(dto.getDrawer());
 
-        if (save(entity)) {
-            if (webSocketService.hanldeFortune(entity)) {
-                return true;
-            } else {
-                entity.setStatus(2);
-                entity.setMsg("no Car");
-                updateById(entity);
-                throw new JuliaException("暂无车队");
-            }
+        if (webSocketService.hanldeFortune(entity)) {
+            save(entity);
+            return fortuneNo;
+        } else {
+            throw new JuliaException("暂无车队");
         }
-        throw new JuliaException("业务异常");
+
+//        if (save(entity)) {
+//            if (webSocketService.hanldeFortune(entity)) {
+//                return fortuneNo;
+//            } else {
+//                entity.setStatus(2);
+//                entity.setMsg("no Car");
+//                updateById(entity);
+//                throw new JuliaException("暂无车队");
+//            }
+//        }
+//        throw new JuliaException("业务异常");
     }
 
     @Override
     public Boolean handOut(HandOutDTO dto, int cid) {
-        FortuneEntity entity = getById(dto.getFortuneId());
+        FortuneEntity entity =
+                new LambdaQueryChainWrapper<FortuneEntity>(getBaseMapper()).eq(FortuneEntity::getFortuneNo,dto.getFortuneNo()).one();
         if (!ObjectUtils.isEmpty(entity)) {
             //
             if (entity.getStatus() != 0) {
                 entity.setCId(cid);
                 webSocketService.handOutRedis(entity);
-                throw new JuliaException("改单已处理");
+                if (entity.getStatus() == 3) {
+                    throw new JuliaException("该单已超时");
+                }
+                throw new JuliaException("该单已处理");
             }
             //
             LocalDateTime localDateTime = entity.getCreateTime();
@@ -204,25 +215,15 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                 entity.setMsg(dto.getMsg());
             }
 
-//            entity.setDoneTime(System.currentTimeMillis());
+            entity.setDoneTime(System.currentTimeMillis());
 
-            long ct = System.currentTimeMillis();
 
             YaoEntity pan = yaoMapper.selectById(entity.getPId());
 
-            Map<String, Object> params = new HashMap<>(5);
-            String sign = SIGNSALT + entity.getOrderId() + entity.getDoneTime();
-            params.put("orderNo", entity.getOrderId());
-            params.put("amount", entity.getAmount());
-            params.put("orderStatus", entity.getStatus());
-            params.put("payTime", ct);
-            params.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
-
-            String callbackReturn = handleCallBack(pan.getCallback(), params);
+            String callbackReturn = handleCallBack(pan.getCallback(), entity);
             if ("success".equals(callbackReturn)) {
                 if (entity.getCheckCallback() != 1) {
                     entity.setCheckCallback(1);
-                    entity.setDoneTime(ct);
                 }
             } else {
                 entity.setCheckCallback(2);
@@ -248,8 +249,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         if (ObjectUtils.isEmpty(pan)) {
             throw new JuliaException("盘方不存在");
         }
-        FortuneEntity fortune =
-                new LambdaQueryChainWrapper<FortuneEntity>(getBaseMapper()).eq(FortuneEntity::getOrderId, dto.getOrderId()).one();
+        FortuneEntity fortune =getById(dto.getFortuneId());
         if (ObjectUtils.isEmpty(fortune)) {
             throw new JuliaException("订单异常");
         }
@@ -257,16 +257,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             throw new JuliaException("不可发起");
         }
 
-
-        Map<String, Object> params = new HashMap<>(5);
-        String sign = SIGNSALT + fortune.getOrderId() + fortune.getDoneTime();
-        params.put("orderNo", fortune.getOrderId());
-        params.put("amount", fortune.getAmount());
-        params.put("orderStatus", fortune.getStatus());
-        params.put("payTime", System.currentTimeMillis());
-        params.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
-
-        String callbackReturn = handleCallBack(pan.getCallback(), params);
+        String callbackReturn = handleCallBack(pan.getCallback(), fortune);
 
         if ("success".equals(callbackReturn)) {
             if (fortune.getCheckCallback() != 1) {
@@ -283,10 +274,19 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         Map<String, Object> sf = queryPagement.getSearchFields();
         int panid = ObjectUtils.isEmpty(sf.get("panid")) ? -1 : (int) sf.get("panid");
         int carid = ObjectUtils.isEmpty(sf.get("carid")) ? -1 : (int) sf.get("carid");
-        return getBaseMapper().metricsfortune((String) sf.get("st"), (String) sf.get("et"),carid,panid);
+        return getBaseMapper().metricsfortune((String) sf.get("st"), (String) sf.get("et"), carid, panid);
     }
 
-    protected String handleCallBack(String url, Map<String, Object> params) {
+    protected String handleCallBack(String url, FortuneEntity fortune) {
+        Map<String, Object> params = new HashMap<>(6);
+        String sign = SIGNSALT + fortune.getOrderId() + fortune.getDoneTime();
+        params.put("orderNo", fortune.getOrderId());
+        params.put("fortuneNo", fortune.getFortuneNo());
+        params.put("amount", fortune.getAmount());
+        params.put("orderStatus", fortune.getStatus());
+        params.put("payTime", fortune.getDoneTime());
+        params.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -297,6 +297,19 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             return response.getBody();
         }
         return null;
+    }
+
+    protected String GeneratorFortuneNo(int pid) {
+        long ct = System.currentTimeMillis();
+        Random random = new Random();
+        StringBuilder randomLetters = new StringBuilder();
+        for (int i = 0; i < 4; i++) {
+            // 生成一个随机的小写字母
+            char randomLetter = (char) ('a' + random.nextInt(26));
+            // 将随机字母添加到字符串构建器中
+            randomLetters.append(randomLetter);
+        }
+        return "YN" + ct + pid + randomLetters;
     }
 }
 

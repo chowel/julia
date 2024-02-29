@@ -83,7 +83,7 @@ public interface IFortuneService extends IService<FortuneEntity> {
      * @Author: chowel
      * @Date:
      */
-    Boolean handIn(FortuneDTO dto, int pid);
+    String handIn(FortuneDTO dto, int pid);
 
     /**
      * @Description: 车队分发收款

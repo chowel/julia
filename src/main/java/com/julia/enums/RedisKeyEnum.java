@@ -33,6 +33,10 @@ public enum RedisKeyEnum {
      * 车队池
      */
     CAR_POND("JULIA:CAR_POND:"),
+    /**
+     * 轮询游标
+     */
+    POLLING("JULIA:POLLING"),
     ;
 
 

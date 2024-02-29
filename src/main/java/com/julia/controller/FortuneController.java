@@ -103,7 +103,7 @@ public class FortuneController {
 
     @ApiOperation("财神")
     @PostMapping("/fortuneInput")
-    public Rv<Boolean> fortuneByDeposit(@RequestBody FortuneDTO dto) {
+    public Rv<String> fortuneByDeposit(@RequestBody FortuneDTO dto) {
         return new Rv<>(serviceImpl.handIn(dto,StpUtil.getLoginIdAsInt()));
     }
 

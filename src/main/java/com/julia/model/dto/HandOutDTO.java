@@ -21,4 +21,7 @@ public class HandOutDTO {
 
     @ApiModelProperty("收单账号")
     private String pid;
+
+    @ApiModelProperty("平台订单号")
+    private String fortuneNo;
 }
