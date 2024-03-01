@@ -1,16 +1,20 @@
 package com.julia.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.entity.FortuneEntity;
 import com.julia.entity.MetricsFortuneEntity;
+import com.julia.entity.ObtainEntity;
 import com.julia.entity.YaoEntity;
 import com.julia.mapper.FortuneMapper;
+import com.julia.mapper.ObtainMapper;
 import com.julia.mapper.YaoMapper;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.HandOutDTO;
 import com.julia.service.IFortuneService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.julia.service.IObtainService;
 import com.julia.tool.JuliaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +58,9 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
     @Resource
     YaoMapper yaoMapper;
+
+    @Resource
+    ObtainMapper obtainMapper;
 
     @Resource
     private RestTemplate restTemplate;
@@ -147,24 +154,12 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         } else {
             throw new JuliaException("暂无车队");
         }
-
-//        if (save(entity)) {
-//            if (webSocketService.hanldeFortune(entity)) {
-//                return fortuneNo;
-//            } else {
-//                entity.setStatus(2);
-//                entity.setMsg("no Car");
-//                updateById(entity);
-//                throw new JuliaException("暂无车队");
-//            }
-//        }
-//        throw new JuliaException("业务异常");
     }
 
     @Override
     public Boolean handOut(HandOutDTO dto, int cid) {
         FortuneEntity entity =
-                new LambdaQueryChainWrapper<FortuneEntity>(getBaseMapper()).eq(FortuneEntity::getFortuneNo,dto.getFortuneNo()).one();
+                new LambdaQueryChainWrapper<FortuneEntity>(getBaseMapper()).eq(FortuneEntity::getFortuneNo, dto.getFortuneNo()).one();
         if (!ObjectUtils.isEmpty(entity)) {
             //
             if (entity.getStatus() != 0) {
@@ -209,6 +204,15 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     @Override
     public Boolean overFortune(FortuneEntityVO dto) {
         FortuneEntity entity = getById(dto.getFortuneId());
+
+        YaoEntity car = yaoMapper.selectById(entity.getCId());
+
+        if (entity.getAmount() > car.getCoin()) {
+            throw new JuliaException("米不够");
+        }
+
+        car.setCoin(car.getCoin() - entity.getAmount());
+
         if (!ObjectUtils.isEmpty(entity)) {
             entity.setStatus(dto.getStatus());
             if (dto.getStatus() == 2) {
@@ -216,7 +220,6 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             }
 
             entity.setDoneTime(System.currentTimeMillis());
-
 
             YaoEntity pan = yaoMapper.selectById(entity.getPId());
 
@@ -229,14 +232,16 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                 entity.setCheckCallback(2);
             }
 
-            YaoEntity car = yaoMapper.selectById(entity.getCId());
+            ObtainEntity obtain = obtainMapper.selectOne(new QueryWrapper<ObtainEntity>()
+                    .eq("yao_id", entity.getCId())
+                    .eq("name", entity.getPayId()));
 
-            car.setCoin(car.getCoin() - entity.getAmount());
-
-            if (car.getCoin() < 0) {
-                car.setCoin(0);
+            if (!ObjectUtils.isEmpty(obtain)) {
+                obtain.setCout(obtain.getCout() + 1);
+                obtainMapper.updateById(obtain);
             }
 
+            yaoMapper.updateById(car);
             updateById(entity);
             return true;
         }
@@ -249,7 +254,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         if (ObjectUtils.isEmpty(pan)) {
             throw new JuliaException("盘方不存在");
         }
-        FortuneEntity fortune =getById(dto.getFortuneId());
+        FortuneEntity fortune = getById(dto.getFortuneId());
         if (ObjectUtils.isEmpty(fortune)) {
             throw new JuliaException("订单异常");
         }
@@ -275,6 +280,28 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         int panid = ObjectUtils.isEmpty(sf.get("panid")) ? -1 : (int) sf.get("panid");
         int carid = ObjectUtils.isEmpty(sf.get("carid")) ? -1 : (int) sf.get("carid");
         return getBaseMapper().metricsfortune((String) sf.get("st"), (String) sf.get("et"), carid, panid);
+    }
+
+    @Override
+    public Boolean refuse(FortuneDTO dto, int carId) {
+        if (webSocketService.checkAlive(carId, dto.getAmount())) {
+            FortuneEntity fortune = getOneByFortuneNo(dto.getFortuneNo());
+            if (ObjectUtils.isEmpty(fortune)) {
+                throw new JuliaException("该单异常");
+            }
+            YaoEntity pan = yaoMapper.selectById(fortune.getPId());
+            fortune.setStatus(2);
+            fortune.setDoneTime(System.currentTimeMillis());
+            String callbackReturn = handleCallBack(pan.getCallback(), fortune);
+            if ("success".equals(callbackReturn)) {
+                fortune.setCheckCallback(1);
+                updateById(fortune);
+            }
+            webSocketService.handOutRedis(fortune);
+            return false;
+        }
+        webSocketService.removeFortune(dto.getFortuneNo(), carId);
+        return true;
     }
 
     protected String handleCallBack(String url, FortuneEntity fortune) {
@@ -310,6 +337,10 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             randomLetters.append(randomLetter);
         }
         return "YN" + ct + pid + randomLetters;
+    }
+
+    public FortuneEntity getOneByFortuneNo(String No) {
+        return new LambdaQueryChainWrapper<>(getBaseMapper()).eq(FortuneEntity::getFortuneNo, No).one();
     }
 }
 

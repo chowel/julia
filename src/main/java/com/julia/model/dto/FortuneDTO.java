@@ -27,4 +27,7 @@ public class FortuneDTO {
 
     @ApiModelProperty("fortuneId")
     private Long fortuneId;
+
+    @ApiModelProperty("fortuneNo")
+    private String fortuneNo;
 }

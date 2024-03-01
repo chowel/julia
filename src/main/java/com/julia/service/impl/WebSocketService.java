@@ -190,6 +190,29 @@ public class WebSocketService {
     }
 
     /**
+     * @Description: 是否仅有自己在线
+     * @Param:
+     * @return: 只有自己在线或者没有人在线 true
+     * @Author: chowel
+     * @Date:
+     */
+    public boolean checkAlive(int carId, int minCoin) {
+        List<String> ids = getAliveByZset(minCoin);
+        if (ids.size() > 1) {
+            return false;
+        }
+        if (ids.size() == 1) {
+            String aliveId = ids.get(0);
+            if (aliveId.equals(String.valueOf(carId))) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * @Description: 处理收银台过来的订单
      * @Param:
      * @return:
@@ -274,6 +297,15 @@ public class WebSocketService {
         redisUtils.del(RedisKeyEnum.FORTUNE_POOL.getKey() + entity.getFortuneNo());
     }
 
+    public void removeFortune(String fortuneNo, int carid) {
+
+        FortuneEntity redisFortune = (FortuneEntity) redisUtils.get(RedisKeyEnum.FORTUNE_POOL.getKey() + fortuneNo);
+        if (!ObjectUtils.isEmpty(redisFortune)) {
+            redisUtils.hdel(RedisKeyEnum.CAR_POND.getKey() + carid, fortuneNo);
+            hanldeFortune(redisFortune);
+        }
+    }
+
     /**
      * @Description: 处理车队操作
      * @Param:
@@ -329,7 +361,7 @@ public class WebSocketService {
                 redisUtils.incr(RedisKeyEnum.POLLING.getKey(), 1);
                 return (int) curPolling;
             }
-        }else{
+        } else {
             redisUtils.set(RedisKeyEnum.POLLING.getKey(), 0);
             return 0;
         }

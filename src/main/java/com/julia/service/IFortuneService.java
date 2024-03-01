@@ -93,6 +93,7 @@ public interface IFortuneService extends IService<FortuneEntity> {
      * @Date:
      */
     Boolean handOut(HandOutDTO dto, int cid);
+
     /**
      * @Description: 收款结果
      * @Param:
@@ -110,15 +111,23 @@ public interface IFortuneService extends IService<FortuneEntity> {
      * @Date:
      */
     Boolean callBack(FortuneDTO dto, int pid);
+
     /**
-    * @Description: 收单统计
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date:
-    */
+     * @Description: 收单统计
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
     List<MetricsFortuneEntity> mertric(QueryPagement queryPagement);
 
-
+    /**
+     * @Description: 车队拒绝财神
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    Boolean refuse(FortuneDTO dto, int carId);
 }
 
