@@ -129,5 +129,13 @@ public interface IFortuneService extends IService<FortuneEntity> {
      * @Date:
      */
     Boolean refuse(FortuneDTO dto, int carId);
+    /**
+    * @Description: 主动下线
+    * @Param:
+    * @return:
+    * @Author: chowel
+    * @Date:
+    */
+    Boolean handClose(String carId);
 }
 

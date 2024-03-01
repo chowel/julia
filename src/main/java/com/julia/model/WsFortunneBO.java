@@ -1,6 +1,7 @@
 package com.julia.model;
 
 import com.julia.entity.FortuneEntity;
+import com.julia.model.dto.FortuneRedis;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -22,5 +23,5 @@ public class WsFortunneBO {
     private String sub;
 
     @ApiModelProperty("数据体")
-    private List<FortuneEntity> list;
+    private List<FortuneRedis> list;
 }

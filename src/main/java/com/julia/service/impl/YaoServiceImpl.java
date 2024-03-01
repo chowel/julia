@@ -54,9 +54,9 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
         }
 
         Page<YaoEntity> p = new LambdaQueryChainWrapper<YaoEntity>(getBaseMapper())
-                .eq(roleId>0,YaoEntity::getRoleId,roleId)
+                .eq(roleId > 0, YaoEntity::getRoleId, roleId)
                 .page(new Page<YaoEntity>(queryPagement.getStartPage(),
-                queryPagement.getPageSize()));
+                        queryPagement.getPageSize()));
         Page<YaoEntityVO> page = JuliaUtils.convertTo(new Page<YaoEntityVO>(), p);
         page.setRecords(p.getRecords().stream().map(e -> JuliaUtils.convertTo(new YaoEntityVO(), e)).collect(Collectors.toList()));
         return page;
@@ -78,6 +78,10 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
 
     @Override
     public Boolean alter(YaoEntityVO vo) {
+        // 提人
+        if (vo.getCheDel() != null && vo.getCheDel() == 2) {
+            StpUtil.logout(vo.getYaoId());
+        }
         return updateById(JuliaUtils.convertTo(new YaoEntity(), vo));
     }
 
@@ -94,7 +98,7 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
             throw new JuliaException("用户不存在");
         }
 
-        if (yao.getCheDel() == 0) {
+        if (yao.getCheDel() == 2) {
             throw new JuliaException("用户禁用");
         }
 
@@ -140,7 +144,7 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
 
     @Override
     @Transactional
-    public Boolean altercCoin(YaoEntityVO vo,int pId) {
+    public Boolean altercCoin(YaoEntityVO vo, int pId) {
         YaoEntity entity = getById(vo.getYaoId());
         // todo 加锁
         int coin = entity.getCoin() + vo.getCoin();

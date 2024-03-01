@@ -9,6 +9,7 @@ import com.julia.enums.RedisKeyEnum;
 import com.julia.mapper.YaoMapper;
 import com.julia.model.WebSocketMsgBO;
 import com.julia.model.WsFortunneBO;
+import com.julia.model.dto.FortuneRedis;
 import com.julia.socket.ChannelPond;
 import com.julia.tool.JuliaUtils;
 import com.julia.tool.RedisUtils;
@@ -116,13 +117,12 @@ public class WebSocketService {
         log.info("HEART-userId: " + userId);
         Channel userChannel = ChannelPond.findChannel(userId);
         if (ObjectUtils.isEmpty(userChannel)) {
-            log.info("userChannel: false");
+            log.info("HEART-Channel: None");
         } else {
             WebSocketMsgBO bo = new WebSocketMsgBO();
             bo.setSub("PONG");
             bo.setData("");
             userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
-
         }
     }
 
@@ -255,11 +255,12 @@ public class WebSocketService {
      * @Date:
      */
     @SneakyThrows
-    public Boolean hanldeFortune(FortuneEntity entity) {
-        List<String> userlist = getAliveByZset(entity.getAmount());
+    public Boolean hanldeFortune(FortuneRedis fortuneRedis) {
+        List<String> userlist = getAliveByZset(fortuneRedis.getAmount());
         if (userlist.size() > 0) {
+//
             // 放入财神池 过期时间10 分钟
-            redisUtils.set(RedisKeyEnum.FORTUNE_POOL.getKey() + entity.getFortuneNo(), entity, 600);
+            redisUtils.set(RedisKeyEnum.FORTUNE_POOL.getKey() + fortuneRedis.getFortuneNo(), fortuneRedis, 600);
 //            int rc = randomCarer(userlist.size());
             int rc = pollingCarId(userlist.size());
             log.info("Size：{}", userlist.size());
@@ -267,7 +268,7 @@ public class WebSocketService {
             String carYaoId = userlist.get(rc);
 
             // 放入车队个人池 map
-            redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + carYaoId, entity.getFortuneNo(), entity);
+            redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + carYaoId, fortuneRedis.getFortuneNo(), fortuneRedis);
 
             Channel userChannel = ChannelPond.findChannel(carYaoId);
 
@@ -299,10 +300,26 @@ public class WebSocketService {
 
     public void removeFortune(String fortuneNo, int carid) {
 
-        FortuneEntity redisFortune = (FortuneEntity) redisUtils.get(RedisKeyEnum.FORTUNE_POOL.getKey() + fortuneNo);
+        FortuneRedis redisFortune = (FortuneRedis) redisUtils.get(RedisKeyEnum.FORTUNE_POOL.getKey() + fortuneNo);
         if (!ObjectUtils.isEmpty(redisFortune)) {
             redisUtils.hdel(RedisKeyEnum.CAR_POND.getKey() + carid, fortuneNo);
             hanldeFortune(redisFortune);
+        }
+    }
+
+    public void removeByCarId(String carid) {
+        List<FortuneRedis> list = getFortuneByCarId(carid);
+        redisUtils.del(RedisKeyEnum.CAR_POND.getKey() + carid);
+        delByUserid(carid);
+        if (list.size() > 0) {
+            List<String> ids = getAliveByZset(0);
+            for (String id : ids) {
+                if (!id.equals(carid)) {
+                    list.stream().forEach(e->{
+                        redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + id, e.getFortuneNo(), e);
+                    });
+                }
+            }
         }
     }
 
@@ -333,10 +350,17 @@ public class WebSocketService {
         return list.stream().map(e -> (RocketEntity) e).collect(Collectors.toList());
     }
 
-    private List<FortuneEntity> getFortuneByCarId(String userId) {
+    /**
+     * @Description: 获取当前财神
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public List<FortuneRedis> getFortuneByCarId(String userId) {
         Map<Object, Object> map = redisUtils.hmget(RedisKeyEnum.CAR_POND.getKey() + userId);
         List<Object> list = new ArrayList<>(map.values());
-        return list.stream().map(e -> (FortuneEntity) e).collect(Collectors.toList());
+        return list.stream().map(e -> (FortuneRedis) e).collect(Collectors.toList());
     }
 
     private int randomCarer(int max) {

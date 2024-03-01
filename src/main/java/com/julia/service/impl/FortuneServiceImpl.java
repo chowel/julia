@@ -11,6 +11,7 @@ import com.julia.mapper.FortuneMapper;
 import com.julia.mapper.ObtainMapper;
 import com.julia.mapper.YaoMapper;
 import com.julia.model.dto.FortuneDTO;
+import com.julia.model.dto.FortuneRedis;
 import com.julia.model.dto.HandOutDTO;
 import com.julia.service.IFortuneService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -147,8 +148,8 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         entity.setPId(pid);
         entity.setOrderId(dto.getOrderId());
         entity.setDrawer(dto.getDrawer());
-
-        if (webSocketService.hanldeFortune(entity)) {
+        FortuneRedis fortuneRedis = JuliaUtils.convertTo(new FortuneRedis(), entity);
+        if (webSocketService.hanldeFortune(fortuneRedis)) {
             save(entity);
             return fortuneNo;
         } else {
@@ -292,6 +293,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             YaoEntity pan = yaoMapper.selectById(fortune.getPId());
             fortune.setStatus(2);
             fortune.setDoneTime(System.currentTimeMillis());
+            fortune.setCId(carId);
             String callbackReturn = handleCallBack(pan.getCallback(), fortune);
             if ("success".equals(callbackReturn)) {
                 fortune.setCheckCallback(1);
@@ -301,6 +303,12 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             return false;
         }
         webSocketService.removeFortune(dto.getFortuneNo(), carId);
+        return true;
+    }
+
+    @Override
+    public Boolean handClose(String carId) {
+        webSocketService.removeByCarId(carId);
         return true;
     }
 

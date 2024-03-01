@@ -3,6 +3,7 @@ package com.julia.config;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import org.springframework.cache.CacheManager;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -33,17 +35,28 @@ import java.time.Duration;
 public class RedisConfig extends CachingConfigurerSupport {
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = getJackson2JsonRedisSerializer();
-        template.setConnectionFactory(factory);
-        //key序列化方式
-        template.setKeySerializer(new StringRedisSerializer());
-        //value序列化
-        template.setValueSerializer(jackson2JsonRedisSerializer);
-        //value hashmap序列化
-        template.setHashValueSerializer(jackson2JsonRedisSerializer);
-        return template;
+    public static RedisTemplate<String, Object> redisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
+        lettuceConnectionFactory.setShareNativeConnection(false);
+        RedisTemplate<String, Object> rt = new RedisTemplate<>();
+        // 设置连接工厂
+        rt.setConnectionFactory(lettuceConnectionFactory);
+        // 设置 key 的序列化
+        StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
+        rt.setKeySerializer(stringRedisSerializer);
+        rt.setHashKeySerializer(stringRedisSerializer);
+        // 创建 JSON 序列化工具
+        Jackson2JsonRedisSerializer<Object> jsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        mapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+        jsonRedisSerializer.setObjectMapper(mapper);
+        // 设置 value 的序列化
+        rt.setValueSerializer(jsonRedisSerializer);
+        rt.setHashValueSerializer(jsonRedisSerializer);
+        rt.afterPropertiesSet();
+        return rt;
     }
 
     @Bean

@@ -55,9 +55,15 @@ public class FortuneCarController {
 //        return new Rv<>(vo);
 //    }
 
-    @ApiOperation("根据id查找")
-    @GetMapping("/query/{id}")
-    public Rv<FortuneEntityVO> getFortuneEntityOne(@PathVariable Long id) {
+//    @ApiOperation("根据id查找")
+//    @GetMapping("/query/{id}")
+//    public Rv<FortuneEntityVO> getFortuneEntityOne(@PathVariable Long id) {
+//        return new Rv<>(serviceImpl.findOneById(id));
+//    }
+
+    @ApiOperation("主动下线")
+    @GetMapping("/offLine/{id}")
+    public Rv<FortuneEntityVO> offLine(@PathVariable Long id) {
         return new Rv<>(serviceImpl.findOneById(id));
     }
 
@@ -91,5 +97,7 @@ public class FortuneCarController {
     public Rv<Boolean> handRefuse(@RequestBody FortuneDTO dto) {
         return new Rv<>(serviceImpl.refuse(dto, StpUtil.getLoginIdAsInt()));
     }
+
+
 }
 
