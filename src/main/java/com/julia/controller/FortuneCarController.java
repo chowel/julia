@@ -62,9 +62,9 @@ public class FortuneCarController {
 //    }
 
     @ApiOperation("主动下线")
-    @GetMapping("/offLine/{id}")
-    public Rv<FortuneEntityVO> offLine(@PathVariable Long id) {
-        return new Rv<>(serviceImpl.findOneById(id));
+    @GetMapping("/offLine")
+    public Rv<Boolean> offLine() {
+        return new Rv<>(serviceImpl.handClose(String.valueOf(StpUtil.getLoginIdAsInt())));
     }
 
     @ApiOperation("添加")

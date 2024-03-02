@@ -192,7 +192,7 @@ public class WebSocketService {
     /**
      * @Description: 是否仅有自己在线
      * @Param:
-     * @return: 只有自己在线或者没有人在线 true
+     * @return: 只有自己在线或者没有人在线 返回 true
      * @Author: chowel
      * @Date:
      */

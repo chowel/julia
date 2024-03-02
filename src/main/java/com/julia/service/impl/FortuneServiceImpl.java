@@ -104,6 +104,9 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                 .eq(StringUtils.hasLength((String) sf.get("drawer")), FortuneEntity::getDrawer, sf.get("drawer"))
                 .eq(StringUtils.hasLength((String) sf.get("payid")), FortuneEntity::getPayId, sf.get("payid"))
                 .like(StringUtils.hasLength((String) sf.get("orderid")), FortuneEntity::getOrderId, sf.get("orderid"))
+                .like(StringUtils.hasLength((String) sf.get("fortuneno")), FortuneEntity::getFortuneNo, sf.get("fortuneno"))
+                .like(StringUtils.hasLength((String) sf.get("transactno")), FortuneEntity::getTransactNo, sf.get(
+                        "transactno"))
                 .between(StringUtils.hasLength((String) sf.get("st")), FortuneEntity::getCreateTime, (String) sf.get("st"),
                         (String) sf.get("et"))
                 .orderByDesc(FortuneEntity::getFortuneId)
@@ -205,19 +208,30 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     @Override
     public Boolean overFortune(FortuneEntityVO dto) {
         FortuneEntity entity = getById(dto.getFortuneId());
-
-        YaoEntity car = yaoMapper.selectById(entity.getCId());
-
-        if (entity.getAmount() > car.getCoin()) {
-            throw new JuliaException("米不够");
-        }
-
-        car.setCoin(car.getCoin() - entity.getAmount());
-
         if (!ObjectUtils.isEmpty(entity)) {
-            entity.setStatus(dto.getStatus());
+            YaoEntity car = yaoMapper.selectById(entity.getCId());
+
+            if (entity.getAmount() > car.getCoin()) {
+                throw new JuliaException("米不够");
+            }
+
+            car.setCoin(car.getCoin() - entity.getAmount());
+
+            yaoMapper.updateById(car);
+
+            // 失败
             if (dto.getStatus() == 2) {
+                entity.setStatus(dto.getStatus());
                 entity.setMsg(dto.getMsg());
+            }
+            // 成功
+            if (dto.getStatus() == 4) {
+                int coinLose = -entity.getAmount();
+                webSocketService.incrementScore(String.valueOf(car.getYaoId()),coinLose);
+                entity.setStatus(dto.getStatus());
+                if(StringUtils.hasLength(dto.getTransactNo())){
+                    entity.setTransactNo(dto.getTransactNo());
+                }
             }
 
             entity.setDoneTime(System.currentTimeMillis());
@@ -242,7 +256,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                 obtainMapper.updateById(obtain);
             }
 
-            yaoMapper.updateById(car);
+
             updateById(entity);
             return true;
         }
@@ -259,7 +273,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         if (ObjectUtils.isEmpty(fortune)) {
             throw new JuliaException("订单异常");
         }
-        if (fortune.getStatus() == 0 || fortune.getStatus() == 1 || fortune.getCheckCallback() != 0) {
+        if (fortune.getStatus() == 0 || fortune.getStatus() == 1) {
             throw new JuliaException("不可发起");
         }
 
@@ -293,7 +307,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             YaoEntity pan = yaoMapper.selectById(fortune.getPId());
             fortune.setStatus(2);
             fortune.setDoneTime(System.currentTimeMillis());
-            fortune.setCId(carId);
+            fortune.setCId(3);
             String callbackReturn = handleCallBack(pan.getCallback(), fortune);
             if ("success".equals(callbackReturn)) {
                 fortune.setCheckCallback(1);
@@ -340,7 +354,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         StringBuilder randomLetters = new StringBuilder();
         for (int i = 0; i < 4; i++) {
             // 生成一个随机的小写字母
-            char randomLetter = (char) ('a' + random.nextInt(26));
+            char randomLetter = (char) ('A' + random.nextInt(26));
             // 将随机字母添加到字符串构建器中
             randomLetters.append(randomLetter);
         }

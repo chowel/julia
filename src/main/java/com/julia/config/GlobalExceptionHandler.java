@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = JuliaException.class)
     public ResponseEntity<String> flowsExcHandler(JuliaException ex, HttpServletRequest httpServletRequest) {
-        ex.printStackTrace();
+//        ex.printStackTrace();
         log.error("requestUrl: " + httpServletRequest.getRequestURL());
         log.error("Exception: {}", ex.getMsg());
         return new ResponseEntity<String>(
