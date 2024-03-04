@@ -51,7 +51,8 @@ public class RedisKeyExpireListener extends KeyExpirationEventMessageListener {
             FortuneEntity fortune = fortuneService.getOne(new QueryWrapper<FortuneEntity>().eq("fortune_no", orderId));
             if (!ObjectUtils.isEmpty(fortune)) {
                 fortune.setStatus(3);
-                fortuneService.updateById(fortune);
+                fortuneService.expiredCallback(fortune);
+//                fortuneService.updateById(fortune);
                 webSocketService.handOutRedis(fortune);
             }
         }

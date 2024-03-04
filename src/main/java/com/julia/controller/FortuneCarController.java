@@ -67,6 +67,12 @@ public class FortuneCarController {
         return new Rv<>(serviceImpl.handClose(String.valueOf(StpUtil.getLoginIdAsInt())));
     }
 
+    @ApiOperation("获取米")
+    @GetMapping("/getCoin")
+    public Rv<Integer> getCoin() {
+        return new Rv<>(serviceImpl.getCoins(StpUtil.getLoginIdAsInt()));
+    }
+
     @ApiOperation("添加")
     @PostMapping("/add")
     public Rv<Boolean> addFortuneEntityOne(@RequestBody FortuneEntityVO vo) {

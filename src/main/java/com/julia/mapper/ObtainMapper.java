@@ -16,4 +16,5 @@ import org.apache.ibatis.annotations.Mapper;
 
 public interface ObtainMapper extends BaseMapper<ObtainEntity> {
 
+    int coutEmpty(int id);
 }

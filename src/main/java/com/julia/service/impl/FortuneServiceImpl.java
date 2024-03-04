@@ -3,19 +3,17 @@ package com.julia.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.julia.entity.FortuneEntity;
-import com.julia.entity.MetricsFortuneEntity;
-import com.julia.entity.ObtainEntity;
-import com.julia.entity.YaoEntity;
+import com.julia.entity.*;
+import com.julia.mapper.CoinLogMapper;
 import com.julia.mapper.FortuneMapper;
 import com.julia.mapper.ObtainMapper;
 import com.julia.mapper.YaoMapper;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.FortuneRedis;
 import com.julia.model.dto.HandOutDTO;
+import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IFortuneService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.julia.service.IObtainService;
 import com.julia.tool.JuliaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +62,10 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     ObtainMapper obtainMapper;
 
     @Resource
-    private RestTemplate restTemplate;
+    RestTemplate restTemplate;
+
+    @Resource
+    CoinLogMapper coinLogMapper;
 
     @Value("${sign.salt}")
     private String SIGNSALT;
@@ -215,10 +216,6 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                 throw new JuliaException("米不够");
             }
 
-            car.setCoin(car.getCoin() - entity.getAmount());
-
-            yaoMapper.updateById(car);
-
             // 失败
             if (dto.getStatus() == 2) {
                 entity.setStatus(dto.getStatus());
@@ -226,16 +223,18 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             }
             // 成功
             if (dto.getStatus() == 4) {
+                car.setCoin(car.getCoin() - entity.getAmount());
                 int coinLose = -entity.getAmount();
-                webSocketService.incrementScore(String.valueOf(car.getYaoId()),coinLose);
+                webSocketService.incrementScore(String.valueOf(car.getYaoId()), coinLose);
                 entity.setStatus(dto.getStatus());
-                if(StringUtils.hasLength(dto.getTransactNo())){
+                if (StringUtils.hasLength(dto.getTransactNo())) {
                     entity.setTransactNo(dto.getTransactNo());
                 }
+                addCoinLog(entity);
             }
 
+            yaoMapper.updateById(car);
             entity.setDoneTime(System.currentTimeMillis());
-
             YaoEntity pan = yaoMapper.selectById(entity.getPId());
 
             String callbackReturn = handleCallBack(pan.getCallback(), entity);
@@ -326,6 +325,41 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         return true;
     }
 
+    @Override
+    public Integer getCoins(int yaoId) {
+        YaoEntity yaoEntity = yaoMapper.selectById(yaoId);
+        YaoEntityVO vo = JuliaUtils.convertTo(new YaoEntityVO(), yaoEntity);
+        return vo.getCoin();
+    }
+
+    @Override
+    public List<String> alives() {
+
+        return webSocketService.getAliveByZset(0);
+    }
+
+    @Override
+    public Boolean expiredCallback(FortuneEntity fortuneEntity) {
+        YaoEntity pan = yaoMapper.selectById(fortuneEntity.getPId());
+        if (ObjectUtils.isEmpty(pan)) {
+            throw new JuliaException("盘方不存在");
+        }
+
+        if (fortuneEntity.getStatus() == 0 || fortuneEntity.getStatus() == 1) {
+            return false;
+        }
+
+        String callbackReturn = handleCallBack(pan.getCallback(), fortuneEntity);
+
+        if ("success".equals(callbackReturn)) {
+            if (fortuneEntity.getCheckCallback() != 1) {
+                fortuneEntity.setCheckCallback(1);
+                return updateById(fortuneEntity);
+            }
+        }
+        return false;
+    }
+
     protected String handleCallBack(String url, FortuneEntity fortune) {
         Map<String, Object> params = new HashMap<>(6);
         String sign = SIGNSALT + fortune.getOrderId() + fortune.getDoneTime();
@@ -364,5 +398,16 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     public FortuneEntity getOneByFortuneNo(String No) {
         return new LambdaQueryChainWrapper<>(getBaseMapper()).eq(FortuneEntity::getFortuneNo, No).one();
     }
+
+    protected void addCoinLog(FortuneEntity fortune) {
+        CoinLogEntity coin = new CoinLogEntity();
+        coin.setType(1);
+        coin.setCoin(fortune.getAmount());
+        coin.setFortuneNo(fortune.getFortuneNo());
+        coin.setCId(fortune.getCId());
+        coin.setPId(fortune.getPId());
+        coinLogMapper.insert(coin);
+    }
+
 }
 

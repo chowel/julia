@@ -1,5 +1,6 @@
 package com.julia.controller;
 
+import com.julia.mapper.ObtainMapper;
 import com.julia.model.CaptchaVo;
 import com.julia.model.dto.LoginDto;
 import com.julia.model.vo.YaoEntityVO;
@@ -36,7 +37,7 @@ public class ApiController {
     IYaoService yaoService;
 
     @Resource
-    WebSocketService webSocketService;
+    ObtainMapper obtainMapper;
 
     @ApiOperation("登陆/获取token")
     @PostMapping("/login")
@@ -57,7 +58,7 @@ public class ApiController {
     @ApiOperation("addScore")
     @GetMapping("/addScore/{userid}")
     public Rv<String> addScore(@PathVariable String userid) {
-        webSocketService.incrementScore(userid,-100);
+        obtainMapper.coutEmpty(5);
         return new Rv<>("OK: ");
     }
 //

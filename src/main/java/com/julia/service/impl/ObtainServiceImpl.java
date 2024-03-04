@@ -64,5 +64,11 @@ public class ObtainServiceImpl extends ServiceImpl<ObtainMapper, ObtainEntity> i
                         .eq(ObtainEntity::getStatus,1).eq(ObtainEntity::getYaoId,carId).list();
         return list.stream().map(e -> JuliaUtils.convertTo(new ObtainEntityVO(), e)).collect(Collectors.toList());
     }
+
+    @Override
+    public Boolean clearCout(int carId) {
+        getBaseMapper().coutEmpty(carId);
+        return true;
+    }
 }
 

@@ -6,11 +6,11 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 车队加进记录 Mapper 接口
+ * 上货记录 Mapper 接口
  * </p>
  *
  * @author chowel
- * @since 2023-11-23
+ * @since 2024-03-04
  */
 @Mapper
 

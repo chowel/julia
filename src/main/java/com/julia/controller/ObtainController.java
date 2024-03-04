@@ -71,5 +71,11 @@ public class ObtainController {
     public Rv<List<ObtainEntityVO>> findbyCar() {
         return new Rv<>(serviceImpl.allObtain(StpUtil.getLoginIdAsInt()));
     }
+
+    @ApiOperation("清空计数")
+    @GetMapping("/clear")
+    public Rv<Boolean> clear() {
+        return new Rv<>(serviceImpl.clearCout(StpUtil.getLoginIdAsInt()));
+    }
 }
 

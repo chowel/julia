@@ -137,5 +137,23 @@ public interface IFortuneService extends IService<FortuneEntity> {
     * @Date:
     */
     Boolean handClose(String carId);
+    /**
+    * @Description:  获取米
+    * @Param:
+    * @return:
+    * @Author: chowel
+    * @Date:
+    */
+    Integer getCoins(int yaoId);
+    /** 
+    * @Description: 在线车队 
+    * @Param:  
+    * @return:  
+    * @Author: chowel 
+    * @Date:  
+    */
+    List<String> alives();
+
+    Boolean expiredCallback(FortuneEntity fortuneEntity);
 }
 

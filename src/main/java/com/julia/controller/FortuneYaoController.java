@@ -7,6 +7,7 @@ import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.FortuneWhitPageAndMetriVO;
 import com.julia.model.dto.HandOutDTO;
 import com.julia.model.vo.FortuneEntityVO;
+import com.julia.model.vo.ObtainEntityVO;
 import com.julia.service.IFortuneService;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
@@ -14,6 +15,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,6 +41,12 @@ public class FortuneYaoController {
         vo.setPage(serviceImpl.queryPage(queryPagement));
         vo.setList(serviceImpl.mertric(queryPagement));
         return new Rv<>(vo);
+    }
+
+    @ApiOperation("在线车队")
+    @GetMapping("/aliveByCars")
+    public Rv<List<String>> getAliveByCars(){
+        return new Rv<>(serviceImpl.alives());
     }
 
 }

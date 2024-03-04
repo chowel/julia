@@ -23,4 +23,8 @@
         obtain_id, yao_id, name, first_name, last_name, status, cout, note
     </sql>
 
+    <update id="coutEmpty">
+        update obtain set cout = 0 where yao_id=#{id}
+    </update>
+
 </mapper>

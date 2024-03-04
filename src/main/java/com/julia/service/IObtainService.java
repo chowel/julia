@@ -70,5 +70,13 @@ public interface IObtainService extends IService<ObtainEntity> {
     * @Date:  
     */
     List<ObtainEntityVO> allObtain(int carId);
+    /** 
+    * @Description: 每日计数清零 
+    * @Param:  
+    * @return:  
+    * @Author: chowel 
+    * @Date:  
+    */
+    Boolean clearCout(int carId);
 }
 

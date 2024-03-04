@@ -7,11 +7,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
 /**
  * <p>
- * 车队加进记录 服务类
+ * 上货记录 服务类
  * </p>
  *
  * @author chowel
- * @since 2023-11-23
+ * @since 2024-03-04
  */
 
 public interface ICoinLogService extends IService<CoinLogEntity> {
@@ -20,7 +20,7 @@ public interface ICoinLogService extends IService<CoinLogEntity> {
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2023-11-23
+    * @Date: 2024-03-04
     */
     Page<CoinLogEntityVO> findForPage(QueryPagement queryPagement);
 
@@ -29,7 +29,7 @@ public interface ICoinLogService extends IService<CoinLogEntity> {
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2023-11-23
+    * @Date: 2024-03-04
     */
     CoinLogEntityVO findOneById(Long id);
 
@@ -38,7 +38,7 @@ public interface ICoinLogService extends IService<CoinLogEntity> {
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2023-11-23
+    * @Date: 2024-03-04
     */
     Boolean saveCoinLogEntity(CoinLogEntityVO vo);
 
@@ -47,7 +47,7 @@ public interface ICoinLogService extends IService<CoinLogEntity> {
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2023-11-23
+    * @Date: 2024-03-04
     */
     Boolean alter(CoinLogEntityVO vo);
 
@@ -56,7 +56,7 @@ public interface ICoinLogService extends IService<CoinLogEntity> {
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2023-11-23
+    * @Date: 2024-03-04
     */
     Boolean remove(Long id);
 }
