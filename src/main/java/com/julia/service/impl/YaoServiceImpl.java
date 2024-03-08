@@ -133,6 +133,25 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
     }
 
     @Override
+    public String getTokenByPan(LoginDto dto) {
+        YaoEntity yao = this.getOne(new QueryWrapper<YaoEntity>().eq("login_name", dto.getName()));
+
+        if (ObjectUtils.isEmpty(yao)) {
+            throw new JuliaException("用户不存在");
+        }
+
+        if (yao.getCheDel() == 2) {
+            throw new JuliaException("用户禁用");
+        }
+
+        if (!BCrypt.checkpw(dto.getPassword(), yao.getPassword())) {
+            throw new JuliaException("密码错误");
+        }
+        StpUtil.login(yao.getYaoId());
+        return StpUtil.getTokenValue();
+    }
+
+    @Override
     public Boolean alterPassword(MidPasswordDto dto) {
         YaoEntity entity = getById(dto.getYaoId());
         if (!BCrypt.checkpw(dto.getPassword(), entity.getPassword())) {

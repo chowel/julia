@@ -2,9 +2,9 @@ server:
   port: 9022
 spring:
   datasource:
-    url: jdbc:mysql://139.186.151.238:3306/yaoyao?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://127.0.0.1:3306/yaoyao?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
-    password: LmATC1nF21BY
+    password: xQ$.x43rC3BUNZs
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       pool-name: garrupaCP
@@ -16,8 +16,8 @@ spring:
       max-lifetime: 60000
   redis:
     database: 0
-    host: 139.186.151.238
-    password: DdgiPBERuU71p
+    host: 127.0.0.1
+    password: WN6h1kDCCi
     port: 6379
     lettuce:
       pool:

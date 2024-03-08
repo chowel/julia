@@ -90,6 +90,15 @@ public interface IYaoService extends IService<YaoEntity> {
      */
     String createToken(Integer id);
 
+    /**
+     * @Description: 盘方获取token
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    String getTokenByPan(LoginDto dto);
+
 /**
 * @Description: 修改密码
 * @Param:

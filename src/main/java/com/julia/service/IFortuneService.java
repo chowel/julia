@@ -4,6 +4,7 @@ import com.julia.entity.FortuneEntity;
 import com.julia.entity.MetricsFortuneEntity;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.HandOutDTO;
+import com.julia.model.vo.FortuneApiVO;
 import com.julia.model.vo.FortuneEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -155,5 +156,7 @@ public interface IFortuneService extends IService<FortuneEntity> {
     List<String> alives();
 
     Boolean expiredCallback(FortuneEntity fortuneEntity);
+
+    FortuneApiVO findOneByNo(FortuneDTO dto);
 }
 

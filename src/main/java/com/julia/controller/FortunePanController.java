@@ -6,6 +6,7 @@ import com.julia.model.QueryPagement;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.FortuneWhitPageAndMetriVO;
 import com.julia.model.dto.HandOutDTO;
+import com.julia.model.vo.FortuneApiVO;
 import com.julia.model.vo.FortuneEntityVO;
 import com.julia.service.IFortuneService;
 import com.julia.tool.Rv;
@@ -31,25 +32,6 @@ public class FortunePanController {
     @Resource
     IFortuneService serviceImpl;
 
-//    @ApiOperation("分页查找")
-//    @PostMapping("/querywhitpage")
-//    public Rv<Page<FortuneEntityVO>> queryFortuneEntityWhitPage(@RequestBody QueryPagement queryPagement) {
-//        return new Rv<>(serviceImpl.findForPage(queryPagement));
-//    }
-
-//    @ApiOperation("车队分页查找")
-//    @PostMapping("/queryPageForCar")
-//    public Rv<FortuneWhitPageAndMetriVO> queryPageForCar(@RequestBody QueryPagement queryPagement) {
-//        Map<String, Object> sf = queryPagement.getSearchFields();
-//        sf.put("carid",StpUtil.getLoginIdAsInt());
-//        queryPagement.setSearchFields(sf);
-//
-//        FortuneWhitPageAndMetriVO vo = new FortuneWhitPageAndMetriVO();
-//        vo.setPage(serviceImpl.queryPage(queryPagement));
-//        vo.setList(serviceImpl.mertric(queryPagement));
-//        return new Rv<>(vo);
-//    }
-
     @ApiOperation("盘方分页查找")
     @PostMapping("/queryPageForPan")
     public Rv<FortuneWhitPageAndMetriVO> queryPageForPan(@RequestBody QueryPagement queryPagement) {
@@ -63,55 +45,18 @@ public class FortunePanController {
         return new Rv<>(vo);
     }
 
-//    @ApiOperation("分页查找")
-//    @PostMapping("/queryPage")
-//    public Rv<FortuneWhitPageAndMetriVO> queryPage(@RequestBody QueryPagement queryPagement) {
-//        FortuneWhitPageAndMetriVO vo = new FortuneWhitPageAndMetriVO();
-//        vo.setPage(serviceImpl.queryPage(queryPagement));
-//        vo.setList(serviceImpl.mertric(queryPagement));
-//        return new Rv<>(vo);
-//    }
-
-//    @ApiOperation("根据id查找")
-//    @GetMapping("/query/{id}")
-//    public Rv<FortuneEntityVO> getFortuneEntityOne(@PathVariable Long id) {
-//        return new Rv<>(serviceImpl.findOneById(id)); }
-//
-//    @ApiOperation("添加")
-//    @PostMapping("/add")
-//    public Rv<Boolean> addFortuneEntityOne(@RequestBody FortuneEntityVO vo) {
-//            return new Rv<>(serviceImpl.saveFortuneEntity(vo));
-//    }
-
-//    @ApiOperation("修改")
-//    @PostMapping("/changed")
-//    public Rv<Boolean> changedFortuneEntityOne(@RequestBody FortuneEntityVO vo) {
-//        return new Rv<>(serviceImpl.alter(vo));
-//    }
-//
-//    @ApiOperation("删除")
-//    @GetMapping("/del/{id}")
-//    public Rv<Boolean> delFortuneEntityById(@PathVariable Long id) {
-//          return new Rv<>(serviceImpl.remove(id));
-//    }
-//
     @ApiOperation("财神")
     @PostMapping("/fortuneIn")
     public Rv<String> fortuneByDeposit(@RequestBody FortuneDTO dto) {
         return new Rv<>(serviceImpl.handIn(dto,StpUtil.getLoginIdAsInt()));
     }
 
-//    @ApiOperation("车队分发收款账号")
-//    @PostMapping("/handOut")
-//    public Rv<Boolean> handOut(@RequestBody HandOutDTO dto) {
-//        return new Rv<>(serviceImpl.handOut(dto,StpUtil.getLoginIdAsInt()));
-//    }
-//
-//    @ApiOperation("财神操作")
-//    @PostMapping("/handleFortune")
-//    public Rv<Boolean> fortuneBus(@RequestBody FortuneEntityVO dto) {
-//        return new Rv<>(serviceImpl.overFortune(dto));
-//    }
+    @ApiOperation("获取收单")
+    @PostMapping("/getFortune")
+    public Rv<FortuneApiVO> getFortune(@RequestBody FortuneDTO dto) {
+        return new Rv<>(serviceImpl.findOneByNo(dto));
+    }
+
 
     @ApiOperation("发起回调")
     @PostMapping("/handCallBack")

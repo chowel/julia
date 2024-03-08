@@ -11,6 +11,7 @@ import com.julia.mapper.YaoMapper;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.FortuneRedis;
 import com.julia.model.dto.HandOutDTO;
+import com.julia.model.vo.FortuneApiVO;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IFortuneService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -268,7 +269,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         if (ObjectUtils.isEmpty(pan)) {
             throw new JuliaException("盘方不存在");
         }
-        FortuneEntity fortune = getById(dto.getFortuneId());
+        FortuneEntity fortune = getOneByFortuneNo(dto.getFortuneNo());
         if (ObjectUtils.isEmpty(fortune)) {
             throw new JuliaException("订单异常");
         }
@@ -358,6 +359,12 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             }
         }
         return false;
+    }
+
+    @Override
+    public FortuneApiVO findOneByNo(FortuneDTO dto) {
+        FortuneEntity fortune = getOneByFortuneNo(dto.getFortuneNo());
+        return JuliaUtils.convertTo(new FortuneApiVO(), fortune);
     }
 
     protected String handleCallBack(String url, FortuneEntity fortune) {

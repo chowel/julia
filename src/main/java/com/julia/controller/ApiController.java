@@ -45,6 +45,12 @@ public class ApiController {
         return new Rv<>(yaoService.login(dto));
     }
 
+    @ApiOperation("盘方获取token")
+    @PostMapping("/getToken")
+    public Rv<String> getToken(@RequestBody LoginDto dto) {
+        return new Rv<>(yaoService.getTokenByPan(dto));
+    }
+
     @ApiOperation("test")
     @GetMapping("/test")
     public Rv<String> test() {
