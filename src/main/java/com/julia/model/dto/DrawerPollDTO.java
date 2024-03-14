@@ -9,28 +9,17 @@ import lombok.Setter;
  * @program: julia
  * @description:
  * @author: Chowel.Master
- * @create: 2024-02-15 22:56
+ * @create: 2024-03-14 14:05
  **/
+
 @Getter
 @Setter
-@ApiModel(value = "FortuneDTO", description = "财神")
-public class FortuneDTO {
-
-    @ApiModelProperty("商户订单号/备注")
-    private String orderId;
-
-    @ApiModelProperty("金额")
-    private Integer amount;
+@ApiModel(value = "DrawerPollDTO", description = "DrawerPollDTO")
+public class DrawerPollDTO {
 
     @ApiModelProperty("付款人账号")
     private String drawer;
 
-    @ApiModelProperty("主键id")
-    private Long fortuneId;
-
     @ApiModelProperty("平台订单号")
     private String fortuneNo;
-
-    @ApiModelProperty("回调地址")
-    private String callbackUrl;
 }

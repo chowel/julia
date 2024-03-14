@@ -1,4 +1,4 @@
-package com.julia.model.dto;
+package com.julia.model.vo;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -13,8 +13,11 @@ import lombok.Setter;
  **/
 @Getter
 @Setter
-@ApiModel(value = "FortuneDTO", description = "财神")
-public class FortuneDTO {
+@ApiModel(value = "CreateFortuneVO", description = "创建财神返回VO")
+public class CreateFortuneVO {
+
+    @ApiModelProperty("收银台地址")
+    private String payUrl;
 
     @ApiModelProperty("商户订单号/备注")
     private String orderId;
@@ -22,15 +25,6 @@ public class FortuneDTO {
     @ApiModelProperty("金额")
     private Integer amount;
 
-    @ApiModelProperty("付款人账号")
-    private String drawer;
-
-    @ApiModelProperty("主键id")
-    private Long fortuneId;
-
-    @ApiModelProperty("平台订单号")
+    @ApiModelProperty("平台交易号")
     private String fortuneNo;
-
-    @ApiModelProperty("回调地址")
-    private String callbackUrl;
 }

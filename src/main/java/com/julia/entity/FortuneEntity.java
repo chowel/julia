@@ -14,7 +14,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2024-02-29
+ * @since 2024-03-14
  */
 @Getter
 @Setter
@@ -40,7 +40,7 @@ public class FortuneEntity extends BaseEntity {
     private String transactNo;
 
     /**
-     * 订单号
+     * 商户订单号/备注
      */
     @TableField("order_id")
     private String orderId;
@@ -116,4 +116,10 @@ public class FortuneEntity extends BaseEntity {
      */
     @TableField("drawer")
     private String drawer;
+
+    /**
+     * 回调地址
+     */
+    @TableField("notice_url")
+    private String noticeUrl;
 }

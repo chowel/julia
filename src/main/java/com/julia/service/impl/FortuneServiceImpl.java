@@ -8,9 +8,8 @@ import com.julia.mapper.CoinLogMapper;
 import com.julia.mapper.FortuneMapper;
 import com.julia.mapper.ObtainMapper;
 import com.julia.mapper.YaoMapper;
-import com.julia.model.dto.FortuneDTO;
-import com.julia.model.dto.FortuneRedis;
-import com.julia.model.dto.HandOutDTO;
+import com.julia.model.dto.*;
+import com.julia.model.vo.CreateFortuneVO;
 import com.julia.model.vo.FortuneApiVO;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IFortuneService;
@@ -70,6 +69,9 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
     @Value("${sign.salt}")
     private String SIGNSALT;
+
+    @Value("${deposit.url}")
+    private String PAYURL;
 
     @Override
     public Page<FortuneEntityVO> findForPage(QueryPagement queryPagement) {
@@ -141,10 +143,44 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         return removeById(id);
     }
 
-    @Override
-    public String handIn(FortuneDTO dto, int pid) {
-        FortuneEntity entity = new FortuneEntity();
+//    @Override
+//    public String handIn(FortuneDTO dto, int pid) {
+//        FortuneEntity entity = new FortuneEntity();
+//
+//        // 生成本平台订单号；
+//        String fortuneNo = GeneratorFortuneNo(pid);
+//
+//        entity.setFortuneNo(fortuneNo);
+//        entity.setAmount(dto.getAmount());
+//        entity.setPId(pid);
+//        entity.setOrderId(dto.getOrderId());
+//        entity.setDrawer(dto.getDrawer());
+//        FortuneRedis fortuneRedis = JuliaUtils.convertTo(new FortuneRedis(), entity);
+//        if (webSocketService.hanldeFortune(fortuneRedis)) {
+//            save(entity);
+//            return fortuneNo;
+//        } else {
+//            throw new JuliaException("暂无车队");
+//        }
+//    }
 
+    @Override
+    public Boolean gotoCar(DrawerPollDTO dto) {
+        FortuneEntity fortune = getOneByFortuneNo(dto.getFortuneNo());
+        if (!ObjectUtils.isEmpty(fortune)) {
+            fortune.setDrawer(dto.getDrawer());
+            FortuneRedis fortuneRedis = JuliaUtils.convertTo(new FortuneRedis(), fortune);
+            if (webSocketService.hanldeFortune(fortuneRedis)) {
+                save(fortune);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public CreateFortuneVO addFortune(NewFortuneDTO dto, int pid) {
+        FortuneEntity entity = new FortuneEntity();
         // 生成本平台订单号；
         String fortuneNo = GeneratorFortuneNo(pid);
 
@@ -152,11 +188,18 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         entity.setAmount(dto.getAmount());
         entity.setPId(pid);
         entity.setOrderId(dto.getOrderId());
-        entity.setDrawer(dto.getDrawer());
-        FortuneRedis fortuneRedis = JuliaUtils.convertTo(new FortuneRedis(), entity);
-        if (webSocketService.hanldeFortune(fortuneRedis)) {
+        // 回调地址
+
+//        FortuneRedis fortuneRedis = JuliaUtils.convertTo(new FortuneRedis(), entity);
+        List<String> alives = webSocketService.getAliveByZset(dto.getAmount());
+        if (alives.size() > 0) {
             save(entity);
-            return fortuneNo;
+            CreateFortuneVO vo = new CreateFortuneVO();
+            vo.setAmount(dto.getAmount());
+            vo.setFortuneNo(fortuneNo);
+            vo.setOrderId(dto.getOrderId());
+            vo.setPayUrl(PAYURL + fortuneNo);
+            return vo;
         } else {
             throw new JuliaException("暂无车队");
         }
@@ -236,9 +279,9 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
             yaoMapper.updateById(car);
             entity.setDoneTime(System.currentTimeMillis());
-            YaoEntity pan = yaoMapper.selectById(entity.getPId());
+//            YaoEntity pan = yaoMapper.selectById(entity.getPId());
 
-            String callbackReturn = handleCallBack(pan.getCallback(), entity);
+            String callbackReturn = handleCallBack(entity.getNoticeUrl(), entity);
             if ("success".equals(callbackReturn)) {
                 if (entity.getCheckCallback() != 1) {
                     entity.setCheckCallback(1);
@@ -265,10 +308,10 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
     @Override
     public Boolean callBack(FortuneDTO dto, int pid) {
-        YaoEntity pan = yaoMapper.selectById(pid);
-        if (ObjectUtils.isEmpty(pan)) {
-            throw new JuliaException("盘方不存在");
-        }
+//        YaoEntity pan = yaoMapper.selectById(pid);
+//        if (ObjectUtils.isEmpty(pan)) {
+//            throw new JuliaException("盘方不存在");
+//        }
         FortuneEntity fortune = getOneByFortuneNo(dto.getFortuneNo());
         if (ObjectUtils.isEmpty(fortune)) {
             throw new JuliaException("订单异常");
@@ -277,7 +320,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             throw new JuliaException("不可发起");
         }
 
-        String callbackReturn = handleCallBack(pan.getCallback(), fortune);
+        String callbackReturn = handleCallBack(fortune.getNoticeUrl(), fortune);
 
         if ("success".equals(callbackReturn)) {
             if (fortune.getCheckCallback() != 1) {
@@ -304,11 +347,11 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             if (ObjectUtils.isEmpty(fortune)) {
                 throw new JuliaException("该单异常");
             }
-            YaoEntity pan = yaoMapper.selectById(fortune.getPId());
+//            YaoEntity pan = yaoMapper.selectById(fortune.getPId());
             fortune.setStatus(2);
             fortune.setDoneTime(System.currentTimeMillis());
             fortune.setCId(3);
-            String callbackReturn = handleCallBack(pan.getCallback(), fortune);
+            String callbackReturn = handleCallBack(fortune.getNoticeUrl(), fortune);
             if ("success".equals(callbackReturn)) {
                 fortune.setCheckCallback(1);
                 updateById(fortune);
@@ -341,16 +384,16 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
     @Override
     public Boolean expiredCallback(FortuneEntity fortuneEntity) {
-        YaoEntity pan = yaoMapper.selectById(fortuneEntity.getPId());
-        if (ObjectUtils.isEmpty(pan)) {
-            throw new JuliaException("盘方不存在");
-        }
+//        YaoEntity pan = yaoMapper.selectById(fortuneEntity.getPId());
+//        if (ObjectUtils.isEmpty(pan)) {
+//            throw new JuliaException("盘方不存在");
+//        }
 
         if (fortuneEntity.getStatus() == 0 || fortuneEntity.getStatus() == 1) {
             return false;
         }
 
-        String callbackReturn = handleCallBack(pan.getCallback(), fortuneEntity);
+        String callbackReturn = handleCallBack(fortuneEntity.getNoticeUrl(), fortuneEntity);
 
         if ("success".equals(callbackReturn)) {
             if (fortuneEntity.getCheckCallback() != 1) {
@@ -362,8 +405,8 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     }
 
     @Override
-    public FortuneApiVO findOneByNo(FortuneDTO dto) {
-        FortuneEntity fortune = getOneByFortuneNo(dto.getFortuneNo());
+    public FortuneApiVO findOneByNo(String fortuneNo) {
+        FortuneEntity fortune = getOneByFortuneNo(fortuneNo);
         return JuliaUtils.convertTo(new FortuneApiVO(), fortune);
     }
 

@@ -37,3 +37,6 @@ file:
   uploadurl: "/Users/chenchengwei/project/chowel_master/resources/upload"
 sign:
   salt: ID6IxM1YzwDMN
+
+deposit:
+  url: https://dev.tianchenhulian.com/juliadeposit/

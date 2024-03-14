@@ -13,8 +13,8 @@ import lombok.Setter;
  **/
 @Getter
 @Setter
-@ApiModel(value = "FortuneDTO", description = "财神")
-public class FortuneDTO {
+@ApiModel(value = "NewFortuneDTO", description = "创建财神Dto")
+public class NewFortuneDTO {
 
     @ApiModelProperty("商户订单号/备注")
     private String orderId;
@@ -22,15 +22,6 @@ public class FortuneDTO {
     @ApiModelProperty("金额")
     private Integer amount;
 
-    @ApiModelProperty("付款人账号")
-    private String drawer;
-
-    @ApiModelProperty("主键id")
-    private Long fortuneId;
-
-    @ApiModelProperty("平台订单号")
-    private String fortuneNo;
-
     @ApiModelProperty("回调地址")
-    private String callbackUrl;
+    private String noticeUrl;
 }

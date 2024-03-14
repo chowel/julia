@@ -6,6 +6,8 @@ import com.julia.model.QueryPagement;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.FortuneWhitPageAndMetriVO;
 import com.julia.model.dto.HandOutDTO;
+import com.julia.model.dto.NewFortuneDTO;
+import com.julia.model.vo.CreateFortuneVO;
 import com.julia.model.vo.FortuneApiVO;
 import com.julia.model.vo.FortuneEntityVO;
 import com.julia.service.IFortuneService;
@@ -45,16 +47,22 @@ public class FortunePanController {
         return new Rv<>(vo);
     }
 
-    @ApiOperation("财神")
-    @PostMapping("/fortuneIn")
-    public Rv<String> fortuneByDeposit(@RequestBody FortuneDTO dto) {
-        return new Rv<>(serviceImpl.handIn(dto,StpUtil.getLoginIdAsInt()));
+    @ApiOperation("newFortune")
+    @PostMapping("/createFortune")
+    public Rv<CreateFortuneVO> createFortune(@RequestBody NewFortuneDTO dto) {
+        return new Rv<>(serviceImpl.addFortune(dto,StpUtil.getLoginIdAsInt()));
     }
+
+//    @ApiOperation("财神")
+//    @PostMapping("/fortuneIn")
+//    public Rv<String> fortuneByDeposit(@RequestBody FortuneDTO dto) {
+//        return new Rv<>(serviceImpl.handIn(dto,StpUtil.getLoginIdAsInt()));
+//    }
 
     @ApiOperation("获取收单")
     @PostMapping("/getFortune")
     public Rv<FortuneApiVO> getFortune(@RequestBody FortuneDTO dto) {
-        return new Rv<>(serviceImpl.findOneByNo(dto));
+        return new Rv<>(serviceImpl.findOneByNo(dto.getFortuneNo()));
     }
 
 

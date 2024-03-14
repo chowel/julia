@@ -22,14 +22,16 @@
         <result column="handout_time" property="handoutTime" />
         <result column="msg" property="msg" />
         <result column="drawer" property="drawer" />
+        <result column="notice_url" property="noticeUrl" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        fortune_id, fortune_no, transact_no, order_id, amount, pay_id, p_id, c_id, first_name, last_name, status, check_callback, done_time, handout_time, msg, drawer
+        fortune_id, fortune_no, transact_no, order_id, amount, pay_id, p_id, c_id, first_name, last_name, status, check_callback, done_time, handout_time, msg, drawer, notice_url
     </sql>
+
     <select id="metricsfortune" resultType="com.julia.entity.MetricsFortuneEntity">
         SELECT COUNT(*) as quantity,status,SUM(amount) as amount FROM fortune WHERE
         <if test="cid > 0">

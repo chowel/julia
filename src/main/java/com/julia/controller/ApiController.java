@@ -2,8 +2,11 @@ package com.julia.controller;
 
 import com.julia.mapper.ObtainMapper;
 import com.julia.model.CaptchaVo;
+import com.julia.model.dto.DrawerPollDTO;
 import com.julia.model.dto.LoginDto;
+import com.julia.model.vo.FortuneApiVO;
 import com.julia.model.vo.YaoEntityVO;
+import com.julia.service.IFortuneService;
 import com.julia.service.IYaoService;
 import com.julia.service.impl.WebSocketService;
 import com.julia.socket.ChannelPond;
@@ -37,7 +40,7 @@ public class ApiController {
     IYaoService yaoService;
 
     @Resource
-    ObtainMapper obtainMapper;
+    IFortuneService serviceImpl;
 
     @ApiOperation("登陆/获取token")
     @PostMapping("/login")
@@ -61,17 +64,22 @@ public class ApiController {
         return new Rv<>("OK: "+s);
     }
 
-    @ApiOperation("addScore")
-    @GetMapping("/addScore/{userid}")
-    public Rv<String> addScore(@PathVariable String userid) {
-        obtainMapper.coutEmpty(5);
-        return new Rv<>("OK: ");
-    }
-//
-//    @ApiOperation("testPoll")
-//    @GetMapping("/testPoll/{count}")
-//    public Rv<String> testPoll(@PathVariable Integer count) {
-//        webSocketService.pollingCarId(count);
+//    @ApiOperation("addScore")
+//    @GetMapping("/addScore/{userid}")
+//    public Rv<String> addScore(@PathVariable String userid) {
+//        obtainMapper.coutEmpty(5);
 //        return new Rv<>("OK: ");
 //    }
+
+    @ApiOperation("find")
+    @GetMapping("/getOne/{fortuneNo}")
+    public Rv<FortuneApiVO> getOne(@PathVariable String fortuneNo) {
+        return new Rv<>(serviceImpl.findOneByNo(fortuneNo));
+    }
+//
+    @ApiOperation("Poll")
+    @GetMapping("/poll")
+    public Rv<Boolean> drawerPoll(@RequestBody DrawerPollDTO dto) {
+        return new Rv<>(serviceImpl.gotoCar(dto));
+    }
 }

@@ -2,8 +2,11 @@ package com.julia.service;
 
 import com.julia.entity.FortuneEntity;
 import com.julia.entity.MetricsFortuneEntity;
+import com.julia.model.dto.DrawerPollDTO;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.HandOutDTO;
+import com.julia.model.dto.NewFortuneDTO;
+import com.julia.model.vo.CreateFortuneVO;
 import com.julia.model.vo.FortuneApiVO;
 import com.julia.model.vo.FortuneEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -84,7 +87,18 @@ public interface IFortuneService extends IService<FortuneEntity> {
      * @Author: chowel
      * @Date:
      */
-    String handIn(FortuneDTO dto, int pid);
+//    String handIn(FortuneDTO dto, int pid);
+
+    Boolean gotoCar(DrawerPollDTO dto);
+
+    /**
+     * @Description: 创建
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    CreateFortuneVO addFortune(NewFortuneDTO dto, int pid);
 
     /**
      * @Description: 车队分发收款
@@ -130,33 +144,36 @@ public interface IFortuneService extends IService<FortuneEntity> {
      * @Date:
      */
     Boolean refuse(FortuneDTO dto, int carId);
+
     /**
-    * @Description: 主动下线
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date:
-    */
+     * @Description: 主动下线
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
     Boolean handClose(String carId);
+
     /**
-    * @Description:  获取米
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date:
-    */
+     * @Description: 获取米
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
     Integer getCoins(int yaoId);
-    /** 
-    * @Description: 在线车队 
-    * @Param:  
-    * @return:  
-    * @Author: chowel 
-    * @Date:  
-    */
+
+    /**
+     * @Description: 在线车队
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
     List<String> alives();
 
     Boolean expiredCallback(FortuneEntity fortuneEntity);
 
-    FortuneApiVO findOneByNo(FortuneDTO dto);
+    FortuneApiVO findOneByNo(String fortuneNo);
 }
 
