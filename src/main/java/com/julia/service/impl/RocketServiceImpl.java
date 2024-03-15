@@ -256,7 +256,7 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
 
             RocketEntity saved = this.getById(rocket.getRocketId());
 
-            webSocketService.handleDeposit(saved);
+//            webSocketService.handleDeposit(saved);
 
         } catch (Exception e) {
             e.printStackTrace();

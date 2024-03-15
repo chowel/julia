@@ -27,16 +27,15 @@ spring:
         min-idle: 0
       shutdown-timeout: 20000ms
   application:
-    name: julia-dev
+    name: julia-test
 # 日志配置
 #logging:
-#  config: classpath:logback-spring-dev.xml
+#  config: classpath:logback-spring-test.xml
 swagger:
   enabled: true
 file:
-  uploadurl: "/Users/chenchengwei/project/chowel_master/resources/upload"
+  uploadurl: "/home/upload/images/julia/"
 sign:
   salt: ID6IxM1YzwDMN
-
 deposit:
   url: https://dev.tianchenhulian.com/juliadeposit/

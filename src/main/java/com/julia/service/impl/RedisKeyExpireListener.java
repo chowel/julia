@@ -42,20 +42,24 @@ public class RedisKeyExpireListener extends KeyExpirationEventMessageListener {
     public void onMessage(Message message, byte[] pattern) {
         String key = message.toString().replace("\"", "");
         log.info("监听到Key过期:{}", key);
-        String[] keyArray = key.split(":");
-        String cId = "";
 
-        if ("FORTUNE_POOL".equals(keyArray[1])) {
-            log.info("FORTUNE-收单过期-key:{}", key);
-            String orderId = keyArray[2];
-            FortuneEntity fortune = fortuneService.getOne(new QueryWrapper<FortuneEntity>().eq("fortune_no", orderId));
-            if (!ObjectUtils.isEmpty(fortune)) {
-                fortune.setStatus(3);
-                fortuneService.expiredCallback(fortune);
-//                fortuneService.updateById(fortune);
-                webSocketService.handOutRedis(fortune);
+        if (key.contains("JULIA")) {
+            String[] keyArray = key.split(":");
+            if ("FORTUNE_POOL".equals(keyArray[1])) {
+                log.info("FORTUNE-收单过期-key:{}", key);
+                String orderId = keyArray[2];
+                String cid = keyArray[3];
+                FortuneEntity fortune = fortuneService.getOne(new QueryWrapper<FortuneEntity>().eq("fortune_no", orderId));
+                if (!ObjectUtils.isEmpty(fortune)) {
+                    fortune.setStatus(3);
+                    fortune.setCId(Integer.valueOf(cid));
+                    webSocketService.handOutRedis(fortune);
+                    fortuneService.expiredCallback(fortune);
+
+                }
             }
         }
+
 
     }
 }

@@ -78,7 +78,7 @@ public class ApiController {
     }
 //
     @ApiOperation("Poll")
-    @GetMapping("/poll")
+    @PostMapping("/poll")
     public Rv<Boolean> drawerPoll(@RequestBody DrawerPollDTO dto) {
         return new Rv<>(serviceImpl.gotoCar(dto));
     }

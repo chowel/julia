@@ -126,6 +126,7 @@ public class WebSocketService {
         }
     }
 
+
     /**
      * @Description: 收单分发
      * @Param:
@@ -134,32 +135,24 @@ public class WebSocketService {
      * @Date:
      */
     @SneakyThrows
-    public void dispatcherRocket(String userId) {
+    public void dispatcherFortune(String userId) {
         Channel userChannel = ChannelPond.findChannel(userId);
-
-        if (ObjectUtils.isEmpty(userChannel)) {
-            log.info("userChannel: false");
-        } else {
-            WebSocketMsgBO bo = new WebSocketMsgBO();
-            bo.setSub("DISARR");
-            bo.setData(getRocketsByUserId(userId));
-            userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
-        }
+        fortuneToCar(userChannel);
     }
 
     public void joinZset(String userId) {
         YaoEntity yao = yaoMapper.selectById(Long.valueOf(userId));
         Boolean res = redisUtils.addZset(RedisKeyEnum.CAR_ALIVE.getKey(), userId, yao.getCoin());
-        long exTime = redisUtils.getExpire(RedisKeyEnum.CAR_ALIVE.getKey());
-        log.info("过期时间 :{}", exTime);
-        // 设置缓存时间
-        if (exTime == -1) {
-            Long n = System.currentTimeMillis();
-            Long t = JuliaUtils.todayTime();
-            log.info("time {}-{}", n, t);
-            int s = (int) ((t - n) / 1000);
-            redisUtils.expire(RedisKeyEnum.CAR_ALIVE.getKey(), s);
-        }
+//        long exTime = redisUtils.getExpire(RedisKeyEnum.CAR_ALIVE.getKey());
+//        log.info("过期时间 :{}", exTime);
+//        // 设置缓存时间
+//        if (exTime == -1) {
+//            Long n = System.currentTimeMillis();
+//            Long t = JuliaUtils.todayTime();
+//            log.info("time {}-{}", n, t);
+//            int s = (int) ((t - n) / 1000);
+//            redisUtils.expire(RedisKeyEnum.CAR_ALIVE.getKey(), s);
+//        }
     }
 
     /**
@@ -213,41 +206,6 @@ public class WebSocketService {
     }
 
     /**
-     * @Description: 处理收银台过来的订单
-     * @Param:
-     * @return:
-     * @Author: chowel
-     * @Date:
-     */
-    public void handleDeposit(RocketEntity rocket) {
-
-        List<String> userlist = getAliveByZset(rocket.getAmount());
-
-        if (userlist.size() > 0) {
-            // 放入公共池 过期时间10 分钟
-            redisUtils.set(RedisKeyEnum.COMMON_POND.getKey() + userlist.get(0) + ":" + rocket.getOrderId(), rocket, 600);
-            // 放入车队个人池
-            redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + userlist.get(0), rocket.getOrderId(), rocket);
-
-            long exTime = redisUtils.getExpire(RedisKeyEnum.CAR_POND.getKey() + userlist.get(0));
-
-            if (exTime == -1) {
-                Long n = System.currentTimeMillis();
-                Long t = JuliaUtils.todayTime();
-                int s = (int) ((t - n) / 1000);
-                redisUtils.expire(RedisKeyEnum.CAR_POND.getKey() + userlist.get(0), s);
-            }
-            // 车队个人池计数+1
-            int computeAmount = -rocket.getAmount();
-            incrementScore(userlist.get(0), computeAmount);
-
-            dispatcherRocket(userlist.get(0));
-        } else {
-            redisUtils.set(RedisKeyEnum.COMMON_POOL.getKey() + rocket.getOrderId(), rocket, 600);
-        }
-    }
-
-    /**
      * @Description: 处理财神单
      * @Param:
      * @return:
@@ -258,9 +216,6 @@ public class WebSocketService {
     public Boolean hanldeFortune(FortuneRedis fortuneRedis) {
         List<String> userlist = getAliveByZset(fortuneRedis.getAmount());
         if (userlist.size() > 0) {
-//
-            // 放入财神池 过期时间10 分钟
-            redisUtils.set(RedisKeyEnum.FORTUNE_POOL.getKey() + fortuneRedis.getFortuneNo(), fortuneRedis, 600);
 //            int rc = randomCarer(userlist.size());
             int rc = pollingCarId(userlist.size());
             log.info("Size：{}", userlist.size());
@@ -269,6 +224,8 @@ public class WebSocketService {
 
             // 放入车队个人池 map
             redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + carYaoId, fortuneRedis.getFortuneNo(), fortuneRedis);
+            // 放入财神池 过期时间10 分钟
+            redisUtils.set(RedisKeyEnum.FORTUNE_POOL.getKey() + fortuneRedis.getFortuneNo() + ":" + carYaoId, fortuneRedis, 600);
 
             Channel userChannel = ChannelPond.findChannel(carYaoId);
 
@@ -294,10 +251,19 @@ public class WebSocketService {
      * @Date:
      */
     public void handOutRedis(FortuneEntity entity) {
+        log.info("handOutRedis:CID:{}", entity.getCId());
+        log.info("handOutRedis:FortuneNO:{}", entity.getFortuneNo());
         redisUtils.hdel(RedisKeyEnum.CAR_POND.getKey() + entity.getCId(), entity.getFortuneNo());
-        redisUtils.del(RedisKeyEnum.FORTUNE_POOL.getKey() + entity.getFortuneNo());
+        redisUtils.del(RedisKeyEnum.FORTUNE_POOL.getKey() + entity.getFortuneNo() + ":" + entity.getCId());
     }
 
+    /**
+     * @Description: 重新分配
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
     public void removeFortune(String fortuneNo, int carid) {
 
         FortuneRedis redisFortune = (FortuneRedis) redisUtils.get(RedisKeyEnum.FORTUNE_POOL.getKey() + fortuneNo);
@@ -315,7 +281,7 @@ public class WebSocketService {
             List<String> ids = getAliveByZset(0);
             for (String id : ids) {
                 if (!id.equals(carid)) {
-                    list.stream().forEach(e->{
+                    list.stream().forEach(e -> {
                         redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + id, e.getFortuneNo(), e);
                     });
                 }
