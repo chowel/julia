@@ -174,7 +174,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                 fortune.setStatus(0);
                 updateById(fortune);
                 return true;
-            }else{
+            } else {
                 fortune.setStatus(2);
                 fortune.setMsg("");
                 String callbackReturn = handleCallBack(fortune);
@@ -259,6 +259,8 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             updateById(entity);
             // 处理redis中数据
             webSocketService.handOutRedis(entity);
+            // 推送redis数据
+            webSocketService.dispatcherFortune(String.valueOf(cid));
             return true;
         }
         return false;
@@ -271,6 +273,16 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             YaoEntity car = yaoMapper.selectById(entity.getCId());
 
             if (entity.getAmount() > car.getCoin()) {
+                entity.setStatus(2);
+                String callbackReturn = handleCallBack(entity);
+                if ("success".equals(callbackReturn)) {
+                    if (entity.getCheckCallback() != 1) {
+                        entity.setCheckCallback(1);
+                    }
+                } else {
+                    entity.setCheckCallback(2);
+                }
+                updateById(entity);
                 throw new JuliaException("米不够");
             }
 
@@ -356,8 +368,9 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
     @Override
     public Boolean refuse(FortuneDTO dto, int carId) {
-        // 无人在线
-        if (webSocketService.checkAlive(carId, dto.getAmount())) {
+        logger.info("分配给其他人: ");
+        boolean refuseRes = webSocketService.removeFortune(dto.getFortuneNo(), carId);
+        if (!refuseRes) {
             FortuneEntity fortune = getOneByFortuneNo(dto.getFortuneNo());
             if (ObjectUtils.isEmpty(fortune)) {
                 throw new JuliaException("该单异常");
@@ -371,12 +384,9 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                 fortune.setCheckCallback(1);
                 updateById(fortune);
             }
-            webSocketService.handOutRedis(fortune);
-            return false;
         }
-        // 分配给其他人
-        webSocketService.removeFortune(dto.getFortuneNo(), carId);
-        return true;
+        webSocketService.dispatcherFortune(String.valueOf(carId));
+        return refuseRes;
     }
 
     @Override
@@ -424,7 +434,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
     protected String handleCallBack(FortuneEntity fortune) {
         Map<String, Object> params = new HashMap<>(6);
-        String sign = SIGNSALT + fortune.getOrderId() + fortune.getDoneTime();
+        String sign = SIGNSALT + fortune.getOrderId() + fortune.getFortuneNo();
         params.put("orderNo", fortune.getOrderId());
         params.put("fortuneNo", fortune.getFortuneNo());
         params.put("amount", fortune.getAmount());

@@ -264,28 +264,50 @@ public class WebSocketService {
      * @Author: chowel
      * @Date:
      */
-    public void removeFortune(String fortuneNo, int carid) {
+    public Boolean removeFortune(String fortuneNo, int carid) {
 
-        FortuneRedis redisFortune = (FortuneRedis) redisUtils.get(RedisKeyEnum.FORTUNE_POOL.getKey() + fortuneNo);
+        FortuneRedis redisFortune =
+                (FortuneRedis) redisUtils.get(RedisKeyEnum.FORTUNE_POOL.getKey() + fortuneNo + ":" + carid);
         if (!ObjectUtils.isEmpty(redisFortune)) {
             redisUtils.hdel(RedisKeyEnum.CAR_POND.getKey() + carid, fortuneNo);
-            hanldeFortune(redisFortune);
+            redisUtils.del(RedisKeyEnum.FORTUNE_POOL.getKey() + fortuneNo + ":" + carid);
+            // todo
+            List<String> userlist = getAliveByZset(redisFortune.getAmount());
+            if (userlist.size() > 1) {
+                String otherCarId = userlist.get(userlist.size() - 1);
+                if (otherCarId.equals(String.valueOf(carid))) {
+                    otherCarId = userlist.get(userlist.size() - 2);
+                }// 放入车队个人池 map
+                redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + otherCarId, redisFortune.getFortuneNo(), redisFortune);
+                // 放入财神池 过期时间10 分钟
+                redisUtils.set(RedisKeyEnum.FORTUNE_POOL.getKey() + redisFortune.getFortuneNo() + ":" + otherCarId, redisFortune, 600);
+                dispatcherFortune(otherCarId);
+                return true;
+            }
         }
+        return false;
     }
 
     public void removeByCarId(String carid) {
-        List<FortuneRedis> list = getFortuneByCarId(carid);
+        List<FortuneRedis> fortuneList = getFortuneByCarId(carid);
         redisUtils.del(RedisKeyEnum.CAR_POND.getKey() + carid);
-        delByUserid(carid);
-        if (list.size() > 0) {
-            List<String> ids = getAliveByZset(0);
-            for (String id : ids) {
-                if (!id.equals(carid)) {
-                    list.stream().forEach(e -> {
-                        redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + id, e.getFortuneNo(), e);
-                    });
+//        delByUserid(carid);
+        if (fortuneList.size() > 0) {
+            fortuneList.stream().forEach(f -> {
+                redisUtils.del(RedisKeyEnum.FORTUNE_POOL.getKey() + f.getFortuneNo() + ":" + carid);
+                List<String> ids = getAliveByZset(f.getAmount());
+                if (ids.size() > 1) {
+                    String otherCarId = ids.get(ids.size() - 1);
+                    if (otherCarId.equals(carid)) {
+                        otherCarId = ids.get(ids.size() - 2);
+                    }
+                    redisUtils.hset(RedisKeyEnum.CAR_POND.getKey() + otherCarId, f.getFortuneNo(), f);
+                    // 放入财神池 过期时间10 分钟
+                    redisUtils.set(RedisKeyEnum.FORTUNE_POOL.getKey() + f.getFortuneNo() + ":" + otherCarId,
+                            f, 600);
+                    dispatcherFortune(otherCarId);
                 }
-            }
+            });
         }
     }
 
