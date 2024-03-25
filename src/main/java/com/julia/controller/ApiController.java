@@ -1,9 +1,13 @@
 package com.julia.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.julia.mapper.ObtainMapper;
 import com.julia.model.CaptchaVo;
 import com.julia.model.dto.DrawerPollDTO;
+import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.LoginDto;
+import com.julia.model.dto.NewFortuneDTO;
+import com.julia.model.vo.CreateFortuneVO;
 import com.julia.model.vo.FortuneApiVO;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IFortuneService;
@@ -59,27 +63,44 @@ public class ApiController {
     public Rv<String> test() {
         Long n = System.currentTimeMillis();
         Long t = JuliaUtils.todayTime();
-        log.info("t:{}",t-n);
-        int s = (int) ((t-n)/1000);
-        return new Rv<>("OK: "+s);
+        log.info("t:{}", t - n);
+        int s = (int) ((t - n) / 1000);
+        return new Rv<>("OK: " + s);
     }
 
-//    @ApiOperation("addScore")
-//    @GetMapping("/addScore/{userid}")
-//    public Rv<String> addScore(@PathVariable String userid) {
-//        obtainMapper.coutEmpty(5);
-//        return new Rv<>("OK: ");
-//    }
 
+    //   收银台接口
     @ApiOperation("find")
     @GetMapping("/getOne/{fortuneNo}")
     public Rv<FortuneApiVO> getOne(@PathVariable String fortuneNo) {
         return new Rv<>(serviceImpl.findOneByNo(fortuneNo));
     }
-//
+
+    //   收银台接口
     @ApiOperation("Poll")
     @PostMapping("/poll")
     public Rv<Boolean> drawerPoll(@RequestBody DrawerPollDTO dto) {
         return new Rv<>(serviceImpl.gotoCar(dto));
+    }
+
+
+    @ApiOperation("获取收单")
+    @PostMapping("/getFortune")
+    public Rv<FortuneApiVO> getFortune(@RequestBody FortuneDTO dto) {
+        return new Rv<>(serviceImpl.findOneByNo(dto.getFortuneNo()));
+    }
+
+
+    @ApiOperation("发起回调")
+    @PostMapping("/handCallBack")
+    public Rv<Boolean> handCallBack(@RequestBody FortuneDTO dto) {
+        return new Rv<>(serviceImpl.callBack(dto));
+    }
+
+    @ApiOperation("newFortune")
+    @PostMapping("/createFortune")
+    public Rv<CreateFortuneVO> createFortune(@RequestBody NewFortuneDTO dto) {
+        String panId = (String) StpUtil.getLoginIdByToken(dto.getToken());
+        return new Rv<>(serviceImpl.addFortune(dto, Integer.parseInt(panId)));
     }
 }

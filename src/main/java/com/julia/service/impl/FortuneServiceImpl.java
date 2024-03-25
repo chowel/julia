@@ -333,7 +333,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     }
 
     @Override
-    public Boolean callBack(FortuneDTO dto, int pid) {
+    public Boolean callBack(FortuneDTO dto) {
 //        YaoEntity pan = yaoMapper.selectById(pid);
 //        if (ObjectUtils.isEmpty(pan)) {
 //            throw new JuliaException("盘方不存在");
@@ -342,9 +342,9 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         if (ObjectUtils.isEmpty(fortune)) {
             throw new JuliaException("订单异常");
         }
-        if (fortune.getStatus() == 0 || fortune.getStatus() == 1) {
-            throw new JuliaException("不可发起");
-        }
+//        if (fortune.getStatus() == 0 || fortune.getStatus() == 1) {
+//            throw new JuliaException("不可发起");
+//        }
 
         String callbackReturn = handleCallBack(fortune);
 

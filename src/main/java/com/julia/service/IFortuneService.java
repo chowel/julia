@@ -125,7 +125,7 @@ public interface IFortuneService extends IService<FortuneEntity> {
      * @Author: chowel
      * @Date:
      */
-    Boolean callBack(FortuneDTO dto, int pid);
+    Boolean callBack(FortuneDTO dto);
 
     /**
      * @Description: 收单统计

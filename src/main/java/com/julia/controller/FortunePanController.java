@@ -47,11 +47,11 @@ public class FortunePanController {
         return new Rv<>(vo);
     }
 
-    @ApiOperation("newFortune")
-    @PostMapping("/createFortune")
-    public Rv<CreateFortuneVO> createFortune(@RequestBody NewFortuneDTO dto) {
-        return new Rv<>(serviceImpl.addFortune(dto,StpUtil.getLoginIdAsInt()));
-    }
+//    @ApiOperation("newFortune")
+//    @PostMapping("/createFortune")
+//    public Rv<CreateFortuneVO> createFortune(@RequestBody NewFortuneDTO dto) {
+//        return new Rv<>(serviceImpl.addFortune(dto,StpUtil.getLoginIdAsInt()));
+//    }
 
 //    @ApiOperation("财神")
 //    @PostMapping("/fortuneIn")
@@ -59,17 +59,17 @@ public class FortunePanController {
 //        return new Rv<>(serviceImpl.handIn(dto,StpUtil.getLoginIdAsInt()));
 //    }
 
-    @ApiOperation("获取收单")
-    @PostMapping("/getFortune")
-    public Rv<FortuneApiVO> getFortune(@RequestBody FortuneDTO dto) {
-        return new Rv<>(serviceImpl.findOneByNo(dto.getFortuneNo()));
-    }
+//    @ApiOperation("获取收单")
+//    @PostMapping("/getFortune")
+//    public Rv<FortuneApiVO> getFortune(@RequestBody FortuneDTO dto) {
+//        return new Rv<>(serviceImpl.findOneByNo(dto.getFortuneNo()));
+//    }
 
 
-    @ApiOperation("发起回调")
-    @PostMapping("/handCallBack")
-    public Rv<Boolean> handCallBack(@RequestBody FortuneDTO dto) {
-        return new Rv<>(serviceImpl.callBack(dto,StpUtil.getLoginIdAsInt()));
-    }
+//    @ApiOperation("发起回调")
+//    @PostMapping("/handCallBack")
+//    public Rv<Boolean> handCallBack(@RequestBody FortuneDTO dto) {
+//        return new Rv<>(serviceImpl.callBack(dto,StpUtil.getLoginIdAsInt()));
+//    }
 }
 

@@ -24,4 +24,7 @@ public class NewFortuneDTO {
 
     @ApiModelProperty("回调地址")
     private String noticeUrl;
+
+    @ApiModelProperty("商户token")
+    private String token;
 }

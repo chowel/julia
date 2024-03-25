@@ -31,13 +31,13 @@ public class FortuneApiVO extends BaseEntity {
     @ApiModelProperty("金额")
     private Integer amount;
 
-    private Integer cId;
-
-    @ApiModelProperty("姓")
-    private String firstName;
-
-    @ApiModelProperty("名")
-    private String lastName;
+//    private Integer cId;
+//
+//    @ApiModelProperty("姓")
+//    private String firstName;
+//
+//    @ApiModelProperty("名")
+//    private String lastName;
 
     @ApiModelProperty("0 : 未操作 1: 收款单已发送  2:失败 3:过期未操作 4:成功")
     private Integer status;
@@ -62,9 +62,6 @@ public class FortuneApiVO extends BaseEntity {
             ", transactNo = " + transactNo +
             ", orderId = " + orderId +
             ", amount = " + amount +
-            ", cId = " + cId +
-            ", firstName = " + firstName +
-            ", lastName = " + lastName +
             ", status = " + status +
             ", checkCallback = " + checkCallback +
             ", doneTime = " + doneTime +
