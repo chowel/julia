@@ -434,13 +434,15 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
     protected String handleCallBack(FortuneEntity fortune) {
         Map<String, Object> params = new HashMap<>(6);
-        String sign = SIGNSALT + fortune.getOrderId() + fortune.getFortuneNo();
+        String sign = fortune.getOrderId() + fortune.getFortuneNo();
         params.put("orderNo", fortune.getOrderId());
         params.put("fortuneNo", fortune.getFortuneNo());
         params.put("amount", fortune.getAmount());
         params.put("orderStatus", fortune.getStatus());
         params.put("payTime", fortune.getDoneTime());
-        params.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
+        String signMd5 = DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8));
+        logger.info("SIGN-MD5 :{}", signMd5);
+        params.put("sign", signMd5);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -448,7 +450,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(params, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(fortune.getNoticeUrl(), requestEntity, String.class);
         if (response.getStatusCode() == HttpStatus.OK) {
-            logger.info(response.getBody());
+            logger.info("回调接口返回值 :{}", response.getBody());
             return response.getBody();
         }
         return null;

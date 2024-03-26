@@ -17,6 +17,7 @@ import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -37,8 +38,6 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     private WebSocketServerHandshaker handshaker;
 
     private static NioWebSocketHandler nioWebSocketHandler;
-
-
 
 
     @PostConstruct
@@ -103,7 +102,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         // 业务处理
 //        nioWebSocketHandler.service.handleMsg(request);
         // 需要当前频道的业务处理
-        nioWebSocketHandler.service.handleMsgWhitChannel(request,ctx.channel());
+        nioWebSocketHandler.service.handleMsgWhitChannel(request, ctx.channel());
 
     }
 
@@ -138,13 +137,18 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
             }
 
             String id = (String) StpUtil.getLoginIdByToken(uriArr[2]);
-            ChannelPond.addChannel(ctx.channel(),id);
-            // 加入
-            nioWebSocketHandler.service.joinZset(id);
+            if (StringUtils.hasLength(id)) {
+                ChannelPond.addChannel(ctx.channel(), id);
+                // 加入
+                nioWebSocketHandler.service.joinZset(id);
+            }else{
+                sendHttpResponse(ctx, req, new DefaultFullHttpResponse(
+                        HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST));
+            }
+
         } else {
             sendHttpResponse(ctx, req, new DefaultFullHttpResponse(
                     HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST));
-            return;
         }
     }
 
