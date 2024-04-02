@@ -80,7 +80,7 @@ public class ApiController {
     @ApiOperation("Poll")
     @PostMapping("/poll")
     public Rv<Boolean> drawerPoll(@RequestBody DrawerPollDTO dto) {
-        return new Rv<>(serviceImpl.gotoCar(dto));
+        return new Rv<>(serviceImpl.dispenseCar(dto));
     }
 
 
@@ -97,7 +97,7 @@ public class ApiController {
         return new Rv<>(serviceImpl.callBack(dto));
     }
 
-    @ApiOperation("newFortune")
+    @ApiOperation("创建财神")
     @PostMapping("/createFortune")
     public Rv<CreateFortuneVO> createFortune(@RequestBody NewFortuneDTO dto) {
         String panId = (String) StpUtil.getLoginIdByToken(dto.getToken());

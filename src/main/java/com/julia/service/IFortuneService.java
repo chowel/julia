@@ -81,15 +81,13 @@ public interface IFortuneService extends IService<FortuneEntity> {
     Boolean remove(Long id);
 
     /**
-     * @Description: 输入订单
+     * @Description: 下发车队
      * @Param:
      * @return:
      * @Author: chowel
      * @Date:
      */
-//    String handIn(FortuneDTO dto, int pid);
-
-    Boolean gotoCar(DrawerPollDTO dto);
+    Boolean dispenseCar(DrawerPollDTO dto);
 
     /**
      * @Description: 创建
@@ -175,5 +173,14 @@ public interface IFortuneService extends IService<FortuneEntity> {
     Boolean expiredCallback(FortuneEntity fortuneEntity);
 
     FortuneApiVO findOneByNo(String fortuneNo);
+
+    /**
+     * @Description: 平台强制成功订单
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    Boolean forceFortune(String fortuneNo);
 }
 

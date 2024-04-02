@@ -2,13 +2,16 @@ package com.julia.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.julia.entity.YaoEntity;
 import com.julia.model.QueryPagement;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.FortuneWhitPageAndMetriVO;
 import com.julia.model.dto.HandOutDTO;
+import com.julia.model.dto.NewFortuneDTO;
 import com.julia.model.vo.FortuneEntityVO;
 import com.julia.model.vo.ObtainEntityVO;
 import com.julia.service.IFortuneService;
+import com.julia.service.IYaoService;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -33,6 +36,9 @@ public class FortuneYaoController {
     @Resource
     IFortuneService serviceImpl;
 
+    @Resource
+    IYaoService yaoService;
+
 
     @ApiOperation("分页查找")
     @PostMapping("/queryPage")
@@ -45,8 +51,18 @@ public class FortuneYaoController {
 
     @ApiOperation("在线车队")
     @GetMapping("/aliveByCars")
-    public Rv<List<String>> getAliveByCars(){
+    public Rv<List<String>> getAliveByCars() {
         return new Rv<>(serviceImpl.alives());
+    }
+
+    @ApiOperation("powerFortune")
+    @PostMapping("/powerFortune")
+    public Rv<Boolean> createFortune(@RequestBody FortuneDTO dto) {
+        YaoEntity yao = yaoService.getById(StpUtil.getLoginIdAsInt());
+        if (yao.getAuthId() != 5) {
+            return new Rv<>(Boolean.FALSE);
+        }
+        return new Rv<>(serviceImpl.forceFortune(dto.getFortuneNo()));
     }
 
 }
