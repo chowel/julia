@@ -57,9 +57,9 @@ public class FortuneYaoController {
 
     @ApiOperation("powerFortune")
     @PostMapping("/powerFortune")
-    public Rv<Boolean> createFortune(@RequestBody FortuneDTO dto) {
+    public Rv<Boolean> powerFortune(@RequestBody FortuneDTO dto) {
         YaoEntity yao = yaoService.getById(StpUtil.getLoginIdAsInt());
-        if (yao.getAuthId() != 5) {
+        if (yao.getRoleId() != 5) {
             return new Rv<>(Boolean.FALSE);
         }
         return new Rv<>(serviceImpl.forceFortune(dto.getFortuneNo()));

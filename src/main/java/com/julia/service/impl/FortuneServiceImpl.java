@@ -184,10 +184,10 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                 fortune.setStatus(1);
                 fortune.setHandoutTime(ct);
                 String callbackReturn = handleCallBack(fortune);
-                if ("success".equals(callbackReturn)) {
-                    if (fortune.getCheckCallback() != 1) {
-                        fortune.setCheckCallback(1);
-                    }
+                if (StringUtils.hasLength(callbackReturn)) {
+
+                    fortune.setCheckCallback(1);
+
                 } else {
                     fortune.setCheckCallback(2);
                 }
@@ -206,12 +206,12 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                 fortune.setMsg("");
                 String callbackReturn = handleCallBack(fortune);
 
-                if ("success".equals(callbackReturn)) {
-                    if (fortune.getCheckCallback() != 1) {
-                        fortune.setCheckCallback(1);
-                        updateById(fortune);
-                    }
+                if (StringUtils.hasLength(callbackReturn)) {
+                    fortune.setCheckCallback(1);
+                } else {
+                    fortune.setCheckCallback(2);
                 }
+                updateById(fortune);
             }
         }
         return false;
@@ -291,10 +291,10 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 //                钱不够失败
                 entity.setStatus(3);
                 String callbackReturn = handleCallBack(entity);
-                if ("success".equals(callbackReturn)) {
-                    if (entity.getCheckCallback() != 1) {
-                        entity.setCheckCallback(1);
-                    }
+                if (StringUtils.hasLength(callbackReturn)) {
+
+                    entity.setCheckCallback(1);
+
                 } else {
                     entity.setCheckCallback(2);
                 }
@@ -324,10 +324,8 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 //            YaoEntity pan = yaoMapper.selectById(entity.getPId());
 
             String callbackReturn = handleCallBack(entity);
-            if ("success".equals(callbackReturn)) {
-                if (entity.getCheckCallback() != 1) {
-                    entity.setCheckCallback(1);
-                }
+            if (StringUtils.hasLength(callbackReturn)) {
+                entity.setCheckCallback(1);
             } else {
                 entity.setCheckCallback(2);
             }
@@ -364,12 +362,19 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
         String callbackReturn = handleCallBack(fortune);
 
-        if ("success".equals(callbackReturn)) {
-            if (fortune.getCheckCallback() != 1) {
-                fortune.setCheckCallback(1);
-                return updateById(fortune);
-            }
+//        if ("success".equals(callbackReturn)) {
+//            if (fortune.getCheckCallback() != 1) {
+//                fortune.setCheckCallback(1);
+//                return updateById(fortune);
+//            }
+//        }
+        if (StringUtils.hasLength(callbackReturn)) {
+            fortune.setCheckCallback(1);
+            return updateById(fortune);
+        } else {
+            fortune.setCheckCallback(2);
         }
+        updateById(fortune);
         return false;
 
     }
@@ -396,10 +401,17 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             fortune.setDoneTime(System.currentTimeMillis());
             fortune.setCId(carId);
             String callbackReturn = handleCallBack(fortune);
-            if ("success".equals(callbackReturn)) {
+//            if ("success".equals(callbackReturn)) {
+//                fortune.setCheckCallback(1);
+//                updateById(fortune);
+//            }
+            if (StringUtils.hasLength(callbackReturn)) {
                 fortune.setCheckCallback(1);
-                updateById(fortune);
+            } else {
+                fortune.setCheckCallback(2);
             }
+            updateById(fortune);
+
         }
         webSocketService.dispatcherFortune(String.valueOf(carId));
         return refuseRes;
@@ -433,12 +445,12 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         webSocketService.dispatcherFortune(String.valueOf(fortuneEntity.getCId()));
         String callbackReturn = handleCallBack(fortuneEntity);
 
-        if ("success".equals(callbackReturn)) {
-            if (fortuneEntity.getCheckCallback() != 1) {
-                fortuneEntity.setCheckCallback(1);
-                return updateById(fortuneEntity);
-            }
+        if (StringUtils.hasLength(callbackReturn)) {
+            fortuneEntity.setCheckCallback(1);
+            return updateById(fortuneEntity);
         }
+        fortuneEntity.setCheckCallback(2);
+        updateById(fortuneEntity);
         return false;
     }
 
@@ -454,10 +466,8 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         if (fortune.getStatus() == 3) {
             fortune.setStatus(4);
             String callbackReturn = handleCallBack(fortune);
-            if ("success".equals(callbackReturn)) {
-                if (fortune.getCheckCallback() != 1) {
-                    fortune.setCheckCallback(1);
-                }
+            if (StringUtils.hasLength(callbackReturn)) {
+                fortune.setCheckCallback(1);
             } else {
                 fortune.setCheckCallback(2);
             }
@@ -468,27 +478,32 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     }
 
     protected String handleCallBack(FortuneEntity fortune) {
-        Map<String, Object> params = new HashMap<>(6);
-        String sign = fortune.getOrderId() + fortune.getFortuneNo();
-        params.put("orderNo", fortune.getOrderId());
-        params.put("fortuneNo", fortune.getFortuneNo());
-        params.put("amount", fortune.getAmount());
-        params.put("orderStatus", fortune.getStatus());
-        params.put("payTime", fortune.getDoneTime());
-        String signMd5 = DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8));
-        logger.info("SIGN-MD5 :{}", signMd5);
-        params.put("sign", signMd5);
+        try {
+            Map<String, Object> params = new HashMap<>(6);
+            String sign = fortune.getOrderId() + fortune.getFortuneNo();
+            params.put("orderNo", fortune.getOrderId());
+            params.put("fortuneNo", fortune.getFortuneNo());
+            params.put("amount", fortune.getAmount());
+            params.put("orderStatus", fortune.getStatus());
+            params.put("payTime", fortune.getDoneTime());
+            String signMd5 = DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8));
+            logger.info("SIGN-MD5 :{}", signMd5);
+            params.put("sign", signMd5);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(params, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(fortune.getNoticeUrl(), requestEntity, String.class);
-        if (response.getStatusCode() == HttpStatus.OK) {
-            logger.info("回调接口返回值 :{}", response.getBody());
-            return response.getBody();
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(params, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(fortune.getNoticeUrl(), requestEntity, String.class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                logger.info("回调接口返回值 :{}", response.getBody());
+                return response.getBody();
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
         return null;
+
     }
 
     protected String GeneratorFortuneNo(int pid) {
@@ -517,6 +532,5 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         coin.setPId(fortune.getPId());
         coinLogMapper.insert(coin);
     }
-
 }
 

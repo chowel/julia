@@ -151,8 +151,8 @@
 
     <!--生产环境:输出到文件-->
     <springProfile name="pro">
-
-        <root level="INFO">
+        <logger name="com.julia" level="DEBUG" />
+        <root level="DEBUG">
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="INFO_FILE" />
             <appender-ref ref="ERROR_FILE" />
