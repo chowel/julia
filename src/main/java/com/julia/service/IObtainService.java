@@ -61,7 +61,7 @@ public interface IObtainService extends IService<ObtainEntity> {
     * @Author: chowel
     * @Date: 2024-02-23
     */
-    Boolean remove(Long id);
+    Boolean remove(Integer id);
     /** 
     * @Description: 查找全部账号byCar 
     * @Param:  

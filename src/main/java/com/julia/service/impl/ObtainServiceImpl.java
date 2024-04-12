@@ -53,7 +53,7 @@ public class ObtainServiceImpl extends ServiceImpl<ObtainMapper, ObtainEntity> i
     }
 
     @Override
-    public Boolean remove(Long id) {
+    public Boolean remove(Integer id) {
             return removeById(id);
     }
 

@@ -6,8 +6,10 @@ import com.julia.model.QueryPagement;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.FortuneWhitPageAndMetriVO;
 import com.julia.model.dto.HandOutDTO;
+import com.julia.model.dto.MidPasswordDto;
 import com.julia.model.vo.FortuneEntityVO;
 import com.julia.service.IFortuneService;
+import com.julia.service.IYaoService;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,7 +32,8 @@ import java.util.Map;
 public class FortuneCarController {
     @Resource
     IFortuneService serviceImpl;
-
+    @Resource
+    IYaoService yaoService;
 
     @ApiOperation("车队分页查找")
     @PostMapping("/queryPageForCar")
@@ -104,6 +107,12 @@ public class FortuneCarController {
         return new Rv<>(serviceImpl.refuse(dto, StpUtil.getLoginIdAsInt()));
     }
 
+    @ApiOperation("修改密码")
+    @PostMapping("/alterCarPw")
+    public Rv<Boolean> alterCarPw(@RequestBody MidPasswordDto dto) {
+        dto.setYaoId(StpUtil.getLoginIdAsInt());
+        return new Rv<>(yaoService.alterPassword(dto));
+    }
 
 }
 

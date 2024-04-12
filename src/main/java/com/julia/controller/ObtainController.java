@@ -62,7 +62,7 @@ public class ObtainController {
 
     @ApiOperation("删除")
     @GetMapping("/del/{id}")
-    public Rv<Boolean> delObtainEntityById(@PathVariable Long id) {
+    public Rv<Boolean> delObtainEntityById(@PathVariable Integer id) {
         return new Rv<>(serviceImpl.remove(id));
     }
 
