@@ -65,5 +65,10 @@ public class FortuneYaoController {
         return new Rv<>(serviceImpl.forceFortune(dto.getFortuneNo()));
     }
 
+    @ApiOperation("发起回调")
+    @PostMapping("/yaoCallBack")
+    public Rv<Boolean> yaoCallBack(@RequestBody FortuneDTO dto) {
+        return new Rv<>(serviceImpl.callBack(dto));
+    }
 }
 

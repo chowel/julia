@@ -129,18 +129,20 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
             WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
                     "websocket", null, false);
             handshaker = wsFactory.newHandshaker(req);
-            if (handshaker == null) {
-                WebSocketServerHandshakerFactory
-                        .sendUnsupportedVersionResponse(ctx.channel());
-            } else {
-                handshaker.handshake(ctx.channel(), req);
-            }
 
             String id = (String) StpUtil.getLoginIdByToken(uriArr[2]);
             if (StringUtils.hasLength(id)) {
                 ChannelPond.addChannel(ctx.channel(), id);
                 // 加入
                 nioWebSocketHandler.service.joinZset(id);
+
+                if (handshaker == null) {
+                    WebSocketServerHandshakerFactory
+                            .sendUnsupportedVersionResponse(ctx.channel());
+                } else {
+                    handshaker.handshake(ctx.channel(), req);
+                }
+
             }else{
                 sendHttpResponse(ctx, req, new DefaultFullHttpResponse(
                         HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST));

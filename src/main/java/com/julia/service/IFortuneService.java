@@ -182,5 +182,7 @@ public interface IFortuneService extends IService<FortuneEntity> {
      * @Date:
      */
     Boolean forceFortune(String fortuneNo);
+
+    FortuneApiVO getOneByNo(String fortuneNo);
 }
 

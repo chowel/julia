@@ -21,6 +21,7 @@ import io.netty.channel.Channel;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -61,11 +62,12 @@ public class ApiController {
     @ApiOperation("test")
     @GetMapping("/test")
     public Rv<String> test() {
-        Long n = System.currentTimeMillis();
-        Long t = JuliaUtils.todayTime();
-        log.info("t:{}", t - n);
-        int s = (int) ((t - n) / 1000);
-        return new Rv<>("OK: " + s);
+        Channel c  = ChannelPond.findChannel("5");
+        if(!ObjectUtils.isEmpty(c)){
+            ChannelPond.removeChannel(c);
+        }
+
+        return new Rv<>("OK: ");
     }
 
 
@@ -73,7 +75,7 @@ public class ApiController {
     @ApiOperation("find")
     @GetMapping("/getOne/{fortuneNo}")
     public Rv<FortuneApiVO> getOne(@PathVariable String fortuneNo) {
-        return new Rv<>(serviceImpl.findOneByNo(fortuneNo));
+        return new Rv<>(serviceImpl.getOneByNo(fortuneNo));
     }
 
     //   收银台接口
@@ -89,7 +91,6 @@ public class ApiController {
     public Rv<FortuneApiVO> getFortune(@RequestBody FortuneDTO dto) {
         return new Rv<>(serviceImpl.findOneByNo(dto.getFortuneNo()));
     }
-
 
     @ApiOperation("发起回调")
     @PostMapping("/handCallBack")

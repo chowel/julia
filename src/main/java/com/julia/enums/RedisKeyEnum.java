@@ -34,6 +34,10 @@ public enum RedisKeyEnum {
      */
     CAR_POND("JULIA:CAR_POND:"),
     /**
+     * 成功进入收银台
+     */
+    DEPOSIT("JULIA:DEPOSIT_POND:"),
+    /**
      * 轮询游标
      */
     POLLING("JULIA:POLLING"),

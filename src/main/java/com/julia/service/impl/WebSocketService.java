@@ -19,6 +19,7 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.security.SecureRandom;
@@ -59,7 +60,14 @@ public class WebSocketService {
         }
         // 心跳
         if ("PING".equals(bo.getSub())) {
-            handleHeart(channel);
+            String userId = ChannelPond.findUserIdByChannel(channel);
+            if (StringUtils.hasLength(userId)) {
+                log.info("Heart->userId: " + userId);
+                handleHeart(userId);
+            } else {
+                channel.close();
+            }
+
         }
     }
 
@@ -74,7 +82,7 @@ public class WebSocketService {
     public void fortuneToCar(Channel c) {
 
         String userId = ChannelPond.findUserIdByChannel(c);
-        log.info("userId: " + userId);
+        log.info("fortuneToCar-userId: " + userId);
         Channel userChannel = ChannelPond.findChannel(userId);
         if (ObjectUtils.isEmpty(userChannel)) {
             log.info("userChannel: false");
@@ -112,9 +120,9 @@ public class WebSocketService {
     }
 
     @SneakyThrows
-    public void handleHeart(Channel c) {
-        String userId = ChannelPond.findUserIdByChannel(c);
-        log.info("HEART-userId: " + userId);
+    public void handleHeart(String userId) {
+//        String userId = ChannelPond.findUserIdByChannel(c);
+//        log.info("HEART-userId: " + userId);
         Channel userChannel = ChannelPond.findChannel(userId);
         if (ObjectUtils.isEmpty(userChannel)) {
             log.info("HEART-Channel: None");
@@ -124,6 +132,18 @@ public class WebSocketService {
             bo.setData("");
             userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
         }
+    }
+
+    /**
+     * @Description: 收银台页面打开成功
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    @SneakyThrows
+    public void depositsInput(String fortuneNo) {
+        redisUtils.lSet(RedisKeyEnum.DEPOSIT.getKey(), fortuneNo,24*3600);
     }
 
 
@@ -377,7 +397,5 @@ public class WebSocketService {
             redisUtils.set(RedisKeyEnum.POLLING.getKey(), 0);
             return 0;
         }
-
-
     }
 }

@@ -6,18 +6,17 @@ import com.julia.model.QueryPagement;
 import com.julia.model.dto.CarOperaDTO;
 import com.julia.model.vo.CarOrderVO;
 import com.julia.model.vo.RocketEntityVO;
+import com.julia.service.IObtainService;
 import com.julia.service.IRocketService;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,6 +33,9 @@ public class PowerCarController {
 
     @Resource
     IRocketService serviceImpl;
+
+    @Resource
+    IObtainService obtainService;
 
     @ApiOperation("分页查找")
     @PostMapping("/querywhitpage")
@@ -55,4 +57,5 @@ public class PowerCarController {
         searchFields.put("cId",StpUtil.getLoginIdAsInt());
         return new Rv<>(serviceImpl.findForPage(queryPagement));
     }
+
 }

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import com.julia.model.vo.FortuneEntityVO;
 import com.julia.tool.JuliaUtils;
 import com.julia.model.QueryPagement;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -279,6 +280,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     }
 
     @Override
+    @Transactional
     public Boolean overFortune(FortuneEntityVO dto) {
         FortuneEntity entity = getById(dto.getFortuneId());
         if (!ObjectUtils.isEmpty(entity)) {
@@ -463,18 +465,28 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     @Override
     public Boolean forceFortune(String fortuneNo) {
         FortuneEntity fortune = getOneByFortuneNo(fortuneNo);
-        if (fortune.getStatus() == 3) {
-            fortune.setStatus(4);
-            String callbackReturn = handleCallBack(fortune);
-            if (StringUtils.hasLength(callbackReturn)) {
-                fortune.setCheckCallback(1);
-            } else {
-                fortune.setCheckCallback(2);
-            }
-            updateById(fortune);
-            return true;
+        if (ObjectUtils.isEmpty(fortune)) {
+            throw new JuliaException("该单异常");
         }
-        return false;
+
+        fortune.setStatus(4);
+        String callbackReturn = handleCallBack(fortune);
+        if (StringUtils.hasLength(callbackReturn)) {
+            fortune.setCheckCallback(1);
+        } else {
+            fortune.setCheckCallback(2);
+        }
+        updateById(fortune);
+        addCoinLog(fortune);
+        return true;
+
+    }
+
+    @Override
+    public FortuneApiVO getOneByNo(String fortuneNo) {
+        webSocketService.depositsInput(fortuneNo);
+        FortuneEntity fortune = getOneByFortuneNo(fortuneNo);
+        return JuliaUtils.convertTo(new FortuneApiVO(), fortune);
     }
 
     protected String handleCallBack(FortuneEntity fortune) {
