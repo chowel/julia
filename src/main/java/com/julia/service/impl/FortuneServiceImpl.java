@@ -490,6 +490,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     }
 
     protected String handleCallBack(FortuneEntity fortune) {
+        logger.info("FortuneStatus:{}", fortune.getStatus());
         try {
             Map<String, Object> params = new HashMap<>(6);
             String sign = fortune.getOrderId() + fortune.getFortuneNo();
