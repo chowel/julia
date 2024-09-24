@@ -285,7 +285,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         FortuneEntity entity = getById(dto.getFortuneId());
         if (!ObjectUtils.isEmpty(entity)) {
             if (entity.getStatus() != 5) {
-                throw new JuliaException("该单以处理");
+                throw new JuliaException("该单已处理");
             }
             YaoEntity car = yaoMapper.selectById(entity.getCId());
 
@@ -320,56 +320,45 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
                 }
                 addCoinLog(entity);
             }
+            entity.setDoneTime(System.currentTimeMillis());
 
             yaoMapper.updateById(car);
-            entity.setDoneTime(System.currentTimeMillis());
-//            YaoEntity pan = yaoMapper.selectById(entity.getPId());
 
-            String callbackReturn = handleCallBack(entity);
-            if (StringUtils.hasLength(callbackReturn)) {
-                entity.setCheckCallback(1);
-            } else {
-                entity.setCheckCallback(2);
+            if(updateById(entity)) {
+                String callbackReturn = handleCallBack(entity);
+                if (StringUtils.hasLength(callbackReturn)) {
+                    entity.setCheckCallback(1);
+                } else {
+                    entity.setCheckCallback(2);
+                }
+
+                ObtainEntity obtain = obtainMapper.selectOne(new QueryWrapper<ObtainEntity>()
+                        .eq("yao_id", entity.getCId())
+                        .eq("name", entity.getPayId()));
+
+                if (!ObjectUtils.isEmpty(obtain)) {
+                    obtain.setCout(obtain.getCout() + 1);
+                    obtainMapper.updateById(obtain);
+                }
+                updateById(entity);
+                return true;
             }
 
-            ObtainEntity obtain = obtainMapper.selectOne(new QueryWrapper<ObtainEntity>()
-                    .eq("yao_id", entity.getCId())
-                    .eq("name", entity.getPayId()));
-
-            if (!ObjectUtils.isEmpty(obtain)) {
-                obtain.setCout(obtain.getCout() + 1);
-                obtainMapper.updateById(obtain);
-            }
-
-
-            updateById(entity);
-            return true;
         }
         return false;
     }
 
     @Override
     public Boolean callBack(FortuneDTO dto) {
-//        YaoEntity pan = yaoMapper.selectById(pid);
-//        if (ObjectUtils.isEmpty(pan)) {
-//            throw new JuliaException("盘方不存在");
-//        }
+
         FortuneEntity fortune = getOneByFortuneNo(dto.getFortuneNo());
         if (ObjectUtils.isEmpty(fortune)) {
             throw new JuliaException("订单异常");
         }
-//        if (fortune.getStatus() == 0 || fortune.getStatus() == 1) {
-//            throw new JuliaException("不可发起");
-//        }
+
 
         String callbackReturn = handleCallBack(fortune);
-
-//        if ("success".equals(callbackReturn)) {
-//            if (fortune.getCheckCallback() != 1) {
-//                fortune.setCheckCallback(1);
-//                return updateById(fortune);
-//            }
-//        }
+        
         if (StringUtils.hasLength(callbackReturn)) {
             fortune.setCheckCallback(1);
             return updateById(fortune);
