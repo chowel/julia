@@ -16,6 +16,7 @@ import com.julia.model.dto.MidPasswordDto;
 import com.julia.model.vo.PactEntityVO;
 import com.julia.service.IYaoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.julia.tool.AdminToken;
 import com.julia.tool.JuliaException;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.YaoEntityVO;
@@ -115,8 +116,8 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
         YaoEntityVO vo = JuliaUtils.convertTo(new YaoEntityVO(), yao);
 
 //        vo.setMenus();
-        StpUtil.login(yao.getYaoId());
-        vo.setToken(StpUtil.getTokenValue());
+        AdminToken.login(yao.getYaoId());
+        vo.setToken(AdminToken.getTokenValue());
         vo.setPassword("******");
         return vo;
     }
