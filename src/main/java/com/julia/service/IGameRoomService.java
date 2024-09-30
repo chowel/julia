@@ -44,6 +44,16 @@ public interface IGameRoomService extends IService<GameRoomEntity> {
     */
     Boolean saveGameRoomEntity(GameRoomEntityVO vo);
 
+
+    /**
+     * @Description: 添加
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date: 2024-09-28
+     */
+    Boolean joinGameRoomEntity(GameRoomEntityVO vo);
+
     /**
     * @Description: 修改
     * @Param:

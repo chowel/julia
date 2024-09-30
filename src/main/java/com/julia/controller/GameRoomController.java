@@ -57,6 +57,14 @@ public class GameRoomController {
         return new Rv<>(serviceImpl.saveGameRoomEntity(vo));
     }
 
+    @ApiOperation("添加")
+    @PostMapping("/join")
+    public Rv<Boolean> joinGameRoomEntityOne(@RequestBody GameRoomEntityVO vo) {
+        int playId = PlayerToken.getLoginIdAsInt();
+        vo.setPlayerId(playId);
+        return new Rv<>(serviceImpl.joinGameRoomEntity(vo));
+    }
+
     @ApiOperation("修改")
     @PostMapping("/changed")
     public Rv<Boolean> changedGameRoomEntityOne(@RequestBody GameRoomEntityVO vo) {

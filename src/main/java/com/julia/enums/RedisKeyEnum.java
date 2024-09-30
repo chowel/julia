@@ -14,10 +14,13 @@ public enum RedisKeyEnum {
 
 
     /**
-     * 车队
+     * 房间玩家
      */
     ROOMPLAYERS("JULIA:FIT:ROOMPLAYERS:"),
-
+    /**
+     * 房间最大玩家数
+     */
+    ROOMMAXPLAYERS("JULIA:FIT:ROOMMAX:"),
     ;
 
 

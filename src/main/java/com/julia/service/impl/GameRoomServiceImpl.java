@@ -8,12 +8,15 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.entity.GameRoomEntity;
 import com.julia.entity.PlayersEntity;
 import com.julia.entity.RoomPlayerEntity;
+import com.julia.enums.RedisKeyEnum;
 import com.julia.mapper.GameRoomMapper;
 import com.julia.mapper.PlayersMapper;
 import com.julia.mapper.RoomPlayerMapper;
+import com.julia.model.PlayerRo;
 import com.julia.service.IGameRoomService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.julia.tool.JuliaException;
+import com.julia.tool.RedisUtils;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.GameRoomEntityVO;
 import com.julia.tool.JuliaUtils;
@@ -40,6 +43,9 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
     @Resource
     RoomPlayerMapper roomPlayerMapper;
 
+    @Resource
+    RedisUtils redisUtils;
+
     @Override
     public Page<GameRoomEntityVO> findForPage(QueryPagement queryPagement) {
         Page<GameRoomEntity> p = new LambdaQueryChainWrapper<GameRoomEntity>(getBaseMapper()).page(new Page<GameRoomEntity>(queryPagement.getStartPage(),
@@ -64,15 +70,15 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
     @Override
     public Boolean saveGameRoomEntity(GameRoomEntityVO vo) {
         PlayersEntity player = playersMapper.selectById(vo.getPlayerId());
-        if(ObjectUtils.isEmpty(player)){
+        if (ObjectUtils.isEmpty(player)) {
             throw new JuliaException("用户不存在");
         }
-        if(player.getStatus()==0){
+        if (player.getStatus() == 0) {
             throw new JuliaException("用户异常");
         }
         GameRoomEntity gameRoomEntity = JuliaUtils.convertTo(new GameRoomEntity(), vo);
 
-        if(save(gameRoomEntity)){
+        if (save(gameRoomEntity)) {
             RoomPlayerEntity roomPlayer = new RoomPlayerEntity();
             roomPlayer.setGameType(gameRoomEntity.getGameType());
             roomPlayer.setRoomId(gameRoomEntity.getRoomId());
@@ -81,10 +87,54 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
             roomPlayer.setRoomFlag(gameRoomEntity.getFlag());
             roomPlayer.setInit(1);
 
-            return roomPlayerMapper.insert(roomPlayer)==1;
+            if (roomPlayerMapper.insert(roomPlayer) < 1) {
+                return false;
+            } else {
+                //
+                String lastKey = gameRoomEntity.getGameType() + "_" + gameRoomEntity.getFlag();
+                redisUtils.incr(RedisKeyEnum.ROOMMAXPLAYERS.getKey() + lastKey,
+                        gameRoomEntity.getPlayers() - 1);
+                redisUtils.sSet(RedisKeyEnum.ROOMPLAYERS.getKey()+lastKey,JuliaUtils.convertTo(new PlayerRo(),player));
+                return true;
+            }
         }
 
         return false;
+    }
+
+    @Override
+    public Boolean joinGameRoomEntity(GameRoomEntityVO vo) {
+        // todo
+        String lastKey = vo.getGameType() + "_" + vo.getFlag();
+        int maxPlayer = (int) redisUtils.get(RedisKeyEnum.ROOMMAXPLAYERS.getKey() + lastKey);
+        if(maxPlayer<1){
+            throw new JuliaException("房间人数已满");
+        }
+        PlayersEntity player = playersMapper.selectById(vo.getPlayerId());
+        if (ObjectUtils.isEmpty(player)) {
+            throw new JuliaException("用户不存在");
+        }
+        if (player.getStatus() == 0) {
+            throw new JuliaException("用户异常");
+        }
+        GameRoomEntity gameRoomEntity = getOne(new QueryWrapper<GameRoomEntity>().eq("flag",vo.getFlag()));
+        if (ObjectUtils.isEmpty(gameRoomEntity)) {
+            throw new JuliaException("房间不存在");
+        }
+        RoomPlayerEntity roomPlayer = new RoomPlayerEntity();
+        roomPlayer.setGameType(gameRoomEntity.getGameType());
+        roomPlayer.setRoomId(gameRoomEntity.getRoomId());
+        roomPlayer.setPlayerId(player.getPlayId());
+        roomPlayer.setNickName(player.getNickName());
+        roomPlayer.setRoomFlag(gameRoomEntity.getFlag());
+        if (roomPlayerMapper.insert(roomPlayer) < 1) {
+            return false;
+        } else {
+            //
+            redisUtils.decr(RedisKeyEnum.ROOMMAXPLAYERS.getKey() + lastKey, 1);
+            redisUtils.sSet(RedisKeyEnum.ROOMPLAYERS.getKey()+lastKey,JuliaUtils.convertTo(new PlayerRo(),player));
+            return true;
+        }
     }
 
     @Override
