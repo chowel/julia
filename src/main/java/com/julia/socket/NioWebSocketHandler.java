@@ -2,7 +2,9 @@ package com.julia.socket;
 
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.julia.service.impl.PokerWsService;
 import com.julia.service.impl.WebSocketService;
+import com.julia.tool.PlayerToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -33,7 +35,7 @@ import javax.annotation.Resource;
 public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     @Resource
-    private WebSocketService service;
+    private PokerWsService service;
 
     private WebSocketServerHandshaker handshaker;
 
@@ -70,7 +72,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         //断开连接
         String removeId = ChannelPond.removeChannel(ctx.channel());
         log.info("客户端断开连接：" + removeId);
-        nioWebSocketHandler.service.delByUserid(removeId);
+//        nioWebSocketHandler.service.delByUserid(removeId);
     }
 
     @Override
@@ -102,7 +104,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         // 业务处理
 //        nioWebSocketHandler.service.handleMsg(request);
         // 需要当前频道的业务处理
-        nioWebSocketHandler.service.handleMsgWhitChannel(request, ctx.channel());
+        nioWebSocketHandler.service.handleVhannelMsg(request, ctx.channel());
 
     }
 
@@ -130,11 +132,11 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                     "websocket", null, false);
             handshaker = wsFactory.newHandshaker(req);
 
-            String id = (String) StpUtil.getLoginIdByToken(uriArr[2]);
+            String id = (String) PlayerToken.getLoginIdByToken(uriArr[2]);
             if (StringUtils.hasLength(id)) {
                 ChannelPond.addChannel(ctx.channel(), id);
                 // 加入
-                nioWebSocketHandler.service.joinZset(id);
+//                nioWebSocketHandler.service.joinZset(id);
 
                 if (handshaker == null) {
                     WebSocketServerHandshakerFactory

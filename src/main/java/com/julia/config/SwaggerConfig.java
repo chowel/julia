@@ -48,6 +48,7 @@ public class SwaggerConfig implements WebMvcConfigurer {
         customerToken.name("julia-play").description("玩家").modelRef(new ModelRef("string")).parameterType("header")
                 .required(false).build();
         pars.add(platformToken.build());
+        pars.add(customerToken.build());
         ResponseMessage message500 = new ResponseMessageBuilder()
                 .code(500)
                 .message("服务器内部异常")

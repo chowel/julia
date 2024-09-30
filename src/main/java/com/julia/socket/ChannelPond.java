@@ -57,9 +57,7 @@ public class ChannelPond {
 
     public static String findUserIdByChannel(Channel c){
         String userId = "";
-        Iterator<ConcurrentMap.Entry<String, ChannelId>> iterator = POND.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, ChannelId> next = iterator.next();
+        for (Map.Entry<String, ChannelId> next : POND.entrySet()) {
             ChannelId value = next.getValue();
             if (c.id() == value) {
                 userId = next.getKey();

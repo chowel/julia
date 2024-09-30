@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.julia.mapper.GameRoomMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.julia.entity.GameRoomEntity">
+        <id column="room_id" property="roomId" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="game_type" property="gameType" />
+        <result column="status" property="status" />
+        <result column="players" property="players" />
+        <result column="play" property="play" />
+        <result column="servr" property="servr" />
+        <result column="total" property="total" />
+        <result column="flag" property="flag" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        create_time,
+        update_time,
+        room_id, game_type, status, players, play, servr, total, flag
+    </sql>
+
+</mapper>

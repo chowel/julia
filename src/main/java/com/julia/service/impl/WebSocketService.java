@@ -52,11 +52,16 @@ public class WebSocketService {
     @SneakyThrows
     public void handleMsgWhitChannel(String requestMsg, Channel channel) {
         WebSocketMsgBO bo = mapper.readValue(requestMsg, WebSocketMsgBO.class);
-        if ("GETROCKET".equals(bo.getSub())) {
-            handleConnect(channel);
-        }
-        if ("GETFORTUNE".equals(bo.getSub())) {
-            fortuneToCar(channel);
+//        if ("GETROCKET".equals(bo.getSub())) {
+//            handleConnect(channel);
+//        }
+//        if ("GETFORTUNE".equals(bo.getSub())) {
+//            fortuneToCar(channel);
+//        }
+        if("JOINROOM".equals(bo.getSub())){
+            String userId = ChannelPond.findUserIdByChannel(channel);
+            log.info("加入房间->userId: " + userId);
+            log.info((String)bo.getData());
         }
         // 心跳
         if ("PING".equals(bo.getSub())) {

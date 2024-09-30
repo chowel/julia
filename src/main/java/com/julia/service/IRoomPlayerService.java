@@ -1,68 +1,63 @@
 package com.julia.service;
 
-import com.julia.entity.PlayersEntity;
+import com.julia.entity.RoomPlayerEntity;
+import com.julia.model.vo.RoomPlayerEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
-import com.julia.model.dto.LoginDto;
-import com.julia.model.vo.PlayersEntityVO;
-
 /**
  * <p>
- * 用户表 服务类
+ * 房间玩家 服务类
  * </p>
  *
  * @author chowel
- * @since 2024-09-24
+ * @since 2024-09-30
  */
 
-public interface IPlayersService extends IService<PlayersEntity> {
+public interface IRoomPlayerService extends IService<RoomPlayerEntity> {
     /**
     * @Description: 分页查找
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2024-09-24
+    * @Date: 2024-09-30
     */
-    Page<PlayersEntityVO> findForPage(QueryPagement queryPagement);
+    Page<RoomPlayerEntityVO> findForPage(QueryPagement queryPagement);
 
     /**
     * @Description: 根据id查找
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2024-09-24
+    * @Date: 2024-09-30
     */
-    PlayersEntityVO findOneById(Long id);
+    RoomPlayerEntityVO findOneById(Long id);
 
     /**
     * @Description: 添加
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2024-09-24
+    * @Date: 2024-09-30
     */
-    Boolean savePlayersEntity(PlayersEntityVO vo);
+    Boolean saveRoomPlayerEntity(RoomPlayerEntityVO vo);
 
     /**
     * @Description: 修改
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2024-09-24
+    * @Date: 2024-09-30
     */
-    Boolean alter(PlayersEntityVO vo);
+    Boolean alter(RoomPlayerEntityVO vo);
 
     /**
     * @Description: 删除
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2024-09-24
+    * @Date: 2024-09-30
     */
     Boolean remove(Long id);
-
-
-    PlayersEntityVO login(LoginDto dto);
 }
 

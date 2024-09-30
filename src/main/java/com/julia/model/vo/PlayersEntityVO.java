@@ -54,6 +54,9 @@ public class PlayersEntityVO extends BaseEntity {
     @ApiModelProperty("1 正常 0 停用(删除)")
     private Integer status;
 
+    @ApiModelProperty("token")
+    private String token;
+
     @Override
     public String toString() {
         return "{" +
