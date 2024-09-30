@@ -45,10 +45,6 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
     @Resource
     CoinLogMapper coinLogMapper;
 
-    @Resource
-    WebSocketService webSocketService;
-
-
     @Override
     public Page<YaoEntityVO> findForPage(QueryPagement queryPagement) {
         int roleId = 0;
@@ -85,7 +81,7 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
         // 提人
         if (vo.getCheDel() != null && vo.getCheDel() == 2) {
             StpUtil.logout(vo.getYaoId());
-            webSocketService.delByUserid(String.valueOf(vo.getYaoId()));
+//            webSocketService.delByUserid(String.valueOf(vo.getYaoId()));
         }
         return updateById(JuliaUtils.convertTo(new YaoEntity(), vo));
     }

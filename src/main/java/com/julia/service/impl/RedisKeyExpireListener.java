@@ -31,9 +31,6 @@ public class RedisKeyExpireListener extends KeyExpirationEventMessageListener {
     @Resource
     IFortuneService fortuneService;
 
-    @Resource
-    WebSocketService webSocketService;
-
     public RedisKeyExpireListener(RedisMessageListenerContainer listenerContainer) {
         super(listenerContainer);
     }
@@ -54,7 +51,7 @@ public class RedisKeyExpireListener extends KeyExpirationEventMessageListener {
                     // 超时
                     fortune.setStatus(1);
                     fortune.setCId(Integer.valueOf(cid));
-                    webSocketService.handOutRedis(fortune);
+//                    webSocketService.handOutRedis(fortune);
                     fortuneService.expiredCallback(fortune);
 
                 }

@@ -3,7 +3,6 @@ package com.julia.socket;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.julia.service.impl.PokerWsService;
-import com.julia.service.impl.WebSocketService;
 import com.julia.tool.PlayerToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -104,7 +103,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         // 业务处理
 //        nioWebSocketHandler.service.handleMsg(request);
         // 需要当前频道的业务处理
-        nioWebSocketHandler.service.handleVhannelMsg(request, ctx.channel());
+        nioWebSocketHandler.service.handleChannelMsg(request, ctx.channel());
 
     }
 

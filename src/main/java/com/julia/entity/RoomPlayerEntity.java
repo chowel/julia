@@ -42,14 +42,14 @@ public class RoomPlayerEntity extends BaseEntity {
     /**
      * 0:普通玩家 1:房间创建用户
      */
-    @TableField("create")
-    private Integer create;
+    @TableField("init")
+    private Integer init;
 
     /**
      * 玩家id
      */
     @TableField("player_id")
-    private Integer playerId;
+    private Long playerId;
 
     /**
      * 玩家昵称
@@ -62,4 +62,10 @@ public class RoomPlayerEntity extends BaseEntity {
      */
     @TableField("online")
     private Integer online;
+
+    /**
+     * 房间ide
+     */
+    @TableField("room_flag")
+    private String roomFlag;
 }

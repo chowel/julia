@@ -9,17 +9,18 @@
         <result column="update_time" property="updateTime" />
         <result column="room_id" property="roomId" />
         <result column="game_type" property="gameType" />
-        <result column="create" property="create" />
+        <result column="init" property="init" />
         <result column="player_id" property="playerId" />
         <result column="nick_name" property="nickName" />
         <result column="online" property="online" />
+        <result column="room_flag" property="roomFlag" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        id, room_id, game_type, create, player_id, nick_name, online
+        id, room_id, game_type, init, player_id, nick_name, online, room_flag
     </sql>
 
 </mapper>

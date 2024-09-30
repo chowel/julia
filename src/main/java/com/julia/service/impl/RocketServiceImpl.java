@@ -54,9 +54,6 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
     YaoMapper yaoMapper;
 
     @Resource
-    WebSocketService webSocketService;
-
-    @Resource
     private RestTemplate restTemplate;
 
     @Value("${sign.salt}")
@@ -138,7 +135,7 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
         }
         entity.setDoneTime(System.currentTimeMillis());
 
-        webSocketService.handleCarOpera(cYao,entity);
+//        webSocketService.handleCarOpera(cYao,entity);
 
         YaoEntity pYao = yaoMapper.selectById(entity.getPId());
 

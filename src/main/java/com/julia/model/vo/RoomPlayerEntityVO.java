@@ -36,10 +36,10 @@ public class RoomPlayerEntityVO extends BaseEntity {
     private Integer gameType;
 
     @ApiModelProperty("0:普通玩家 1:房间创建用户")
-    private Integer create;
+    private Integer init;
 
     @ApiModelProperty("玩家id")
-    private Integer playerId;
+    private Long playerId;
 
     @ApiModelProperty("玩家昵称")
     private String nickName;
@@ -47,16 +47,20 @@ public class RoomPlayerEntityVO extends BaseEntity {
     @ApiModelProperty("1:在线  0:退出")
     private Integer online;
 
+    @ApiModelProperty("房间ide")
+    private String roomFlag;
+
     @Override
     public String toString() {
         return "{" +
             "id = " + id +
             ", roomId = " + roomId +
             ", gameType = " + gameType +
-            ", create = " + create +
+            ", init = " + init +
             ", playerId = " + playerId +
             ", nickName = " + nickName +
             ", online = " + online +
+            ", roomFlag = " + roomFlag +
         "}";
     }
 }
