@@ -7,6 +7,7 @@ import com.julia.model.WebSocketMsgBO;
 import com.julia.socket.ChannelPond;
 import com.julia.tool.RedisUtils;
 import io.netty.channel.Channel;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import net.sf.jsqlparser.expression.LongValue;
@@ -43,12 +44,14 @@ public class PokerWsService {
             Set<Object> players = redisUtils.sGet(key);
             for (Object element : players) {
                 PlayerRo t = (PlayerRo) element;
-
                 if(!t.getPlayId().equals(Long.valueOf(userId))){
                     log.info(t.getNickName());
                     Channel userChannel= ChannelPond.findChannel(String.valueOf(t.getPlayId()));
                     if(!ObjectUtils.isEmpty(userChannel)){
-//                        userChannel.writeAndFlush();
+                        WebSocketMsgBO sendMsg  = new  WebSocketMsgBO();
+                        sendMsg.setSub("JOINPLAYER");
+                        sendMsg.setData(t);
+                        userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(sendMsg)));
                     }
                 }
             }

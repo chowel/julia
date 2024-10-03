@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.julia.mapper.GameScoreMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.julia.entity.GameScoreEntity">
+        <id column="score_id" property="scoreId" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="game_id" property="gameId" />
+        <result column="game_no" property="gameNo" />
+        <result column="player_i_id" property="playerIId" />
+        <result column="player_i_score" property="playerIScore" />
+        <result column="player_i_poker" property="playerIPoker" />
+        <result column="player_ii_id" property="playerIiId" />
+        <result column="player_ii_score" property="playerIiScore" />
+        <result column="player_ii_poker" property="playerIiPoker" />
+        <result column="player_iii_id" property="playerIiiId" />
+        <result column="player_iii_score" property="playerIiiScore" />
+        <result column="player_iii_poker" property="playerIiiPoker" />
+        <result column="player_iv_id" property="playerIvId" />
+        <result column="player_iv_score" property="playerIvScore" />
+        <result column="player_iv_poker" property="playerIvPoker" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        create_time,
+        update_time,
+        score_id, game_id, game_no, player_i_id, player_i_score, player_i_poker, player_ii_id, player_ii_score, player_ii_poker, player_iii_id, player_iii_score, player_iii_poker, player_iv_id, player_iv_score, player_iv_poker
+    </sql>
+
+</mapper>

@@ -16,10 +16,7 @@ import com.julia.service.IPlayersService;
 import com.julia.service.IYaoService;
 import com.julia.service.impl.PokerServiceImpl;
 import com.julia.socket.ChannelPond;
-import com.julia.tool.Captcha;
-import com.julia.tool.JuliaUtils;
-import com.julia.tool.Poker;
-import com.julia.tool.Rv;
+import com.julia.tool.*;
 import io.netty.channel.Channel;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -53,7 +50,8 @@ public class ApiController {
 
     @Resource
     PokerServiceImpl pokerService;
-
+    @Resource
+    RedisUtils redisUtils;
 
 
     @ApiOperation("登陆/获取token")
@@ -69,12 +67,11 @@ public class ApiController {
     }
 
 
-
     @ApiOperation("test")
     @GetMapping("/test")
     public Rv<String> test() {
-        Channel c  = ChannelPond.findChannel("5");
-        if(!ObjectUtils.isEmpty(c)){
+        Channel c = ChannelPond.findChannel("5");
+        if (!ObjectUtils.isEmpty(c)) {
             ChannelPond.removeChannel(c);
         }
 
@@ -84,11 +81,13 @@ public class ApiController {
 
     @ApiOperation("test")
     @GetMapping("/testPoker")
-    public Rv<Map<String,List<Poker>>> testPoker() {
+    public Rv<Map<String, List<Poker>>> testPoker() {
+        String key = "JULIA:FIT:ROOMMAX:1_qwer";
+         long res = redisUtils.decr(key, 1);
+        log.info("redisUtils.incr：" + res);
 
         return new Rv<>(pokerService.oneHanderThirteen());
     }
-
 
 
 }

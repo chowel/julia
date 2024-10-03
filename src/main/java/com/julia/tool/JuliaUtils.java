@@ -181,13 +181,13 @@ public class JuliaUtils {
     }
 
     /**
-     * @Description: 生成随机订单号
+     * @Description: 生成随机游戏ID
      * @Param:
      * @return:
      * @Author: chowel
      * @Date:
      */
-    public static String randomOrderNo(long orderId) {
+    public static String randomGameId() {
         char[] arr = {'a', 'b', 'c', 'd'};
         for (int j = 0; j < 4; j++) {
             Random rom = new Random();
@@ -200,7 +200,7 @@ public class JuliaUtils {
             }
             arr[j] = (char) a;
         }
-        return String.valueOf(System.currentTimeMillis()) + String.valueOf(orderId) + String.valueOf(arr);
+        return String.valueOf(arr) + System.currentTimeMillis();
     }
 
     /**

@@ -131,7 +131,10 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
             return false;
         } else {
             //
-            redisUtils.decr(RedisKeyEnum.ROOMMAXPLAYERS.getKey() + lastKey, 1);
+            long players = redisUtils.decr(RedisKeyEnum.ROOMMAXPLAYERS.getKey() + lastKey, 1);
+            if(players ==  0){
+                //  房间满员-发牌
+            }
             redisUtils.sSet(RedisKeyEnum.ROOMPLAYERS.getKey()+lastKey,JuliaUtils.convertTo(new PlayerRo(),player));
             return true;
         }
