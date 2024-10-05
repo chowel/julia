@@ -6,59 +6,69 @@ import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapp
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.entity.PlayersEntity;
 import com.julia.entity.YaoEntity;
+import com.julia.enums.RedisKeyEnum;
 import com.julia.mapper.PlayersMapper;
 import com.julia.model.dto.LoginDto;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IPlayersService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.julia.tool.AdminToken;
-import com.julia.tool.JuliaException;
-import com.julia.tool.PlayerToken;
+import com.julia.tool.*;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.PlayersEntityVO;
-import com.julia.tool.JuliaUtils;
 import com.julia.model.QueryPagement;
 import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Resource;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
 /**
-* <p>
-    * 用户表 服务实现类
-    * </p>
-*
-* @author chowel
-* @since 2024-09-24
-*/
+ * <p>
+ * 用户表 服务实现类
+ * </p>
+ *
+ * @author chowel
+ * @since 2024-09-24
+ */
 @Service
 public class PlayersServiceImpl extends ServiceImpl<PlayersMapper, PlayersEntity> implements IPlayersService {
+
+
+    @Resource
+    RedisUtils redisUtils;
+
     @Override
     public Page<PlayersEntityVO> findForPage(QueryPagement queryPagement) {
         Page<PlayersEntity> p = new LambdaQueryChainWrapper<PlayersEntity>(getBaseMapper()).page(new Page<PlayersEntity>(queryPagement.getStartPage(),
-        queryPagement.getPageSize()));
+                queryPagement.getPageSize()));
         Page<PlayersEntityVO> page = JuliaUtils.convertTo(new Page<PlayersEntityVO>(), p);
-                page.setRecords(p.getRecords().stream().map(e -> JuliaUtils.convertTo(new PlayersEntityVO(), e)).collect(Collectors.toList()));
-                return page;
+        page.setRecords(p.getRecords().stream().map(e -> JuliaUtils.convertTo(new PlayersEntityVO(), e)).collect(Collectors.toList()));
+        return page;
     }
 
     @Override
     public PlayersEntityVO findOneById(Long id) {
-            PlayersEntity entity = getById(id);
-            return JuliaUtils.convertTo(new PlayersEntityVO(), entity);
+        return Optional
+                .ofNullable((PlayersEntityVO) redisUtils.get(RedisKeyEnum.PLAYERCACHE.getKey() + id))
+                .orElseGet(()->{
+                    PlayersEntity playersEntity = getById(id);
+                    return JuliaUtils.convertTo(new PlayersEntityVO(), playersEntity);
+                });
     }
 
     @Override
     public Boolean savePlayersEntity(PlayersEntityVO vo) {
-            return save(JuliaUtils.convertTo(new PlayersEntity(), vo));
+        return save(JuliaUtils.convertTo(new PlayersEntity(), vo));
     }
 
     @Override
     public Boolean alter(PlayersEntityVO vo) {
-            return updateById(JuliaUtils.convertTo(new PlayersEntity(), vo));
+        return updateById(JuliaUtils.convertTo(new PlayersEntity(), vo));
     }
 
     @Override
     public Boolean remove(Long id) {
-            return removeById(id);
+        return removeById(id);
     }
 
     @Override
@@ -82,6 +92,8 @@ public class PlayersServiceImpl extends ServiceImpl<PlayersMapper, PlayersEntity
         PlayerToken.login(player.getPlayId());
         vo.setToken(PlayerToken.getTokenValue());
         vo.setPassword("******");
+        redisUtils.set(RedisKeyEnum.PLAYERCACHE.getKey() + vo.getPlayId(), vo, 24 * 3600);
+
         return vo;
     }
 }

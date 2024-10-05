@@ -1,9 +1,11 @@
 package com.julia.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.julia.model.AliveGameRo;
 import com.julia.tool.PlayerToken;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -57,7 +59,7 @@ public class GameRoomController {
         return new Rv<>(serviceImpl.saveGameRoomEntity(vo));
     }
 
-    @ApiOperation("添加")
+    @ApiOperation("加入房间")
     @PostMapping("/join")
     public Rv<Boolean> joinGameRoomEntityOne(@RequestBody GameRoomEntityVO vo) {
         int playId = PlayerToken.getLoginIdAsInt();
@@ -71,10 +73,21 @@ public class GameRoomController {
         return new Rv<>(serviceImpl.alter(vo));
     }
 
-    @ApiOperation("删除")
-    @GetMapping("/del/{id}")
-    public Rv<Boolean> delGameRoomEntityById(@PathVariable Long id) {
-        return new Rv<>(serviceImpl.remove(id));
+//    @ApiOperation("删除")
+//    @GetMapping("/del/{id}")
+//    public Rv<Boolean> delGameRoomEntityById(@PathVariable Long id) {
+//        return new Rv<>(serviceImpl.remove(id));
+//    }
+
+    @ApiOperation("查找进行中的游戏")
+    @GetMapping("/findAliveGame")
+    public Rv<AliveGameRo> findAliveGame(){
+        int playId = PlayerToken.getLoginIdAsInt();
+        AliveGameRo ro = serviceImpl.findAliveByUserId(playId);
+        if(ObjectUtils.isEmpty(ro)){
+            return new Rv<>("No",ro);
+        }
+        return new Rv<>(ro);
     }
 }
 

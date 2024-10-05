@@ -1,6 +1,7 @@
 package com.julia.service;
 
 import com.julia.entity.GameRoomEntity;
+import com.julia.model.AliveGameRo;
 import com.julia.model.vo.GameRoomEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -71,5 +72,7 @@ public interface IGameRoomService extends IService<GameRoomEntity> {
     * @Date: 2024-09-28
     */
     Boolean remove(Long id);
+
+    AliveGameRo findAliveByUserId(Integer userId);
 }
 

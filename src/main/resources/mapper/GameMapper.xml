@@ -9,6 +9,7 @@
         <result column="update_time" property="updateTime" />
         <result column="game_no" property="gameNo" />
         <result column="room_id" property="roomId" />
+        <result column="room_flag" property="roomFlag" />
         <result column="game_type" property="gameType" />
         <result column="status" property="status" />
         <result column="pokers" property="pokers" />
@@ -18,7 +19,7 @@
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        game_id, game_no, room_id, game_type, status, pokers
+        game_id, game_no, room_id, room_flag, game_type, status, pokers
     </sql>
 
 </mapper>

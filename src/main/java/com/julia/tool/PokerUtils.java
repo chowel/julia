@@ -162,4 +162,10 @@ public class PokerUtils {
         return pokerMap;
     }
 
+    public static List<Poker> shufflePoker(){
+        List<Poker> shufflePokers = new ArrayList<>(pokers);
+        Collections.shuffle(shufflePokers);
+        return shufflePokers;
+    }
+
 }

@@ -670,6 +670,22 @@ public class RedisUtils {
     }
 
     /**
+     * @Description: 移除并且返回 key 对应的 list 的第一个元素
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public Object getLeftRemove(String key) {
+        long size = redisTemplate.opsForList().size(key);
+        if (size == 0L) {
+            redisTemplate.delete(key);
+            return null;
+        }
+        return redisTemplate.opsForList().leftPop(key);
+    }
+
+    /**
      * 移除N个值为value
      *
      * @param key   键
@@ -735,12 +751,14 @@ public class RedisUtils {
         return redisTemplate.opsForZSet().score(key, value);
     }
 
-    /** * 增加有序集合 *
-     *
+    /**
+     * 增加有序集合 *
+     * <p>
      * * @param key
      * * @param value
      * * @param seqNo
-     * * @return */
+     * * @return
+     */
     public Boolean addZset(String key, Object value, double seqNo) {
         try {
             return redisTemplate.opsForZSet().addIfAbsent(key, value, seqNo);
@@ -750,39 +768,47 @@ public class RedisUtils {
         }
     }
 
-    /** * 指定元素增加指定值
+    /**
+     * 指定元素增加指定值
      * * * @param key
      * * @param obj
      * * @param score
-     * * @return */
+     * * @return
+     */
     public Object addScore(String key, Object obj, double score) {
         return redisTemplate.opsForZSet().incrementScore(key, obj, score);
     }
 
-    /** * 指定范围内元素排序
+    /**
+     * 指定范围内元素排序
      * *
      * * @param key
      * * @param v1
      * * @param v2
-     * * @return */
+     * * @return
+     */
     public Set<Object> rangeByScore(String key, double v1, double v2) {
         return redisTemplate.opsForZSet().rangeByScore(key, v1, v2);
     }
-    /** * 删除指定value的值
+
+    /**
+     * 删除指定value的值
      * *
      * * @param key
-     * * @return */
-    public Long removeByValue(String key,String value){
-       return redisTemplate.opsForZSet().remove(key, value);
+     * * @return
+     */
+    public Long removeByValue(String key, String value) {
+        return redisTemplate.opsForZSet().remove(key, value);
     }
+
     /**
-    * @Description: 查找指定前缀的key
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date:
-    */
-    public Set<String> getSetByKey(String prefix){
+     * @Description: 查找指定前缀的key
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public Set<String> getSetByKey(String prefix) {
         return redisTemplate.keys(prefix + "*");
     }
 }

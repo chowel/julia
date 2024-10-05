@@ -82,9 +82,9 @@ public class ApiController {
     @ApiOperation("test")
     @GetMapping("/testPoker")
     public Rv<Map<String, List<Poker>>> testPoker() {
-        String key = "JULIA:FIT:ROOMMAX:1_qwer";
-         long res = redisUtils.decr(key, 1);
-        log.info("redisUtils.incr：" + res);
+        String key = "JULIA:FIT:NOTSENDPOKER:1_1q1_JL051728056585678";
+        List<Poker> pokers = (List<Poker>) redisUtils.getLeftRemove(key);
+        log.info("redisUtils.incr：" + pokers.size());
 
         return new Rv<>(pokerService.oneHanderThirteen());
     }

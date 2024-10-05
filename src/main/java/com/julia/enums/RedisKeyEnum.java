@@ -12,7 +12,10 @@ import lombok.Getter;
 @Getter
 public enum RedisKeyEnum {
 
-
+    /**
+     * 玩家进行中的游戏
+     */
+    PLAYERCACHE("JULIA:FIT:PLAYERCACHE:"),
     /**
      * 房间玩家
      */
@@ -21,6 +24,18 @@ public enum RedisKeyEnum {
      * 房间最大玩家数
      */
     ROOMMAXPLAYERS("JULIA:FIT:ROOMMAX:"),
+    /**
+     * 待发的牌
+     */
+    NOTSENDPOKER("JULIA:FIT:NOTSENDPOKER:"),
+    /**
+     * 发给玩家的牌
+     */
+    PLAYERPOKERS("JULIA:FIT:PLAYERPOKERS:"),
+    /**
+     * 玩家进行中的游戏
+     */
+    ALIVEGAME("JULIA:FIT:ALIVEGAME:"),
     ;
 
 
