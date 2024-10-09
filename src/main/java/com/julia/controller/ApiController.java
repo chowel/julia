@@ -26,9 +26,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @program: julia
@@ -81,12 +83,40 @@ public class ApiController {
 
     @ApiOperation("test")
     @GetMapping("/testPoker")
-    public Rv<Map<String, List<Poker>>> testPoker() {
-        String key = "JULIA:FIT:NOTSENDPOKER:1_1q1_JL051728056585678";
-        List<Poker> pokers = (List<Poker>) redisUtils.getLeftRemove(key);
-        log.info("redisUtils.incr：" + pokers.size());
+    public Rv<PokerMoldForFive> testPoker() {
+//        Poker p27 = new Poker(27, 2, "Clubs", "2");
+//        Poker p28 = new Poker(28, 3, "Clubs", "3");
+//        Poker p16 = new Poker(16, 4, "Diamonds", "4");
+//        Poker p17 = new Poker(17, 5, "Diamonds", "5");
+//        Poker p20 = new Poker(52, 14, "Spades", "A");
+//
+//        List<Poker> FiveList = new ArrayList<>();
+//        FiveList.add(p27);FiveList.add(p28);FiveList.add(p16);FiveList.add(p17);FiveList.add(p20);
 
-        return new Rv<>(pokerService.oneHanderThirteen());
+        List<Poker> pokers = PokerUtils.shufflePoker();
+        List<Poker> FiveList = pokers.stream()
+                .limit(5) // 限制为前5个元素
+                .collect(Collectors.toList());
+
+//        log.info(FiveList.toString());
+        PokerMoldForFive mold= PokerUtils.generateMold(FiveList);
+        if("Kicker".equals(mold.getName())){
+            PokerMoldForFive straight = PokerUtils.checkStraight(FiveList);
+            if(ObjectUtils.isEmpty(straight)){
+                PokerMoldForFive flush = PokerUtils.checkFlush(FiveList);
+                if(ObjectUtils.isEmpty(flush)){
+                    return new Rv<>(mold);
+                }else{
+                    return new Rv<>(flush);
+                }
+            }else{
+                return new Rv<>(straight);
+            }
+        }else{
+            return new Rv<>(mold);
+        }
+
+
     }
 
 

@@ -84,17 +84,9 @@ public class PokerWsService {
             AliveGameRo alive = (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + userId);
 //            断线重连
             if (!ObjectUtils.isEmpty(alive)) {
-                String alivekey =
-                        RedisKeyEnum.NOTSENDPOKER.getKey() + alive.getGameType() + "_" + alive.getRoomIde() + "_" + alive.getGameIde();
 
-                List<Poker> pokers = (List<Poker>) redisUtils.getLeftRemove(alivekey);
-
-                PlayerGameRo playerGame = new PlayerGameRo();
-                playerGame.setPrePokers(pokers);
-                playerGame.setGameType(alive.getGameType());
-                playerGame.setRoomIde(alive.getRoomIde());
-                playerGame.setPlayerId(Integer.valueOf(userId));
-                playerGame.setGameNo(alive.getGameIde());
+                PlayerGameRo playerGame =
+                        (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + userId + "_" + alive.getGameIde());
 
                 WebSocketMsgBO sendMsg = new WebSocketMsgBO();
                 sendMsg.setSub("DISPOKERS");
@@ -109,9 +101,15 @@ public class PokerWsService {
             String bData = (String) bo.getData();
             String[] datas = bData.split("_");
             GameEntity game = gameService.findGameByRoom(Integer.parseInt(datas[0]), datas[1]);
-            String key = RedisKeyEnum.NOTSENDPOKER.getKey() + datas[0] + "_" + datas[1] + "_" + game.getGameNo();
+            String notSendPokerKey =
+                    RedisKeyEnum.NOTSENDPOKER.getKey() + datas[0] + "_" + datas[1] + "_" + game.getGameNo();
 
-            List<Poker> pokers = (List<Poker>) redisUtils.getLeftRemove(key);
+            List<Poker> pokers = (List<Poker>) redisUtils.getLeftRemove(notSendPokerKey);
+//            String maxPlayerKey = RedisKeyEnum.ROOMMAXPLAYERS.getKey() + game.getGameType() + "_" + game.getRoomFlag();
+//            int maxPlayer = (int) redisUtils.get(maxPlayerKey);
+//            if (maxPlayer == 0) {
+//                redisUtils.del(notSendPokerKey);
+//            }
 
             PlayerGameRo playerGame = new PlayerGameRo();
             playerGame.setPrePokers(pokers);
@@ -129,7 +127,7 @@ public class PokerWsService {
             ro.setGameType(Integer.parseInt(datas[0]));
             redisUtils.set(RedisKeyEnum.ALIVEGAME.getKey() + userId, ro);
 
-            gameScoreService.saveGamePlayer(game.getGameNo(), Integer.parseInt(datas[0]), game.getGameId());
+            gameScoreService.saveGamePlayer(game.getGameNo(), Integer.valueOf(userId), game.getGameId());
 
             WebSocketMsgBO sendMsg = new WebSocketMsgBO();
             sendMsg.setSub("DISPOKERS");

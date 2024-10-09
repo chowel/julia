@@ -1,10 +1,15 @@
 package com.julia.service;
 
 import com.julia.entity.GameEntity;
+import com.julia.model.dto.ReceivePokerDto;
 import com.julia.model.vo.GameEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
+import com.julia.tool.PokerMoldForFive;
+
+import java.util.List;
+
 /**
  * <p>
  * 游戏 服务类
@@ -61,5 +66,9 @@ public interface IGameService extends IService<GameEntity> {
     * @Date: 2024-10-03
     */
     Boolean remove(Long id);
+
+    List<PokerMoldForFive> receive(ReceivePokerDto dto);
+
+    void countScore(String gameNo);
 }
 

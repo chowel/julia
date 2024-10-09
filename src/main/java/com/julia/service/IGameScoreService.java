@@ -33,6 +33,8 @@ public interface IGameScoreService extends IService<GameScoreEntity> {
     */
     GameScoreEntityVO findOneById(Long id);
 
+    GameScoreEntity findOneByGameNo(String gameNo);
+
     /**
     * @Description: 添加
     * @Param:
@@ -61,5 +63,7 @@ public interface IGameScoreService extends IService<GameScoreEntity> {
     Boolean remove(Long id);
 
     Boolean saveGamePlayer(String gameNo,Integer userId, Long gameId);
+
+    Boolean savePlayerPokers(String gameNo,Integer userId,String pokers);
 }
 

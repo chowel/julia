@@ -7,12 +7,14 @@ import com.julia.entity.GameScoreEntity;
 import com.julia.mapper.GameScoreMapper;
 import com.julia.service.IGameScoreService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.julia.tool.JuliaException;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.GameScoreEntityVO;
 import com.julia.tool.JuliaUtils;
 import com.julia.model.QueryPagement;
 import org.springframework.util.ObjectUtils;
 
+import java.util.jar.JarException;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +40,11 @@ public class GameScoreServiceImpl extends ServiceImpl<GameScoreMapper, GameScore
     public GameScoreEntityVO findOneById(Long id) {
         GameScoreEntity entity = getById(id);
         return JuliaUtils.convertTo(new GameScoreEntityVO(), entity);
+    }
+
+    @Override
+    public GameScoreEntity findOneByGameNo(String gameNo) {
+        return getOne(new QueryWrapper<GameScoreEntity>().eq("game_no", gameNo));
     }
 
     @Override
@@ -80,6 +87,35 @@ public class GameScoreServiceImpl extends ServiceImpl<GameScoreMapper, GameScore
             return updateById(score);
         }
         return false;
+    }
+
+    @Override
+    public Boolean savePlayerPokers(String gameNo, Integer userId, String pokers) {
+        GameScoreEntity score = this.getOne(new QueryWrapper<GameScoreEntity>().eq("game_no", gameNo));
+        if (ObjectUtils.isEmpty(score)) {
+            throw new JuliaException("游戏系统异常");
+        }
+        if(score.getPlayerIId().equals(userId)){
+            score.setPlayerIPoker(pokers);
+            return updateById(score);
+        }
+
+        if(score.getPlayerIiId().equals(userId)){
+            score.setPlayerIiPoker(pokers);
+            return updateById(score);
+        }
+
+        if(score.getPlayerIiiId().equals(userId)){
+            score.setPlayerIiiPoker(pokers);
+            return updateById(score);
+        }
+
+        if(score.getPlayerIvId().equals(userId)){
+            score.setPlayerIvPoker(pokers);
+            return updateById(score);
+        }
+
+        return null;
     }
 }
 

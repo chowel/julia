@@ -1,6 +1,7 @@
 package com.julia.model;
 
 import com.julia.tool.Poker;
+import com.julia.tool.PokerMoldForFive;
 
 import java.util.List;
 
@@ -12,9 +13,11 @@ import java.util.List;
  **/
 public class PlayerGameRo {
 
+    public PlayerGameRo(){}
+
     private List<Poker> prePokers;
 
-    private List<Poker> handPokers;
+    private List<PokerMoldForFive> molds;
 
     private Integer playerId;
 
@@ -24,22 +27,6 @@ public class PlayerGameRo {
 
     private String roomIde;
 
-    public Integer getGameType() {
-        return gameType;
-    }
-
-    public void setGameType(Integer gameType) {
-        this.gameType = gameType;
-    }
-
-    public String getRoomIde() {
-        return roomIde;
-    }
-
-    public void setRoomIde(String roomIde) {
-        this.roomIde = roomIde;
-    }
-
     public List<Poker> getPrePokers() {
         return prePokers;
     }
@@ -48,12 +35,12 @@ public class PlayerGameRo {
         this.prePokers = prePokers;
     }
 
-    public List<Poker> getHandPokers() {
-        return handPokers;
+    public List<PokerMoldForFive> getMolds() {
+        return molds;
     }
 
-    public void setHandPokers(List<Poker> handPokers) {
-        this.handPokers = handPokers;
+    public void setMolds(List<PokerMoldForFive> molds) {
+        this.molds = molds;
     }
 
     public Integer getPlayerId() {
@@ -64,11 +51,27 @@ public class PlayerGameRo {
         this.playerId = playerId;
     }
 
+    public Integer getGameType() {
+        return gameType;
+    }
+
+    public void setGameType(Integer gameType) {
+        this.gameType = gameType;
+    }
+
     public String getGameNo() {
         return gameNo;
     }
 
     public void setGameNo(String gameNo) {
         this.gameNo = gameNo;
+    }
+
+    public String getRoomIde() {
+        return roomIde;
+    }
+
+    public void setRoomIde(String roomIde) {
+        this.roomIde = roomIde;
     }
 }

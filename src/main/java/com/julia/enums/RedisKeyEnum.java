@@ -33,6 +33,10 @@ public enum RedisKeyEnum {
      */
     PLAYERPOKERS("JULIA:FIT:PLAYERPOKERS:"),
     /**
+     * 牌局提交牌的玩家数
+     */
+    RECEIVES("JULIA:FIT:RECEIVES:"),
+    /**
      * 玩家进行中的游戏
      */
     ALIVEGAME("JULIA:FIT:ALIVEGAME:"),

@@ -49,7 +49,7 @@ public class GameScoreEntity extends BaseEntity {
      * 玩家1得分
      */
     @TableField("player_i_score")
-    private Integer playerIScore;
+    private String playerIScore;
 
     /**
      * 玩家1最后牌面
@@ -67,7 +67,7 @@ public class GameScoreEntity extends BaseEntity {
      * 玩家2得分
      */
     @TableField("player_ii_score")
-    private Integer playerIiScore;
+    private String playerIiScore;
 
     /**
      * 玩家2最后牌面
@@ -85,7 +85,7 @@ public class GameScoreEntity extends BaseEntity {
      * 玩家3得分
      */
     @TableField("player_iii_score")
-    private Integer playerIiiScore;
+    private String playerIiiScore;
 
     /**
      * 玩家3最后牌面
@@ -103,7 +103,7 @@ public class GameScoreEntity extends BaseEntity {
      * 玩家4得分
      */
     @TableField("player_iv_score")
-    private Integer playerIvScore;
+    private String playerIvScore;
 
     /**
      * 玩家4最后牌面

@@ -1,5 +1,7 @@
 package com.julia.tool;
 
+import java.util.Objects;
+
 public class Poker {
 
     public Integer id;
@@ -59,5 +61,25 @@ public class Poker {
 
     public void setPositionId(Integer positionId) {
         this.positionId = positionId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Poker poker = (Poker) o;
+        return Objects.equals(id, poker.id) &&
+                Objects.equals(value, poker.value) &&
+                Objects.equals(suit, poker.suit) &&
+                Objects.equals(rand, poker.rand) ;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, value, suit, rand, positionId);
     }
 }

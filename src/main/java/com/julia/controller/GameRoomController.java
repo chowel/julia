@@ -67,17 +67,9 @@ public class GameRoomController {
         return new Rv<>(serviceImpl.joinGameRoomEntity(vo));
     }
 
-    @ApiOperation("修改")
-    @PostMapping("/changed")
-    public Rv<Boolean> changedGameRoomEntityOne(@RequestBody GameRoomEntityVO vo) {
-        return new Rv<>(serviceImpl.alter(vo));
-    }
 
-//    @ApiOperation("删除")
-//    @GetMapping("/del/{id}")
-//    public Rv<Boolean> delGameRoomEntityById(@PathVariable Long id) {
-//        return new Rv<>(serviceImpl.remove(id));
-//    }
+
+
 
     @ApiOperation("查找进行中的游戏")
     @GetMapping("/findAliveGame")

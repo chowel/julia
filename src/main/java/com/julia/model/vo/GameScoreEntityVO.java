@@ -39,7 +39,7 @@ public class GameScoreEntityVO extends BaseEntity {
     private Integer playerIId;
 
     @ApiModelProperty("玩家1得分")
-    private Integer playerIScore;
+    private String playerIScore;
 
     @ApiModelProperty("玩家1最后牌面")
     private String playerIPoker;
@@ -48,7 +48,7 @@ public class GameScoreEntityVO extends BaseEntity {
     private Integer playerIiId;
 
     @ApiModelProperty("玩家2得分")
-    private Integer playerIiScore;
+    private String playerIiScore;
 
     @ApiModelProperty("玩家2最后牌面")
     private String playerIiPoker;
@@ -57,7 +57,7 @@ public class GameScoreEntityVO extends BaseEntity {
     private Integer playerIiiId;
 
     @ApiModelProperty("玩家3得分")
-    private Integer playerIiiScore;
+    private String playerIiiScore;
 
     @ApiModelProperty("玩家3最后牌面")
     private String playerIiiPoker;
@@ -66,7 +66,7 @@ public class GameScoreEntityVO extends BaseEntity {
     private Integer playerIvId;
 
     @ApiModelProperty("玩家4得分")
-    private Integer playerIvScore;
+    private String playerIvScore;
 
     @ApiModelProperty("玩家4最后牌面")
     private String playerIvPoker;
