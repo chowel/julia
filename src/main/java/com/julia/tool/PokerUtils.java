@@ -1,6 +1,7 @@
 package com.julia.tool;
 
 import io.swagger.models.auth.In;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
@@ -431,4 +432,18 @@ public class PokerUtils {
         }
         return null;
     }
+
+    public static List<Poker> findPokersByid(String ids) {
+        String[] idArray = ids.split(",");
+        List<Poker> p = new ArrayList<>();
+        for (String s : idArray) {
+            int id = Integer.parseInt(s);
+            if (id > 0) {
+                p.add(pokers.get(id - 1));
+            }
+        }
+        return p;
+    }
+
+    ;
 }

@@ -34,7 +34,7 @@ public class GameRoomEntity extends BaseEntity {
     private Integer gameType;
 
     /**
-     * 0:创建 1:游戏中 3:结束
+     * 0:创建 1:游戏中 2:结束
      */
     @TableField("status")
     private Integer status;

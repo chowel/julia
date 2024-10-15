@@ -10,7 +10,7 @@ import java.util.List;
  * @author: Chowel.Master
  * @create: 2024-10-04 01:34
  **/
-public class PlayerWhitPoker {
+public class GameResultForThirteenRo {
     private Long playId;
 
     private String nickName;
@@ -21,11 +21,11 @@ public class PlayerWhitPoker {
 
     private String gameIde;
 
-    private List<Poker> prePokers;
+    private List<Poker> pokers;
 
-    private List<Poker> handPokers;
+    private List<Integer> scores;
 
-    private Integer score;
+    private Integer coin;
 
     public Long getPlayId() {
         return playId;
@@ -67,27 +67,27 @@ public class PlayerWhitPoker {
         this.gameIde = gameIde;
     }
 
-    public List<Poker> getPrePokers() {
-        return prePokers;
+    public List<Poker> getPokers() {
+        return pokers;
     }
 
-    public void setPrePokers(List<Poker> prePokers) {
-        this.prePokers = prePokers;
+    public void setPokers(List<Poker> pokers) {
+        this.pokers = pokers;
     }
 
-    public List<Poker> getHandPokers() {
-        return handPokers;
+    public List<Integer> getScores() {
+        return scores;
     }
 
-    public void setHandPokers(List<Poker> handPokers) {
-        this.handPokers = handPokers;
+    public void setScores(List<Integer> scores) {
+        this.scores = scores;
     }
 
-    public Integer getScore() {
-        return score;
+    public Integer getCoin() {
+        return coin;
     }
 
-    public void setScore(Integer score) {
-        this.score = score;
+    public void setCoin(Integer coin) {
+        this.coin = coin;
     }
 }

@@ -21,9 +21,9 @@ public enum RedisKeyEnum {
      */
     ROOMPLAYERS("JULIA:FIT:ROOMPLAYERS:"),
     /**
-     * 房间最大玩家数
+     * 房间缓存
      */
-    ROOMMAXPLAYERS("JULIA:FIT:ROOMMAX:"),
+    ROOMCACHE("JULIA:FIT:ROOMCACHE:"),
     /**
      * 待发的牌
      */

@@ -71,7 +71,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         //断开连接
         String removeId = ChannelPond.removeChannel(ctx.channel());
         log.info("客户端断开连接：" + removeId);
-//        nioWebSocketHandler.service.delByUserid(removeId);
+        nioWebSocketHandler.service.delByUserId(removeId);
     }
 
     @Override

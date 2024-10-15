@@ -5,17 +5,26 @@ import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapp
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.julia.entity.GameEntity;
+import com.julia.entity.GameRoomEntity;
 import com.julia.entity.GameScoreEntity;
+import com.julia.entity.GameThirteenEntity;
 import com.julia.enums.RedisKeyEnum;
 import com.julia.mapper.GameMapper;
 import com.julia.model.PlayerGameRo;
+import com.julia.model.PlayerRo;
+import com.julia.model.WebSocketMsgBO;
 import com.julia.model.dto.ReceivePokerDto;
 import com.julia.model.vo.GameRoomEntityVO;
+import com.julia.model.vo.GameThirteenEntityVO;
 import com.julia.service.IGameRoomService;
 import com.julia.service.IGameScoreService;
 import com.julia.service.IGameService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.julia.service.IGameThirteenService;
+import com.julia.socket.ChannelPond;
 import com.julia.tool.*;
+import io.netty.channel.Channel;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.SneakyThrows;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -24,10 +33,7 @@ import com.julia.model.QueryPagement;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -44,7 +50,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
     RedisUtils redisUtils;
 
     @Resource
-    IGameScoreService scoreService;
+    IGameThirteenService thirteenService;
 
     @Resource
     IGameRoomService roomService;
@@ -96,6 +102,10 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
     public List<PokerMoldForFive> receive(ReceivePokerDto dto) {
         // TODO 校验是否下发的牌
         PlayerGameRo playerGame = (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + dto.getPlayId() + "_" + dto.getGameIde());
+        // 重复提交
+        if (!ObjectUtils.isEmpty(playerGame.getMolds()) && playerGame.getMolds().size() > 0) {
+            return playerGame.getMolds();
+        }
         if (ObjectUtils.isEmpty(playerGame)) {
             throw new JuliaException("游戏系统异常");
         }
@@ -115,9 +125,9 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         }
         // todo 定牌型
 
-        String pokerJson = mapper.writeValueAsString(handPokers);
+//        String pokerJson = mapper.writeValueAsString(handPokers);
 
-        scoreService.savePlayerPokers(dto.getGameIde(), dto.getPlayId(), pokerJson);
+//        scoreService.savePlayerPokers(dto.getGameIde(), dto.getPlayId(), pokerJson);
 
         handPokers.sort(Comparator.comparing(Poker::getPositionId));
         List<Poker> headerGear = handPokers.subList(0, 3);
@@ -136,6 +146,32 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         playerGame.setMolds(molds);
         String playerPokersKey = RedisKeyEnum.PLAYERPOKERS.getKey() + playerGame.getPlayerId() + "_" + playerGame.getGameNo();
         redisUtils.set(playerPokersKey, playerGame);
+
+
+        GameThirteenEntity thirteen = thirteenService.findOneByGameNoWhitPlayerId(playerGame.getPlayerId(), playerGame.getGameNo());
+        if (ObjectUtils.isEmpty(thirteen)) {
+            throw new JuliaException("游戏系统异常");
+        }
+        thirteen.setGameNo(playerGame.getGameNo());
+        thirteen.setPlayerId(playerGame.getPlayerId());
+
+        assert headerMold != null;
+        thirteen.setHeadgear(headerMold.getCname());
+        List<String> headerIds =
+                headerGear.stream().map((poker) -> String.valueOf(poker.getId())).collect(Collectors.toList());
+        thirteen.setHeadgearPokers(String.join(",", headerIds));
+
+        thirteen.setMidgear(midMold.getCname());
+        List<String> midIds = midGear.stream().map(poker -> String.valueOf(poker.getId())).collect(Collectors.toList());
+        thirteen.setMidgearPoker(String.join(",", midIds));
+
+        thirteen.setBasegear(floorMold.getCname());
+        List<String> baseIds =
+                floorGear.stream().map(poker -> String.valueOf(poker.getId())).collect(Collectors.toList());
+        thirteen.setBasegearPoker(String.join(",", baseIds));
+
+        thirteenService.updateById(thirteen);
+
         String RECEIVESKEY = RedisKeyEnum.RECEIVES.getKey() + "_" + playerGame.getGameNo();
         redisUtils.incr(RECEIVESKEY, 1);
         int gameReceive = (int) redisUtils.get(RECEIVESKEY);
@@ -146,40 +182,45 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         return molds;
     }
 
+    @SneakyThrows
     @Override
-    @Async("countScoreExecutor")
+//    @Async("countScoreExecutor")
     public void countScore(String gameNo) {
-        GameScoreEntity gameScore = scoreService.findOneByGameNo(gameNo);
-        assert gameScore != null;
+//        GameScoreEntity gameScore = scoreService.findOneByGameNo(gameNo);
+        List<GameThirteenEntity> games = thirteenService.findByGameNo(gameNo);
+
 
         List<Integer> play1Scores = Arrays.asList(0, 0, 0);
         List<Integer> play2Scores = Arrays.asList(0, 0, 0);
         List<Integer> play3Scores = Arrays.asList(0, 0, 0);
         List<Integer> play4Scores = Arrays.asList(0, 0, 0);
 
-        PlayerGameRo playerI;
+        PlayerGameRo playerI = null;
         List<PokerMoldForFive> playerIMolds = null;
-        if (gameScore.getPlayerIId() > 0) {
-            playerI = (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + gameScore.getPlayerIId() + "_" + gameNo);
+        if (!ObjectUtils.isEmpty(games.get(0))) {
+            playerI =
+                    (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(0).getPlayerId() + "_" + gameNo);
             playerIMolds = playerI.getMolds();
 
         }
-        PlayerGameRo playerII;
+        PlayerGameRo playerII = null;
         List<PokerMoldForFive> playerIIMolds = null;
-        if (gameScore.getPlayerIiId() > 0) {
-            playerII = (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + gameScore.getPlayerIiId() + "_" + gameNo);
+        if (!ObjectUtils.isEmpty(games.get(1))) {
+            playerII =
+                    (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(1).getPlayerId() + "_" + gameNo);
             playerIIMolds = playerII.getMolds();
         }
-        PlayerGameRo playerIII;
+        PlayerGameRo playerIII = null;
         List<PokerMoldForFive> playerIIIMolds = null;
-        if (gameScore.getPlayerIiiId() > 0) {
-            playerIII = (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + gameScore.getPlayerIiiId() + "_" + gameNo);
+        if (games.size() > 2) {
+            playerIII =
+                    (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(2).getPlayerId() + "_" + gameNo);
             playerIIIMolds = playerIII.getMolds();
         }
-        PlayerGameRo playerIIII;
+        PlayerGameRo playerIIII = null;
         List<PokerMoldForFive> playerVIMolds = null;
-        if (gameScore.getPlayerIvId() > 0) {
-            playerIIII = (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + gameScore.getPlayerIvId() + "_" + gameNo);
+        if (games.size() > 3) {
+            playerIIII = (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(2).getPlayerId() + "_" + gameNo);
             playerVIMolds = playerIIII.getMolds();
         }
         // 玩家1 vs 玩家2
@@ -248,23 +289,46 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
             play4Scores.set(2, play4Scores.get(2) + sc.get(5));
         }
 
-        if (gameScore.getPlayerIId() > 0) {
-            gameScore.setPlayerIScore(play1Scores.get(0) + "$" + play1Scores.get(1) + "$" + play1Scores.get(2));
+        if (!ObjectUtils.isEmpty(games.get(0))) {
+            GameThirteenEntity o = games.get(0);
+            o.setHeadScore(play1Scores.get(0));
+            o.setMidScore(play1Scores.get(1));
+            o.setBaseScore(play1Scores.get(2));
+            o.setTotal(play1Scores.get(0) + play1Scores.get(1) + play1Scores.get(2));
+            thirteenService.updateById(o);
         }
 
-        if (gameScore.getPlayerIiId() > 0) {
-            gameScore.setPlayerIiScore(play2Scores.get(0) + "$" + play2Scores.get(1) + "$" + play2Scores.get(2));
+        if (!ObjectUtils.isEmpty(games.get(1))) {
+            GameThirteenEntity o = games.get(1);
+            o.setHeadScore(play2Scores.get(0));
+            o.setMidScore(play2Scores.get(1));
+            o.setBaseScore(play2Scores.get(2));
+            o.setTotal(play2Scores.get(0) + play2Scores.get(1) + play2Scores.get(2));
+            thirteenService.updateById(o);
         }
 
-        if (gameScore.getPlayerIiiId() > 0) {
-            gameScore.setPlayerIiiScore(play3Scores.get(0) + "$" + play3Scores.get(1) + "$" + play3Scores.get(2));
+        if (games.size() > 2) {
+            GameThirteenEntity o = games.get(2);
+            o.setHeadScore(play3Scores.get(0));
+            o.setMidScore(play3Scores.get(1));
+            o.setBaseScore(play3Scores.get(2));
+            o.setTotal(play3Scores.get(0) + play3Scores.get(1) + play3Scores.get(2));
+            thirteenService.updateById(o);
         }
 
-        if (gameScore.getPlayerIvId() > 0) {
-            gameScore.setPlayerIvScore(play4Scores.get(0) + "$" + play4Scores.get(1) + "$" + play4Scores.get(2));
+        if (games.size() > 3) {
+            GameThirteenEntity o = games.get(3);
+            o.setHeadScore(play4Scores.get(0));
+            o.setMidScore(play4Scores.get(1));
+            o.setBaseScore(play4Scores.get(2));
+            o.setTotal(play4Scores.get(0) + play4Scores.get(1) + play4Scores.get(2));
+            thirteenService.updateById(o);
+
         }
 
-        scoreService.updateById(gameScore);
+        assert playerI != null;
+        sendGameResult(playerI.getGameNo(),playerI.getGameType(),playerI.getRoomIde());
+
     }
 
     private PokerMoldForFive createMold(List<Poker> l) {
@@ -433,5 +497,37 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         }
         return Arrays.asList(oneHeaderScores, oneMidScores, oneBaseScores, otherHeaderScores, otherMidScores, otherBaseScores);
     }
+
+    @SneakyThrows
+    private void sendGameResult(String gameNo,int gameType,String roomIde) {
+        List<GameThirteenEntity> games = thirteenService.findByGameNo(gameNo);
+
+        List<GameThirteenEntityVO> result = games.stream().map(
+                (entity -> {
+                    GameThirteenEntityVO t = JuliaUtils.convertTo(new GameThirteenEntityVO(), entity);
+                    t.setHeadPokers(PokerUtils.findPokersByid(t.getHeadgearPokers()));
+                    t.setMidPokers(PokerUtils.findPokersByid(t.getMidgearPoker()));
+                    t.setBasePokers(PokerUtils.findPokersByid(t.getBasegearPoker()));
+                    return t;
+                })
+        ).collect(Collectors.toList());
+
+        String key = RedisKeyEnum.ROOMPLAYERS.getKey() + gameType+"_"+roomIde;
+        Set<Object> players = redisUtils.sGet(key);
+        for (Object element : players) {
+            PlayerRo t = (PlayerRo) element;
+
+            redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey()+t.getPlayId());
+            Channel channel = ChannelPond.findChannel(String.valueOf(t.getPlayId()));
+            if (!ObjectUtils.isEmpty(channel)) {
+                WebSocketMsgBO sendMsg = new WebSocketMsgBO();
+                sendMsg.setSub("GAMERESULT");
+                sendMsg.setData(result);
+                channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(sendMsg)));
+            }
+        }
+    }
+
+    ;
 }
 

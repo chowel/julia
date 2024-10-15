@@ -32,7 +32,7 @@ public class GameRoomEntityVO extends BaseEntity {
     @ApiModelProperty("1:13水")
     private Integer gameType;
 
-    @ApiModelProperty("0:创建 1:游戏中 3:结束")
+    @ApiModelProperty("0:创建 1:游戏中 2:结束")
     private Integer status;
 
     @ApiModelProperty("房间人数")

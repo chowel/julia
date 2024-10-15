@@ -7,10 +7,9 @@ import com.julia.model.AliveGameRo;
 import com.julia.model.PlayerGameRo;
 import com.julia.model.PlayerRo;
 import com.julia.model.WebSocketMsgBO;
+import com.julia.model.vo.GameThirteenEntityVO;
 import com.julia.model.vo.PlayersEntityVO;
-import com.julia.service.IGameScoreService;
-import com.julia.service.IGameService;
-import com.julia.service.IPlayersService;
+import com.julia.service.*;
 import com.julia.socket.ChannelPond;
 import com.julia.tool.Poker;
 import com.julia.tool.RedisUtils;
@@ -43,7 +42,10 @@ public class PokerWsService {
     IGameService gameService;
 
     @Resource
-    IGameScoreService gameScoreService;
+    IGameRoomService roomService;
+
+    @Resource
+    IGameThirteenService thirteenService;
 
     @Resource
     IPlayersService playersService;
@@ -100,6 +102,7 @@ public class PokerWsService {
             String userId = ChannelPond.findUserIdByChannel(channel);
             String bData = (String) bo.getData();
             String[] datas = bData.split("_");
+//            datas[0]  gameType
             GameEntity game = gameService.findGameByRoom(Integer.parseInt(datas[0]), datas[1]);
             String notSendPokerKey =
                     RedisKeyEnum.NOTSENDPOKER.getKey() + datas[0] + "_" + datas[1] + "_" + game.getGameNo();
@@ -115,7 +118,7 @@ public class PokerWsService {
             playerGame.setPrePokers(pokers);
             playerGame.setGameType(Integer.parseInt(datas[0]));
             playerGame.setRoomIde(datas[1]);
-            playerGame.setPlayerId(Integer.valueOf(userId));
+            playerGame.setPlayerId(Long.valueOf(userId));
             playerGame.setGameNo(game.getGameNo());
 
             redisUtils.set(RedisKeyEnum.PLAYERPOKERS.getKey() + userId + "_" + game.getGameNo(), playerGame);
@@ -127,13 +130,55 @@ public class PokerWsService {
             ro.setGameType(Integer.parseInt(datas[0]));
             redisUtils.set(RedisKeyEnum.ALIVEGAME.getKey() + userId, ro);
 
-            gameScoreService.saveGamePlayer(game.getGameNo(), Integer.valueOf(userId), game.getGameId());
+//            gameScoreService.saveGamePlayer(game.getGameNo(), Integer.valueOf(userId), game.getGameId());
+            if ("1".equals(datas[0])) {
+                GameThirteenEntityVO vo = new GameThirteenEntityVO();
+                vo.setPlayerId(Long.valueOf(userId));
+                vo.setGameId(game.getGameId());
+                vo.setGameNo(game.getGameNo());
 
+                thirteenService.saveGameThirteenEntity(vo);
+            }
             WebSocketMsgBO sendMsg = new WebSocketMsgBO();
             sendMsg.setSub("DISPOKERS");
             sendMsg.setData(playerGame);
 
             channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(sendMsg)));
         }
+
+        if ("QUITROOM".equals(bo.getSub())) {
+            String userId = ChannelPond.findUserIdByChannel(channel);
+            PlayersEntityVO player = playersService.findOneById(Long.valueOf(userId));
+
+            log.info("退出房间->userId: " + userId);
+            log.info((String) bo.getData());
+            String key = RedisKeyEnum.ROOMPLAYERS.getKey() + (String) bo.getData();
+            Set<Object> players = redisUtils.sGet(key);
+            int playerNum = players.size();
+            for (Object element : players) {
+                PlayerRo t = (PlayerRo) element;
+                if (t.getPlayId().equals(Long.valueOf(userId))) {
+                    redisUtils.setRemove(key, t);
+                    if ((playerNum - 1) == 0) {
+                        String bData = (String) bo.getData();
+                        String[] datas = bData.split("_");
+                        roomService.close(datas[1], Integer.valueOf(datas[0]));
+                    }
+                } else {
+                    Channel userChannel = ChannelPond.findChannel(String.valueOf(t.getPlayId()));
+                    if (!ObjectUtils.isEmpty(userChannel)) {
+                        WebSocketMsgBO myMsg = new WebSocketMsgBO();
+                        myMsg.setSub("PLAYERQUIT");
+                        myMsg.setData(player);
+                        userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(myMsg)));
+
+                    }
+                }
+            }
+        }
+    }
+
+    public void delByUserId(String removeId) {
+
     }
 }

@@ -73,6 +73,8 @@ public interface IGameRoomService extends IService<GameRoomEntity> {
     */
     Boolean remove(Long id);
 
+    Boolean close(String flag,Integer  gameType);
+
     AliveGameRo findAliveByUserId(Integer userId);
 }
 

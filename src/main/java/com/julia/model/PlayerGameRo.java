@@ -19,13 +19,23 @@ public class PlayerGameRo {
 
     private List<PokerMoldForFive> molds;
 
-    private Integer playerId;
+    private Long playerId;
 
     private Integer gameType;
 
     private String gameNo;
 
     private String roomIde;
+
+    private List<Integer> scores;
+
+    public List<Integer> getScores() {
+        return scores;
+    }
+
+    public void setScores(List<Integer> scores) {
+        this.scores = scores;
+    }
 
     public List<Poker> getPrePokers() {
         return prePokers;
@@ -43,11 +53,11 @@ public class PlayerGameRo {
         this.molds = molds;
     }
 
-    public Integer getPlayerId() {
+    public Long getPlayerId() {
         return playerId;
     }
 
-    public void setPlayerId(Integer playerId) {
+    public void setPlayerId(Long playerId) {
         this.playerId = playerId;
     }
 

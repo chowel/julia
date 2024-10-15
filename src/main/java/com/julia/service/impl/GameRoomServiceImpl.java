@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.julia.entity.GameEntity;
@@ -17,6 +18,7 @@ import com.julia.mapper.PlayersMapper;
 import com.julia.mapper.RoomPlayerMapper;
 import com.julia.model.AliveGameRo;
 import com.julia.model.PlayerRo;
+import com.julia.model.vo.PlayersEntityVO;
 import com.julia.service.IGameRoomService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.julia.tool.*;
@@ -29,6 +31,7 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -74,8 +77,19 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
 
     @Override
     public GameRoomEntityVO findOneByFlag(String flag) {
-        GameRoomEntity entity = this.getOne(new QueryWrapper<GameRoomEntity>().eq("flag", flag));
-        return JuliaUtils.convertTo(new GameRoomEntityVO(), entity);
+        return Optional
+                .ofNullable((GameRoomEntityVO) redisUtils.get(RedisKeyEnum.ROOMCACHE.getKey() + flag))
+                .orElseGet(() -> {
+                    GameRoomEntity entity = this.getOne(new QueryWrapper<GameRoomEntity>().eq("flag", flag));
+                    if(ObjectUtils.isEmpty(entity)){
+                        return null;
+                    }
+                    GameRoomEntityVO vo = JuliaUtils.convertTo(new GameRoomEntityVO(), entity);
+                    redisUtils.set(RedisKeyEnum.ROOMCACHE.getKey() + flag, vo, 3600 * 6);
+                    return vo;
+                });
+//        GameRoomEntity entity = this.getOne(new QueryWrapper<GameRoomEntity>().eq("flag", flag));
+//        return JuliaUtils.convertTo(new GameRoomEntityVO(), entity);
     }
 
     @Override
@@ -87,6 +101,12 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
         if (player.getStatus() == 0) {
             throw new JuliaException("用户异常");
         }
+        GameRoomEntityVO entityVO = findOneByFlag(vo.getFlag());
+
+        if (!ObjectUtils.isEmpty(entityVO) && entityVO.getStatus() != 2) {
+            throw new JuliaException("房间名称重复");
+        }
+
         GameRoomEntity gameRoomEntity = JuliaUtils.convertTo(new GameRoomEntity(), vo);
 
         if (save(gameRoomEntity)) {
@@ -103,8 +123,8 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
             } else {
                 //
                 String lastKey = gameRoomEntity.getGameType() + "_" + gameRoomEntity.getFlag();
-                redisUtils.incr(RedisKeyEnum.ROOMMAXPLAYERS.getKey() + lastKey,
-                        gameRoomEntity.getPlayers() - 1);
+//                redisUtils.incr(RedisKeyEnum.ROOMMAXPLAYERS.getKey() + lastKey,
+//                        gameRoomEntity.getPlayers() - 1);
                 redisUtils.sSet(RedisKeyEnum.ROOMPLAYERS.getKey() + lastKey, JuliaUtils.convertTo(new PlayerRo(), player));
                 return true;
             }
@@ -116,11 +136,6 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
     @Override
     public Boolean joinGameRoomEntity(GameRoomEntityVO vo) {
         // todo
-        String lastKey = vo.getGameType() + "_" + vo.getFlag();
-        int maxPlayer = (int) redisUtils.get(RedisKeyEnum.ROOMMAXPLAYERS.getKey() + lastKey);
-        if (maxPlayer < 1) {
-            throw new JuliaException("房间人数已满");
-        }
         PlayersEntity player = playersMapper.selectById(vo.getPlayerId());
         if (ObjectUtils.isEmpty(player)) {
             throw new JuliaException("用户不存在");
@@ -128,7 +143,29 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
         if (player.getStatus() == 0) {
             throw new JuliaException("用户异常");
         }
-        GameRoomEntity gameRoomEntity = getOne(new QueryWrapper<GameRoomEntity>().eq("flag", vo.getFlag()));
+        String lastKey = vo.getGameType() + "_" + vo.getFlag();
+
+        boolean checkJoin = false;
+        String ROOMPLAYERKEY = RedisKeyEnum.ROOMPLAYERS.getKey() + vo.getGameType() + "_" + vo.getFlag();
+        Set<Object> roomPlayers = redisUtils.sGet(ROOMPLAYERKEY);
+        for (Object element : roomPlayers) {
+            PlayerRo t = (PlayerRo) element;
+            long joinId = t.getPlayId();
+            int userId = vo.getPlayerId();
+            if (joinId == (long) userId) {
+                checkJoin = true;
+                break;
+            }
+        }
+        if (checkJoin) {
+            return true;
+        }
+
+
+        GameRoomEntityVO gameRoomEntity = findOneByFlag(vo.getFlag());
+        if (roomPlayers.size() == gameRoomEntity.getPlayers()) {
+            throw new JuliaException("房间人数已满");
+        }
         if (ObjectUtils.isEmpty(gameRoomEntity)) {
             throw new JuliaException("房间不存在");
         }
@@ -142,7 +179,7 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
             return false;
         } else {
             //
-            redisUtils.decr(RedisKeyEnum.ROOMMAXPLAYERS.getKey() + lastKey, 1);
+//            redisUtils.decr(RedisKeyEnum.ROOMMAXPLAYERS.getKey() + lastKey, 1);
 
             redisUtils.sSet(RedisKeyEnum.ROOMPLAYERS.getKey() + lastKey, JuliaUtils.convertTo(new PlayerRo(), player));
             long players = redisUtils.sGetSetSize(RedisKeyEnum.ROOMPLAYERS.getKey() + lastKey);
@@ -165,8 +202,21 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
     }
 
     @Override
+    public Boolean close(String flag, Integer gameType) {
+        GameRoomEntity entity  = this.getOne(new QueryWrapper<GameRoomEntity>()
+                .eq("flag",flag)
+                .eq("game_type",gameType));
+        if(ObjectUtils.isEmpty(entity)){
+            return false;
+        }
+        entity.setStatus(2);
+        return updateById(entity);
+    }
+
+
+    @Override
     public AliveGameRo findAliveByUserId(Integer userId) {
-        return (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey()+userId);
+        return (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + userId);
     }
 
 
