@@ -70,5 +70,9 @@ public interface IGameService extends IService<GameEntity> {
     List<PokerMoldForFive> receive(ReceivePokerDto dto);
 
     void countScore(String gameNo);
+
+    void createThirteennGame(int gameType, String roomIde);
+
+    Boolean rePlayThirteennGame(int userId,int gameType, String roomIde);
 }
 

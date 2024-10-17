@@ -1,6 +1,7 @@
 package com.julia.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.julia.entity.GameEntity;
 import com.julia.mapper.ObtainMapper;
 import com.julia.model.CaptchaVo;
 import com.julia.model.dto.DrawerPollDTO;
@@ -12,6 +13,7 @@ import com.julia.model.vo.FortuneApiVO;
 import com.julia.model.vo.PlayersEntityVO;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IFortuneService;
+import com.julia.service.IGameService;
 import com.julia.service.IPlayersService;
 import com.julia.service.IYaoService;
 import com.julia.service.impl.PokerServiceImpl;
@@ -51,7 +53,7 @@ public class ApiController {
     IPlayersService playersService;
 
     @Resource
-    PokerServiceImpl pokerService;
+    IGameService gameService;
     @Resource
     RedisUtils redisUtils;
 
@@ -72,11 +74,12 @@ public class ApiController {
     @ApiOperation("test")
     @GetMapping("/test")
     public Rv<String> test() {
-        Channel c = ChannelPond.findChannel("5");
-        if (!ObjectUtils.isEmpty(c)) {
-            ChannelPond.removeChannel(c);
-        }
 
+        gameService.lambdaUpdate()
+                .eq(GameEntity::getGameNo,"UwBD1729008518371")
+                .eq(GameEntity::getRoomFlag,"p123")
+                .eq(GameEntity::getGameType,1)
+                .set(GameEntity::getStatus,0).update();
         return new Rv<>("OK: ");
     }
 

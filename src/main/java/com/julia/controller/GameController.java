@@ -1,7 +1,10 @@
 package com.julia.controller;
 
+import com.julia.model.AliveGameRo;
+import com.julia.tool.PlayerToken;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -56,6 +59,13 @@ public class GameController {
     @GetMapping("/del/{id}")
     public Rv<Boolean> delGameEntityById(@PathVariable Long id) {
           return new Rv<>(serviceImpl.remove(id));
+    }
+
+    @ApiOperation("开始新游戏")
+    @PostMapping("/reThirteenGame")
+    public Rv<Boolean> rePlayThirteenGame(@RequestBody GameEntityVO vo){
+        int playId = PlayerToken.getLoginIdAsInt();
+        return new Rv<>(serviceImpl.rePlayThirteennGame(playId,vo.getGameType(),vo.getRoomFlag()));
     }
 }
 

@@ -25,7 +25,7 @@ public enum RedisKeyEnum {
      */
     ROOMCACHE("JULIA:FIT:ROOMCACHE:"),
     /**
-     * 待发的牌
+     * 待发的牌 gameType_roomFlag_gameNo
      */
     NOTSENDPOKER("JULIA:FIT:NOTSENDPOKER:"),
     /**

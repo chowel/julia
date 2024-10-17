@@ -172,13 +172,13 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
 
         thirteenService.updateById(thirteen);
 
-        String RECEIVESKEY = RedisKeyEnum.RECEIVES.getKey() + "_" + playerGame.getGameNo();
-        redisUtils.incr(RECEIVESKEY, 1);
-        int gameReceive = (int) redisUtils.get(RECEIVESKEY);
-        GameRoomEntityVO room = roomService.findOneByFlag(dto.getRoomIde());
-        if (gameReceive == room.getPlayers()) {
-            countScore(dto.getGameIde());
-        }
+//        String RECEIVESKEY = RedisKeyEnum.RECEIVES.getKey() + "_" + playerGame.getGameNo();
+//        redisUtils.incr(RECEIVESKEY, 1);
+//        int gameReceive = (int) redisUtils.get(RECEIVESKEY);
+//        GameRoomEntityVO room = roomService.findOneByFlag(dto.getRoomIde());
+//        if (gameReceive == room.getPlayers()) {
+//            countScore(dto.getGameIde());
+//        }
         return molds;
     }
 
@@ -327,8 +327,69 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         }
 
         assert playerI != null;
-        sendGameResult(playerI.getGameNo(),playerI.getGameType(),playerI.getRoomIde());
+        // 结束当前牌局
+        this.lambdaUpdate()
+                .eq(GameEntity::getGameNo, playerI.getGameNo())
+                .eq(GameEntity::getRoomFlag, playerI.getRoomIde())
+                .eq(GameEntity::getGameType, playerI.getGameType())
+                .set(GameEntity::getStatus, 0).update();
 
+        String notSendPokerKey =
+                RedisKeyEnum.NOTSENDPOKER.getKey() + playerI.getGameType() + "_" + playerI.getRoomIde() + "_" + playerI.getGameNo();
+
+        redisUtils.del(notSendPokerKey);
+
+
+        sendGameResult(playerI.getGameNo(), playerI.getGameType(), playerI.getRoomIde());
+
+    }
+
+    @SneakyThrows
+    @Override
+    public void createThirteennGame(int gameType, String roomIde) {
+        GameEntity game = new GameEntity();
+        game.setGameNo(JuliaUtils.randomGameId());
+
+        List<Poker> pokers = PokerUtils.shufflePoker();
+        game.setPokers(mapper.writeValueAsString(pokers));
+        game.setRoomFlag(roomIde);
+        game.setGameType(gameType);
+        game.setStatus(1);
+        if (this.save(game)) {
+            List<Poker> onePokers = new ArrayList<>();
+            List<Poker> twoPokers = new ArrayList<>();
+            List<Poker> threePokers = new ArrayList<>();
+            List<Poker> fourPokers = new ArrayList<>();
+
+            for (int j = 0; j < pokers.size(); j++) {
+                if (j < 13) {
+                    onePokers.add(pokers.get(j));
+                }
+                if (j > 12 && j < 26) {
+                    twoPokers.add(pokers.get(j));
+                }
+                if (j > 25 && j < 39) {
+                    threePokers.add(pokers.get(j));
+                }
+                if (j > 38 && j < 52) {
+                    fourPokers.add(pokers.get(j));
+                }
+            }
+            String key = RedisKeyEnum.NOTSENDPOKER.getKey() + gameType + "_" + roomIde + "_" + game.getGameNo();
+            redisUtils.lSet(key, onePokers);
+            redisUtils.lSet(key, twoPokers);
+            redisUtils.lSet(key, threePokers);
+            redisUtils.lSet(key, fourPokers);
+        }
+    }
+
+    @Override
+    public Boolean rePlayThirteennGame(int userId, int gameType, String roomIde) {
+        GameEntity game = findGameByRoom(gameType, roomIde);
+        if (ObjectUtils.isEmpty(game)) {
+            createThirteennGame(gameType, roomIde);
+        }
+        return true;
     }
 
     private PokerMoldForFive createMold(List<Poker> l) {
@@ -499,7 +560,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
     }
 
     @SneakyThrows
-    private void sendGameResult(String gameNo,int gameType,String roomIde) {
+    private void sendGameResult(String gameNo, int gameType, String roomIde) {
         List<GameThirteenEntity> games = thirteenService.findByGameNo(gameNo);
 
         List<GameThirteenEntityVO> result = games.stream().map(
@@ -512,12 +573,12 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                 })
         ).collect(Collectors.toList());
 
-        String key = RedisKeyEnum.ROOMPLAYERS.getKey() + gameType+"_"+roomIde;
+        String key = RedisKeyEnum.ROOMPLAYERS.getKey() + gameType + "_" + roomIde;
         Set<Object> players = redisUtils.sGet(key);
         for (Object element : players) {
             PlayerRo t = (PlayerRo) element;
 
-            redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey()+t.getPlayId());
+            redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey() + t.getPlayId());
             Channel channel = ChannelPond.findChannel(String.valueOf(t.getPlayId()));
             if (!ObjectUtils.isEmpty(channel)) {
                 WebSocketMsgBO sendMsg = new WebSocketMsgBO();
@@ -528,6 +589,6 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         }
     }
 
-    ;
+
 }
 

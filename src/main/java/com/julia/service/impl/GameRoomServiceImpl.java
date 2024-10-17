@@ -21,6 +21,7 @@ import com.julia.model.PlayerRo;
 import com.julia.model.vo.PlayersEntityVO;
 import com.julia.service.IGameRoomService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.julia.service.IGameService;
 import com.julia.tool.*;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
     RoomPlayerMapper roomPlayerMapper;
 
     @Resource
-    GameMapper gameMapper;
+    IGameService gameService;
 
     @Resource
     RedisUtils redisUtils;
@@ -77,19 +78,15 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
 
     @Override
     public GameRoomEntityVO findOneByFlag(String flag) {
-        return Optional
-                .ofNullable((GameRoomEntityVO) redisUtils.get(RedisKeyEnum.ROOMCACHE.getKey() + flag))
-                .orElseGet(() -> {
-                    GameRoomEntity entity = this.getOne(new QueryWrapper<GameRoomEntity>().eq("flag", flag));
-                    if(ObjectUtils.isEmpty(entity)){
-                        return null;
-                    }
-                    GameRoomEntityVO vo = JuliaUtils.convertTo(new GameRoomEntityVO(), entity);
-                    redisUtils.set(RedisKeyEnum.ROOMCACHE.getKey() + flag, vo, 3600 * 6);
-                    return vo;
-                });
-//        GameRoomEntity entity = this.getOne(new QueryWrapper<GameRoomEntity>().eq("flag", flag));
-//        return JuliaUtils.convertTo(new GameRoomEntityVO(), entity);
+        GameRoomEntity entity = Optional
+                .ofNullable((GameRoomEntity) redisUtils.get(RedisKeyEnum.ROOMCACHE.getKey() + flag))
+                .orElseGet(() -> this.getOne(new QueryWrapper<GameRoomEntity>().eq("flag", flag)));
+
+        if(ObjectUtils.isEmpty(entity)){
+            return null;
+        }
+        redisUtils.set(RedisKeyEnum.ROOMCACHE.getKey() + flag, entity, 3600 * 6);
+        return JuliaUtils.convertTo(new GameRoomEntityVO(), entity);
     }
 
     @Override
@@ -161,13 +158,13 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
             return true;
         }
 
-
         GameRoomEntityVO gameRoomEntity = findOneByFlag(vo.getFlag());
-        if (roomPlayers.size() == gameRoomEntity.getPlayers()) {
-            throw new JuliaException("房间人数已满");
-        }
+
         if (ObjectUtils.isEmpty(gameRoomEntity)) {
             throw new JuliaException("房间不存在");
+        }
+        if (roomPlayers.size() == gameRoomEntity.getPlayers()) {
+            throw new JuliaException("房间人数已满");
         }
         RoomPlayerEntity roomPlayer = new RoomPlayerEntity();
         roomPlayer.setGameType(gameRoomEntity.getGameType());
@@ -185,7 +182,7 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
             long players = redisUtils.sGetSetSize(RedisKeyEnum.ROOMPLAYERS.getKey() + lastKey);
             if (players == gameRoomEntity.getPlayers()) {
                 //  房间满员-发牌
-                sendPoker(vo.getGameType(), vo.getFlag(), gameRoomEntity.getRoomId());
+                gameService.createThirteennGame(vo.getGameType(), vo.getFlag());
             }
             return true;
         }
@@ -220,44 +217,44 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
     }
 
 
-    @SneakyThrows
-    void sendPoker(int gameType, String roomIde, int roomId) {
-        GameEntity game = new GameEntity();
-        game.setGameNo(JuliaUtils.randomGameId());
-
-        List<Poker> pokers = PokerUtils.shufflePoker();
-        game.setPokers(mapper.writeValueAsString(pokers));
-        game.setRoomId(roomId);
-        game.setRoomFlag(roomIde);
-        game.setGameType(gameType);
-        game.setStatus(1);
-        if (gameMapper.insert(game) > 0) {
-            List<Poker> onePokers = new ArrayList<>();
-            List<Poker> twoPokers = new ArrayList<>();
-            List<Poker> threePokers = new ArrayList<>();
-            List<Poker> fourPokers = new ArrayList<>();
-
-            for (int j = 0; j < pokers.size(); j++) {
-                if (j < 13) {
-                    onePokers.add(pokers.get(j));
-                }
-                if (j > 12 && j < 26) {
-                    twoPokers.add(pokers.get(j));
-                }
-                if (j > 25 && j < 39) {
-                    threePokers.add(pokers.get(j));
-                }
-                if (j > 38 && j < 52) {
-                    fourPokers.add(pokers.get(j));
-                }
-            }
-            String key = RedisKeyEnum.NOTSENDPOKER.getKey() + gameType + "_" + roomIde + "_" + game.getGameNo();
-            redisUtils.lSet(key, onePokers);
-            redisUtils.lSet(key, twoPokers);
-            redisUtils.lSet(key, threePokers);
-            redisUtils.lSet(key, fourPokers);
-        }
-
-    }
+//    @SneakyThrows
+//    void sendPoker(int gameType, String roomIde) {
+//        GameEntity game = new GameEntity();
+//        game.setGameNo(JuliaUtils.randomGameId());
+//
+//        List<Poker> pokers = PokerUtils.shufflePoker();
+//        game.setPokers(mapper.writeValueAsString(pokers));
+////        game.setRoomId(roomId);
+//        game.setRoomFlag(roomIde);
+//        game.setGameType(gameType);
+//        game.setStatus(1);
+//        if (gameMapper.insert(game) > 0) {
+//            List<Poker> onePokers = new ArrayList<>();
+//            List<Poker> twoPokers = new ArrayList<>();
+//            List<Poker> threePokers = new ArrayList<>();
+//            List<Poker> fourPokers = new ArrayList<>();
+//
+//            for (int j = 0; j < pokers.size(); j++) {
+//                if (j < 13) {
+//                    onePokers.add(pokers.get(j));
+//                }
+//                if (j > 12 && j < 26) {
+//                    twoPokers.add(pokers.get(j));
+//                }
+//                if (j > 25 && j < 39) {
+//                    threePokers.add(pokers.get(j));
+//                }
+//                if (j > 38 && j < 52) {
+//                    fourPokers.add(pokers.get(j));
+//                }
+//            }
+//            String key = RedisKeyEnum.NOTSENDPOKER.getKey() + gameType + "_" + roomIde + "_" + game.getGameNo();
+//            redisUtils.lSet(key, onePokers);
+//            redisUtils.lSet(key, twoPokers);
+//            redisUtils.lSet(key, threePokers);
+//            redisUtils.lSet(key, fourPokers);
+//        }
+//
+//    }
 }
 
