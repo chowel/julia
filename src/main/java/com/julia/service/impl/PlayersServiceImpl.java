@@ -48,12 +48,14 @@ public class PlayersServiceImpl extends ServiceImpl<PlayersMapper, PlayersEntity
 
     @Override
     public PlayersEntityVO findOneById(Long id) {
-        return Optional
-                .ofNullable((PlayersEntityVO) redisUtils.get(RedisKeyEnum.PLAYERCACHE.getKey() + id))
-                .orElseGet(()->{
-                    PlayersEntity playersEntity = getById(id);
-                    return JuliaUtils.convertTo(new PlayersEntityVO(), playersEntity);
-                });
+        PlayersEntity entity = (PlayersEntity) redisUtils.get(RedisKeyEnum.PLAYERCACHE.getKey() + id);
+        if (ObjectUtils.isEmpty(entity)) {
+            entity = getById(id);
+            if (ObjectUtils.isEmpty(entity)) {
+                return null;
+            }
+        }
+        return JuliaUtils.convertTo(new PlayersEntityVO(), entity);
     }
 
     @Override
@@ -92,7 +94,7 @@ public class PlayersServiceImpl extends ServiceImpl<PlayersMapper, PlayersEntity
         PlayerToken.login(player.getPlayId());
         vo.setToken(PlayerToken.getTokenValue());
         vo.setPassword("******");
-        redisUtils.set(RedisKeyEnum.PLAYERCACHE.getKey() + vo.getPlayId(), vo, 24 * 3600);
+        redisUtils.set(RedisKeyEnum.PLAYERCACHE.getKey() + player.getPlayId(), player, 24 * 3600);
 
         return vo;
     }

@@ -14,13 +14,15 @@
         <result column="servr" property="servr" />
         <result column="total" property="total" />
         <result column="flag" property="flag" />
+        <result column="least" property="least" />
+        <result column="agame" property="agame" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        room_id, game_type, status, players, play, servr, total, flag
+        room_id, game_type, status, players, play, servr, total, flag, least, agame
     </sql>
 
 </mapper>

@@ -14,7 +14,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2024-09-30
+ * @since 2024-10-18
  */
 @Getter
 @Setter
@@ -68,4 +68,16 @@ public class GameRoomEntity extends BaseEntity {
      */
     @TableField("flag")
     private String flag;
+
+    /**
+     * 最小入场金额
+     */
+    @TableField("least")
+    private Integer least;
+
+    /**
+     * 每局金额
+     */
+    @TableField("agame")
+    private Integer agame;
 }

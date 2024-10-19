@@ -19,7 +19,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2024-09-30
+ * @since 2024-10-18
  */
 @Getter
 @Setter
@@ -50,6 +50,12 @@ public class GameRoomEntityVO extends BaseEntity {
     @ApiModelProperty("房间标识")
     private String flag;
 
+    @ApiModelProperty("最小入场金额")
+    private Integer least;
+
+    @ApiModelProperty("每局金额")
+    private Integer agame;
+
     @ApiModelProperty("创建房间用户id")
     private Integer playerId;
 
@@ -64,6 +70,8 @@ public class GameRoomEntityVO extends BaseEntity {
             ", servr = " + servr +
             ", total = " + total +
             ", flag = " + flag +
+            ", least = " + least +
+            ", agame = " + agame +
         "}";
     }
 }

@@ -22,6 +22,7 @@ import com.julia.model.vo.PlayersEntityVO;
 import com.julia.service.IGameRoomService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.julia.service.IGameService;
+import com.julia.service.IPlayersService;
 import com.julia.tool.*;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,7 @@ import java.util.stream.Collectors;
 public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEntity> implements IGameRoomService {
 
     @Resource
-    PlayersMapper playersMapper;
+    IPlayersService playersService;
 
     @Resource
     RoomPlayerMapper roomPlayerMapper;
@@ -78,20 +79,21 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
 
     @Override
     public GameRoomEntityVO findOneByFlag(String flag) {
-        GameRoomEntity entity = Optional
-                .ofNullable((GameRoomEntity) redisUtils.get(RedisKeyEnum.ROOMCACHE.getKey() + flag))
-                .orElseGet(() -> this.getOne(new QueryWrapper<GameRoomEntity>().eq("flag", flag)));
-
-        if(ObjectUtils.isEmpty(entity)){
-            return null;
+        GameRoomEntity entity = (GameRoomEntity) redisUtils.get(RedisKeyEnum.ROOMCACHE.getKey() + flag);
+        if (ObjectUtils.isEmpty(entity)) {
+            entity = this.getOne(new QueryWrapper<GameRoomEntity>().eq("flag", flag));
+            if (ObjectUtils.isEmpty(entity)) {
+                return null;
+            } else {
+                redisUtils.set(RedisKeyEnum.ROOMCACHE.getKey() + flag, entity, 3600 * 6);
+            }
         }
-        redisUtils.set(RedisKeyEnum.ROOMCACHE.getKey() + flag, entity, 3600 * 6);
         return JuliaUtils.convertTo(new GameRoomEntityVO(), entity);
     }
 
     @Override
     public Boolean saveGameRoomEntity(GameRoomEntityVO vo) {
-        PlayersEntity player = playersMapper.selectById(vo.getPlayerId());
+        PlayersEntityVO player = playersService.findOneById(Long.valueOf(vo.getPlayerId()));
         if (ObjectUtils.isEmpty(player)) {
             throw new JuliaException("用户不存在");
         }
@@ -133,7 +135,7 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
     @Override
     public Boolean joinGameRoomEntity(GameRoomEntityVO vo) {
         // todo
-        PlayersEntity player = playersMapper.selectById(vo.getPlayerId());
+        PlayersEntityVO player = playersService.findOneById(Long.valueOf(vo.getPlayerId()));
         if (ObjectUtils.isEmpty(player)) {
             throw new JuliaException("用户不存在");
         }
@@ -200,10 +202,10 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
 
     @Override
     public Boolean close(String flag, Integer gameType) {
-        GameRoomEntity entity  = this.getOne(new QueryWrapper<GameRoomEntity>()
-                .eq("flag",flag)
-                .eq("game_type",gameType));
-        if(ObjectUtils.isEmpty(entity)){
+        GameRoomEntity entity = this.getOne(new QueryWrapper<GameRoomEntity>()
+                .eq("flag", flag)
+                .eq("game_type", gameType));
+        if (ObjectUtils.isEmpty(entity)) {
             return false;
         }
         entity.setStatus(2);
