@@ -4,23 +4,15 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.julia.entity.GameEntity;
-import com.julia.entity.GameRoomEntity;
-import com.julia.entity.GameScoreEntity;
-import com.julia.entity.GameThirteenEntity;
+import com.julia.entity.*;
 import com.julia.enums.RedisKeyEnum;
 import com.julia.mapper.GameMapper;
-import com.julia.model.PlayerGameRo;
-import com.julia.model.PlayerRo;
-import com.julia.model.WebSocketMsgBO;
+import com.julia.model.*;
 import com.julia.model.dto.ReceivePokerDto;
 import com.julia.model.vo.GameRoomEntityVO;
 import com.julia.model.vo.GameThirteenEntityVO;
-import com.julia.service.IGameRoomService;
-import com.julia.service.IGameScoreService;
-import com.julia.service.IGameService;
+import com.julia.service.*;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.julia.service.IGameThirteenService;
 import com.julia.socket.ChannelPond;
 import com.julia.tool.*;
 import io.netty.channel.Channel;
@@ -29,7 +21,6 @@ import lombok.SneakyThrows;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.GameEntityVO;
-import com.julia.model.QueryPagement;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
@@ -55,6 +46,9 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
     @Resource
     IGameRoomService roomService;
 
+    @Resource
+    IPlayersService playersService;
+
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -79,6 +73,13 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                 .eq("room_flag", roomIde)
                 .eq("game_type", gameType)
                 .eq("status", 1)
+        );
+    }
+
+    @Override
+    public GameEntity findGameByNo(String gameNo) {
+        return getOne(new QueryWrapper<GameEntity>()
+                .eq("game_no", gameNo)
         );
     }
 
@@ -185,7 +186,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
     @SneakyThrows
     @Override
 //    @Async("countScoreExecutor")
-    public void countScore(String gameNo) {
+    public void countScore(String gameNo, String roomIde) {
 //        GameScoreEntity gameScore = scoreService.findOneByGameNo(gameNo);
         List<GameThirteenEntity> games = thirteenService.findByGameNo(gameNo);
 
@@ -289,6 +290,8 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
             play4Scores.set(2, play4Scores.get(2) + sc.get(5));
         }
 
+        GameRoomEntityVO room = roomService.findOneByFlag(roomIde);
+
         if (!ObjectUtils.isEmpty(games.get(0))) {
             GameThirteenEntity o = games.get(0);
             o.setHeadScore(play1Scores.get(0));
@@ -296,6 +299,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
             o.setBaseScore(play1Scores.get(2));
             o.setTotal(play1Scores.get(0) + play1Scores.get(1) + play1Scores.get(2));
             thirteenService.updateById(o);
+            setPlayerCoin(o.getPlayerId(), o.getTotal() * room.getAgame());
         }
 
         if (!ObjectUtils.isEmpty(games.get(1))) {
@@ -305,6 +309,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
             o.setBaseScore(play2Scores.get(2));
             o.setTotal(play2Scores.get(0) + play2Scores.get(1) + play2Scores.get(2));
             thirteenService.updateById(o);
+            setPlayerCoin(o.getPlayerId(), o.getTotal() * room.getAgame());
         }
 
         if (games.size() > 2) {
@@ -314,6 +319,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
             o.setBaseScore(play3Scores.get(2));
             o.setTotal(play3Scores.get(0) + play3Scores.get(1) + play3Scores.get(2));
             thirteenService.updateById(o);
+            setPlayerCoin(o.getPlayerId(), o.getTotal() * room.getAgame());
         }
 
         if (games.size() > 3) {
@@ -323,8 +329,9 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
             o.setBaseScore(play4Scores.get(2));
             o.setTotal(play4Scores.get(0) + play4Scores.get(1) + play4Scores.get(2));
             thirteenService.updateById(o);
-
+            setPlayerCoin(o.getPlayerId(), o.getTotal() * room.getAgame());
         }
+
 
         assert playerI != null;
         // 结束当前牌局
@@ -578,7 +585,12 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         for (Object element : players) {
             PlayerRo t = (PlayerRo) element;
 
-            redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey() + t.getPlayId());
+//            redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey() + t.getPlayId());
+            AliveGameRo aliveGameRo=  (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + t.getPlayId());
+            if(!ObjectUtils.isEmpty(aliveGameRo)){
+                aliveGameRo.setGameIde(null);
+                redisUtils.set(RedisKeyEnum.ALIVEGAME.getKey() + t.getPlayId(), aliveGameRo);
+            }
             Channel channel = ChannelPond.findChannel(String.valueOf(t.getPlayId()));
             if (!ObjectUtils.isEmpty(channel)) {
                 WebSocketMsgBO sendMsg = new WebSocketMsgBO();
@@ -586,6 +598,14 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                 sendMsg.setData(result);
                 channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(sendMsg)));
             }
+        }
+    }
+
+    private void setPlayerCoin(Long playerId, int scoreCoin) {
+        PlayersEntity player = playersService.getById(playerId);
+        if (!ObjectUtils.isEmpty(player)) {
+            player.setCoin(player.getCoin() - scoreCoin);
+            playersService.updateById(player);
         }
     }
 

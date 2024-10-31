@@ -53,7 +53,7 @@ public class GameRoomController {
 
     @ApiOperation("添加")
     @PostMapping("/add")
-    public Rv<Boolean> addGameRoomEntityOne(@RequestBody GameRoomEntityVO vo) {
+    public Rv<GameRoomEntityVO> addGameRoomEntityOne(@RequestBody GameRoomEntityVO vo) {
         int playId = PlayerToken.getLoginIdAsInt();
         vo.setPlayerId(playId);
         return new Rv<>(serviceImpl.saveGameRoomEntity(vo));
@@ -61,7 +61,7 @@ public class GameRoomController {
 
     @ApiOperation("加入房间")
     @PostMapping("/join")
-    public Rv<Boolean> joinGameRoomEntityOne(@RequestBody GameRoomEntityVO vo) {
+    public Rv<GameRoomEntityVO> joinGameRoomEntityOne(@RequestBody GameRoomEntityVO vo) {
         int playId = PlayerToken.getLoginIdAsInt();
         vo.setPlayerId(playId);
         return new Rv<>(serviceImpl.joinGameRoomEntity(vo));

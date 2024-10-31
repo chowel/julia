@@ -167,7 +167,11 @@ public class PokerWsService {
 
             log.info("退出房间->userId: " + userId);
             log.info((String) bo.getData());
+
+            redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey() + userId);
+
             String key = RedisKeyEnum.ROOMPLAYERS.getKey() + (String) bo.getData();
+
             Set<Object> players = redisUtils.sGet(key);
             int playerNum = players.size();
             for (Object element : players) {
@@ -201,7 +205,7 @@ public class PokerWsService {
             int gameReceive = (int) redisUtils.get(RECEIVESKEY);
             GameRoomEntityVO room = roomService.findOneByFlag(datas[1]);
             if (gameReceive == room.getPlayers()) {
-                gameService.countScore(datas[0]);
+                gameService.countScore(datas[0],datas[1]);
             }
         }
 

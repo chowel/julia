@@ -40,6 +40,8 @@ public interface IGameService extends IService<GameEntity> {
 
     GameEntity findGameByRoom(int gameType,String roomIde);
 
+    GameEntity findGameByNo(String gameNo);
+
     /**
     * @Description: 添加
     * @Param:
@@ -69,7 +71,7 @@ public interface IGameService extends IService<GameEntity> {
 
     List<PokerMoldForFive> receive(ReceivePokerDto dto);
 
-    void countScore(String gameNo);
+    void countScore(String gameNo,String roomIde);
 
     void createThirteennGame(int gameType, String roomIde);
 
