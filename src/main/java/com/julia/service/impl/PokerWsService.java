@@ -72,39 +72,50 @@ public class PokerWsService {
 
             log.info("加入房间->userId: " + userId);
             log.info((String) bo.getData());
-            String key = RedisKeyEnum.ROOMPLAYERS.getKey() + (String) bo.getData();
-            Set<Object> players = redisUtils.sGet(key);
-            for (Object element : players) {
-                PlayerRo t = (PlayerRo) element;
-                if (!t.getPlayId().equals(Long.valueOf(userId))) {
-                    log.info(t.getNickName());
-                    Channel userChannel = ChannelPond.findChannel(String.valueOf(t.getPlayId()));
-                    if (!ObjectUtils.isEmpty(userChannel)) {
-                        WebSocketMsgBO myMsg = new WebSocketMsgBO();
-                        myMsg.setSub("JOINPLAYER");
-                        myMsg.setData(player);
-                        userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(myMsg)));
+            String bData = (String) bo.getData();
+            String[] datas = bData.split("_");
 
-                        WebSocketMsgBO sendMsg = new WebSocketMsgBO();
-                        sendMsg.setSub("JOINPLAYER");
-                        sendMsg.setData(t);
-                        channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(sendMsg)));
+            int gameType = Integer.parseInt(datas[0]);
+            // 13水
+            if (gameType == 1) {
+                String key = RedisKeyEnum.ROOMPLAYERS.getKey() + (String) bo.getData();
+                Set<Object> players = redisUtils.sGet(key);
+                for (Object element : players) {
+                    PlayerRo t = (PlayerRo) element;
+                    if (!t.getPlayId().equals(Long.valueOf(userId))) {
+                        log.info(t.getNickName());
+                        Channel userChannel = ChannelPond.findChannel(String.valueOf(t.getPlayId()));
+                        if (!ObjectUtils.isEmpty(userChannel)) {
+                            WebSocketMsgBO myMsg = new WebSocketMsgBO();
+                            myMsg.setSub("JOINPLAYER");
+                            myMsg.setData(player);
+                            userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(myMsg)));
+
+                            WebSocketMsgBO sendMsg = new WebSocketMsgBO();
+                            sendMsg.setSub("JOINPLAYER");
+                            sendMsg.setData(t);
+                            channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(sendMsg)));
+                        }
                     }
                 }
-            }
 
-            AliveGameRo alive = (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + userId);
+                AliveGameRo alive = (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + userId);
 //            断线重连
-            if (!ObjectUtils.isEmpty(alive)) {
+                if (!ObjectUtils.isEmpty(alive)) {
 
-                PlayerGameRo playerGame =
-                        (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + userId + "_" + alive.getGameIde());
+                    PlayerGameRo playerGame =
+                            (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + userId + "_" + alive.getGameIde());
 
-                WebSocketMsgBO sendMsg = new WebSocketMsgBO();
-                sendMsg.setSub("DISPOKERS");
-                sendMsg.setData(playerGame);
+                    WebSocketMsgBO sendMsg = new WebSocketMsgBO();
+                    sendMsg.setSub("DISPOKERS");
+                    sendMsg.setData(playerGame);
 
-                channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(sendMsg)));
+                    channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(sendMsg)));
+                }
+            }
+            // 拉霸
+            if (gameType == 2){
+
             }
         }
 
@@ -205,7 +216,7 @@ public class PokerWsService {
             int gameReceive = (int) redisUtils.get(RECEIVESKEY);
             GameRoomEntityVO room = roomService.findOneByFlag(datas[1]);
             if (gameReceive == room.getPlayers()) {
-                gameService.countScore(datas[0],datas[1]);
+                gameService.countScore(datas[0], datas[1]);
             }
         }
 

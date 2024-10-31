@@ -135,6 +135,26 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
     }
 
     @Override
+    public GameRoomEntityVO saveRoomByLaba(GameRoomEntityVO vo) {
+        PlayersEntityVO player = playersService.findOneById(Long.valueOf(vo.getPlayerId()));
+        if (ObjectUtils.isEmpty(player)) {
+            throw new JuliaException("用户不存在");
+        }
+        if (player.getStatus() == 0) {
+            throw new JuliaException("用户异常");
+        }
+        GameRoomEntity room = JuliaUtils.convertTo(new GameRoomEntity(), vo);
+        // 房间标识
+        room.setFlag(checkRoomFlag());
+        room.setPlayers(1);
+        room.setStatus(0);
+        if (save(room)) {
+            return JuliaUtils.convertTo(new GameRoomEntityVO(),room);
+        }
+        return null;
+    }
+
+    @Override
     public GameRoomEntityVO joinGameRoomEntity(GameRoomEntityVO vo) {
         // todo
         PlayersEntityVO player = playersService.findOneById(Long.valueOf(vo.getPlayerId()));
@@ -257,6 +277,19 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
                 gameService.createThirteennGame(gameType, gameFlag);
             }
         }
+    }
+
+    private String checkRoomFlag(){
+        String flag = "";
+        while (true){
+            String t = JuliaUtils.randomNickName();
+            GameRoomEntityVO room = findOneByFlag(t);
+            if(ObjectUtils.isEmpty(room)){
+                flag = t;
+                break;
+            }
+        }
+        return flag;
     }
 
 }

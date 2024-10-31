@@ -37,13 +37,21 @@ public interface IGameRoomService extends IService<GameRoomEntity> {
     GameRoomEntityVO findOneByFlag(String flag);
 
     /**
-    * @Description: 创建房间
+    * @Description: 创建13水房间
     * @Param:
     * @return:
     * @Author: chowel
     * @Date: 2024-09-28
     */
     GameRoomEntityVO saveGameRoomEntity(GameRoomEntityVO vo);
+    /**
+     * @Description: 创建拉霸游戏房间
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date: 2024-09-28
+     */
+    GameRoomEntityVO saveRoomByLaba(GameRoomEntityVO vo);
 
 
     /**

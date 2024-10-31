@@ -14,7 +14,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2024-10-03
+ * @since 2024-10-31
  */
 @Getter
 @Setter
@@ -62,4 +62,10 @@ public class GameEntity extends BaseEntity {
      */
     @TableField("pokers")
     private String pokers;
+
+    /**
+     * 拉霸结果
+     */
+    @TableField("laba_res")
+    private String labaRes;
 }

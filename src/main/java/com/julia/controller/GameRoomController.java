@@ -67,7 +67,13 @@ public class GameRoomController {
         return new Rv<>(serviceImpl.joinGameRoomEntity(vo));
     }
 
-
+    @ApiOperation("添加拉霸房间")
+    @PostMapping("/addLaba")
+    public Rv<GameRoomEntityVO> addLabaRoom(@RequestBody GameRoomEntityVO vo) {
+        int playId = PlayerToken.getLoginIdAsInt();
+        vo.setPlayerId(playId);
+        return new Rv<>(serviceImpl.saveRoomByLaba(vo));
+    }
 
 
 

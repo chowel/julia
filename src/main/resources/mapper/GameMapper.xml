@@ -13,13 +13,14 @@
         <result column="game_type" property="gameType" />
         <result column="status" property="status" />
         <result column="pokers" property="pokers" />
+        <result column="laba_res" property="labaRes" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        game_id, game_no, room_id, room_flag, game_type, status, pokers
+        game_id, game_no, room_id, room_flag, game_type, status, pokers, laba_res
     </sql>
 
 </mapper>
