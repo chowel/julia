@@ -19,7 +19,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2024-10-03
+ * @since 2024-10-31
  */
 @Getter
 @Setter
@@ -47,6 +47,9 @@ public class GameEntityVO extends BaseEntity {
     @ApiModelProperty("牌面JSON")
     private String pokers;
 
+    @ApiModelProperty("拉霸结果")
+    private String labaRes;
+
     @Override
     public String toString() {
         return "{" +
@@ -57,6 +60,7 @@ public class GameEntityVO extends BaseEntity {
             ", gameType = " + gameType +
             ", status = " + status +
             ", pokers = " + pokers +
+            ", labaRes = " + labaRes +
         "}";
     }
 }
