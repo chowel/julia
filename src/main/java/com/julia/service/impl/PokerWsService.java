@@ -21,6 +21,7 @@ import lombok.extern.log4j.Log4j2;
 import net.sf.jsqlparser.expression.LongValue;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -51,6 +52,9 @@ public class PokerWsService {
     @Resource
     IPlayersService playersService;
 
+    @Resource
+    IRoomPlayerService roomPlayerService;
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     @SneakyThrows
@@ -78,8 +82,8 @@ public class PokerWsService {
             int gameType = Integer.parseInt(datas[0]);
             // 13水
             if (gameType == 1) {
-                String key = RedisKeyEnum.ROOMPLAYERS.getKey() + (String) bo.getData();
-                Set<Object> players = redisUtils.sGet(key);
+                String ROOMPLAYERKEY = RedisKeyEnum.ROOMPLAYERS.getKey() + (String) bo.getData();
+                Set<Object> players = redisUtils.sGet(ROOMPLAYERKEY);
                 for (Object element : players) {
                     PlayerRo t = (PlayerRo) element;
                     if (!t.getPlayId().equals(Long.valueOf(userId))) {
@@ -114,8 +118,11 @@ public class PokerWsService {
                 }
             }
             // 拉霸
-            if (gameType == 2){
-
+            if (gameType == 2) {
+                WebSocketMsgBO msg = new WebSocketMsgBO();
+                msg.setSub("LABAROOM");
+                msg.setData(player.getCoin());
+                channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(msg)));
             }
         }
 
@@ -174,36 +181,48 @@ public class PokerWsService {
 //        }
         if ("QUITROOM".equals(bo.getSub())) {
             String userId = ChannelPond.findUserIdByChannel(channel);
+            redisUtils.set(RedisKeyEnum.SELFQUIT.getKey() + ":" + userId, "1", 300);
             PlayersEntityVO player = playersService.findOneById(Long.valueOf(userId));
 
             log.info("退出房间->userId: " + userId);
             log.info((String) bo.getData());
 
-            redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey() + userId);
+            String wsData = (String) bo.getData();
+            String[] wsdatas = wsData.split("_");
+            // wsdatas[0]->gameType wsdatas[1]->roomIde
+            int gameType = Integer.parseInt(wsdatas[0]);
+            if (gameType == 1) {
+                redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey() + userId);
 
-            String key = RedisKeyEnum.ROOMPLAYERS.getKey() + (String) bo.getData();
+                String ROOMPLAYERKEY = RedisKeyEnum.ROOMPLAYERS.getKey() + wsdatas[0] + ":" + wsdatas[1];
 
-            Set<Object> players = redisUtils.sGet(key);
-            int playerNum = players.size();
-            for (Object element : players) {
-                PlayerRo t = (PlayerRo) element;
-                if (t.getPlayId().equals(Long.valueOf(userId))) {
-                    redisUtils.setRemove(key, t);
-                    if ((playerNum - 1) == 0) {
-                        String bData = (String) bo.getData();
-                        String[] datas = bData.split("_");
-                        roomService.close(datas[1], Integer.valueOf(datas[0]));
-                    }
-                } else {
-                    Channel userChannel = ChannelPond.findChannel(String.valueOf(t.getPlayId()));
-                    if (!ObjectUtils.isEmpty(userChannel)) {
-                        WebSocketMsgBO myMsg = new WebSocketMsgBO();
-                        myMsg.setSub("PLAYERQUIT");
-                        myMsg.setData(player);
-                        userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(myMsg)));
+                Set<Object> players = redisUtils.sGet(ROOMPLAYERKEY);
+                int playerNum = players.size();
+                for (Object element : players) {
+                    PlayerRo t = (PlayerRo) element;
+                    Long playerId = Long.valueOf(userId);
+                    if (t.getPlayId().equals(playerId)) {
+                        roomPlayerService.playerSetOnline(playerId, 0, wsdatas[1]);
+                        if ((playerNum - 1) == 0) {
+                            roomService.close(wsdatas[1], gameType);
+                            gameService.overGameByRoomFlag(wsdatas[1]);
+                        }
+                        redisUtils.setRemove(ROOMPLAYERKEY, t);
+                    } else {
+                        Channel userChannel = ChannelPond.findChannel(String.valueOf(t.getPlayId()));
+                        if (!ObjectUtils.isEmpty(userChannel)) {
+                            WebSocketMsgBO myMsg = new WebSocketMsgBO();
+                            myMsg.setSub("PLAYERQUIT");
+                            myMsg.setData(player);
+                            userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(myMsg)));
 
+                        }
                     }
                 }
+            }
+            if (gameType == 2) {
+                roomService.close(wsdatas[1], gameType);
+                gameService.overGameByRoomFlag(wsdatas[1]);
             }
         }
 
@@ -220,9 +239,28 @@ public class PokerWsService {
             }
         }
 
+        if ("LABACLEANCOIN".equals(bo.getSub())) {
+            String userId = ChannelPond.findUserIdByChannel(channel);
+            String bData = (String) bo.getData();
+            String[] datas = bData.split("_");
+            // datas[0]->gameNo datas[1]-> 0 输 1赢 datas[2] 金币数
+            gameService.computeCoinsByLaba(Long.valueOf(userId),
+                    "0".equals(datas[1]) ? Integer.parseInt(datas[2]) : Integer.parseInt(datas[2]) * -1,
+                    datas[0]);
+            PlayersEntityVO player = playersService.findOneById(Long.valueOf(userId));
+            WebSocketMsgBO msg = new WebSocketMsgBO();
+            msg.setSub("LABAROOM");
+            msg.setData(player.getCoin());
+            channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(msg)));
+        }
+
     }
 
     public void delByUserId(String removeId) {
+        String selfQuit = (String) redisUtils.get(RedisKeyEnum.SELFQUIT.getKey() + ":" + removeId);
+        // 主动退出不存在,就是被动断线处理
+        if (!StringUtils.hasLength(selfQuit)) {
 
+        }
     }
 }

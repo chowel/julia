@@ -69,6 +69,12 @@ public class PlayersServiceImpl extends ServiceImpl<PlayersMapper, PlayersEntity
     }
 
     @Override
+    public Boolean alterOne(PlayersEntity entity) {
+        redisUtils.del(RedisKeyEnum.PLAYERCACHE.getKey() + entity.getPlayId());
+        return updateById(entity);
+    }
+
+    @Override
     public Boolean remove(Long id) {
         return removeById(id);
     }

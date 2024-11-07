@@ -53,6 +53,8 @@ public interface IPlayersService extends IService<PlayersEntity> {
     */
     Boolean alter(PlayersEntityVO vo);
 
+    Boolean alterOne(PlayersEntity entity);
+
     /**
     * @Description: 删除
     * @Param:

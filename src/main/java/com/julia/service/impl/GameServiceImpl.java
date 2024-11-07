@@ -68,6 +68,11 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
     }
 
     @Override
+    public Boolean overGameByRoomFlag(String flag) {
+        return lambdaUpdate().eq(GameEntity::getRoomFlag, flag).set(GameEntity::getStatus, 0).update();
+    }
+
+    @Override
     public GameEntity findGameByRoom(int gameType, String roomIde) {
         return getOne(new QueryWrapper<GameEntity>()
                 .eq("room_flag", roomIde)
@@ -399,6 +404,47 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         return true;
     }
 
+    @SneakyThrows
+    @Override
+    public LabaGameRes startLabaGame(String roomIde) {
+        GameEntity game = new GameEntity();
+        game.setGameNo(JuliaUtils.randomGameId());
+        game.setRoomFlag(roomIde);
+        String LABAGAMEKEY = RedisKeyEnum.LABAGAME.getKey() + "_" + roomIde;
+        // todo
+        List<Integer> res = (List<Integer>) redisUtils.getLeftRemove(LABAGAMEKEY);
+        if (ObjectUtils.isEmpty(res)) {
+            res = PokerUtils.generaLabaRes();
+            for (int i = 0; i < 10; i++) {
+                redisUtils.lSet(LABAGAMEKEY, PokerUtils.generaLabaRes());
+            }
+            redisUtils.expire(LABAGAMEKEY, 3600 * 3);
+        }
+
+        game.setLabaRes(mapper.writeValueAsString(res));
+        game.setStatus(1);
+        if (this.save(game)) {
+            LabaGameRes labaGameRes = new LabaGameRes();
+            labaGameRes.setGameNo(game.getGameNo());
+            labaGameRes.setRoomFlag(roomIde);
+            labaGameRes.setRes(res);
+            return labaGameRes;
+        }
+        return null;
+    }
+
+    @Override
+    public Boolean computeCoinsByLaba(Long userId, int coins, String gameNo) {
+        boolean updateGame = lambdaUpdate()
+                .eq(GameEntity::getGameNo, gameNo)
+                .set(GameEntity::getStatus, 0).update();
+        if (updateGame) {
+            setPlayerCoin(userId, coins);
+            return true;
+        }
+        return false;
+    }
+
     private PokerMoldForFive createMold(List<Poker> l) {
         PokerMoldForFive mold = PokerUtils.generateMold(l);
         assert mold != null;
@@ -580,14 +626,14 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                 })
         ).collect(Collectors.toList());
 
-        String key = RedisKeyEnum.ROOMPLAYERS.getKey() + gameType + "_" + roomIde;
-        Set<Object> players = redisUtils.sGet(key);
+        String ROOMPLAYERKEY = RedisKeyEnum.ROOMPLAYERS.getKey() + gameType + ":" + roomIde;
+        Set<Object> players = redisUtils.sGet(ROOMPLAYERKEY);
         for (Object element : players) {
             PlayerRo t = (PlayerRo) element;
 
 //            redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey() + t.getPlayId());
-            AliveGameRo aliveGameRo=  (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + t.getPlayId());
-            if(!ObjectUtils.isEmpty(aliveGameRo)){
+            AliveGameRo aliveGameRo = (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + t.getPlayId());
+            if (!ObjectUtils.isEmpty(aliveGameRo)) {
                 aliveGameRo.setGameIde(null);
                 redisUtils.set(RedisKeyEnum.ALIVEGAME.getKey() + t.getPlayId(), aliveGameRo);
             }
@@ -605,7 +651,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         PlayersEntity player = playersService.getById(playerId);
         if (!ObjectUtils.isEmpty(player)) {
             player.setCoin(player.getCoin() - scoreCoin);
-            playersService.updateById(player);
+            playersService.alterOne(player);
         }
     }
 

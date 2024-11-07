@@ -166,6 +166,12 @@ public class PokerUtils {
         return pokerMap;
     }
 
+    public static List<Integer> generaLabaRes() {
+        List<Integer> pool = new ArrayList<>(List.of(2, 2, 2, 2, 3, 3, 3, 4, 4, 5));
+        Collections.shuffle(pool);
+        return new ArrayList<>(List.of(pool.get(0),pool.get(1),pool.get(2)));
+    }
+
     public static List<Poker> shufflePoker() {
         List<Poker> shufflePokers = pokers.stream().limit(52).collect(Collectors.toList());
         Collections.shuffle(shufflePokers);

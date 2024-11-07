@@ -47,6 +47,14 @@ public class RoomPlayerServiceImpl extends ServiceImpl<RoomPlayerMapper, RoomPla
     }
 
     @Override
+    public Boolean playerSetOnline(Long playerId,int onLine,String roomFlag) {
+        return lambdaUpdate()
+                .eq(RoomPlayerEntity::getPlayerId,playerId)
+                .eq(RoomPlayerEntity::getRoomFlag,roomFlag)
+                .set(RoomPlayerEntity::getOnline,onLine).update();
+    }
+
+    @Override
     public Boolean remove(Long id) {
             return removeById(id);
     }

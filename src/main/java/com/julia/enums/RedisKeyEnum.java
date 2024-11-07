@@ -29,6 +29,10 @@ public enum RedisKeyEnum {
      */
     NOTSENDPOKER("JULIA:FIT:NOTSENDPOKER:"),
     /**
+     * 待发的拉霸 roomFlag
+     */
+    LABAGAME("JULIA:FIT:LABAGAME:"),
+    /**
      * 发给玩家的牌
      */
     PLAYERPOKERS("JULIA:FIT:PLAYERPOKERS:"),
@@ -36,6 +40,10 @@ public enum RedisKeyEnum {
      * 牌局提交牌的玩家数
      */
     RECEIVES("JULIA:FIT:RECEIVES:"),
+    /**
+     * 主动退出房间 playerId
+     */
+    SELFQUIT("JULIA:FIT:SELFQUIT:"),
     /**
      * 玩家进行中的游戏
      */

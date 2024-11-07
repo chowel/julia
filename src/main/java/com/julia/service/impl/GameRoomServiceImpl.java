@@ -27,6 +27,7 @@ import com.julia.socket.ChannelPond;
 import com.julia.tool.*;
 import io.netty.channel.Channel;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.GameRoomEntityVO;
 import com.julia.model.QueryPagement;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
  * @author chowel
  * @since 2024-09-28
  */
+@Log4j2
 @Service
 public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEntity> implements IGameRoomService {
 
@@ -123,11 +125,11 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
                 return null;
             } else {
                 //
-                String lastKey = gameRoomEntity.getGameType() + "_" + gameRoomEntity.getFlag();
+                String ROOMPLAYERKEY = RedisKeyEnum.ROOMPLAYERS.getKey() + gameRoomEntity.getGameType() + ":" + gameRoomEntity.getFlag();
 //                redisUtils.incr(RedisKeyEnum.ROOMMAXPLAYERS.getKey() + lastKey,
 //                        gameRoomEntity.getPlayers() - 1);
-                redisUtils.sSet(RedisKeyEnum.ROOMPLAYERS.getKey() + lastKey, JuliaUtils.convertTo(new PlayerRo(), player));
-                return JuliaUtils.convertTo(new GameRoomEntityVO(),gameRoomEntity);
+                redisUtils.sSet( ROOMPLAYERKEY, JuliaUtils.convertTo(new PlayerRo(), player));
+                return JuliaUtils.convertTo(new GameRoomEntityVO(), gameRoomEntity);
             }
         }
 
@@ -149,7 +151,7 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
         room.setPlayers(1);
         room.setStatus(0);
         if (save(room)) {
-            return JuliaUtils.convertTo(new GameRoomEntityVO(),room);
+            return JuliaUtils.convertTo(new GameRoomEntityVO(), room);
         }
         return null;
     }
@@ -164,7 +166,7 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
         if (player.getStatus() == 0) {
             throw new JuliaException("用户异常");
         }
-        String ROOMPLAYERKEY = RedisKeyEnum.ROOMPLAYERS.getKey() + vo.getGameType() + "_" + vo.getFlag();
+        String ROOMPLAYERKEY = RedisKeyEnum.ROOMPLAYERS.getKey() + vo.getGameType() + ":" + vo.getFlag();
         GameRoomEntityVO room = findOneByFlag(vo.getFlag());
         if (ObjectUtils.isEmpty(room)) {
             throw new JuliaException("房间不存在");
@@ -177,31 +179,33 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
                 long joinId = t.getPlayId();
                 int userId = vo.getPlayerId();
                 if (joinId == (long) userId) {
-                    redisUtils.setRemove(ROOMPLAYERKEY,t);
+                    redisUtils.setRemove(ROOMPLAYERKEY, t);
                     break;
                 }
             }
             throw new JuliaException("玩家金额小于最少金额");
         }
 
-        String lastKey = vo.getGameType() + "_" + vo.getFlag();
 
         boolean checkJoin = false;
 
         Set<Object> roomPlayers = redisUtils.sGet(ROOMPLAYERKEY);
-        for (Object element : roomPlayers) {
-            PlayerRo t = (PlayerRo) element;
-            long joinId = t.getPlayId();
-            int userId = vo.getPlayerId();
-            if (joinId == (long) userId) {
-                checkJoin = true;
-                break;
-            }
+
+        RoomPlayerEntity rPlayer = roomPlayerMapper.selectOne(new QueryWrapper<RoomPlayerEntity>()
+                .eq("player_id", player.getPlayId()));
+        if (!ObjectUtils.isEmpty(rPlayer) && rPlayer.getOnline() == 0) {
+            // 此人再次加入房间
+            log.info("此人再次加入房间");
+            checkJoin = true;
+            rPlayer.setOnline(1);
+            roomPlayerMapper.updateById(rPlayer);
         }
+
         if (checkJoin) {
             //
-            cheeckPoker(room.getGameType(),room.getFlag());
-            return JuliaUtils.convertTo(new GameRoomEntityVO(),room);
+            redisUtils.sSet(ROOMPLAYERKEY, JuliaUtils.convertTo(new PlayerRo(), player));
+            cheeckPoker(room.getGameType(), room.getFlag());
+            return JuliaUtils.convertTo(new GameRoomEntityVO(), room);
         }
 
 
@@ -217,13 +221,13 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
         if (roomPlayerMapper.insert(roomPlayer) < 1) {
             return null;
         } else {
-            redisUtils.sSet(RedisKeyEnum.ROOMPLAYERS.getKey() + lastKey, JuliaUtils.convertTo(new PlayerRo(), player));
-            long players = redisUtils.sGetSetSize(RedisKeyEnum.ROOMPLAYERS.getKey() + lastKey);
+            redisUtils.sSet(ROOMPLAYERKEY, JuliaUtils.convertTo(new PlayerRo(), player));
+            long players = redisUtils.sGetSetSize(ROOMPLAYERKEY);
             if (players == room.getPlayers()) {
                 //  房间满员-发牌
                 gameService.createThirteennGame(vo.getGameType(), vo.getFlag());
             }
-            return JuliaUtils.convertTo(new GameRoomEntityVO(),room);
+            return JuliaUtils.convertTo(new GameRoomEntityVO(), room);
         }
     }
 
@@ -252,8 +256,9 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
 
     @Override
     public AliveGameRo findAliveByUserId(Integer userId) {
+        // todo
         AliveGameRo ro = (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + userId);
-        if(!ObjectUtils.isEmpty(ro)){
+        if (!ObjectUtils.isEmpty(ro)) {
             GameRoomEntityVO vo = findOneByFlag(ro.getRoomIde());
             ro.setLeast(vo.getLeast());
             ro.setAgame(vo.getAgame());
@@ -261,30 +266,37 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
         return ro;
     }
 
-    private void cheeckPoker(int gameType,String gameFlag){
-        boolean fullPlayer  = true;
-        Set<Object> players = redisUtils.sGet(gameType+"_"+gameFlag);
+    /**
+     * @Description: 如果都在线，没有牌，就发牌
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    private void cheeckPoker(int gameType, String gameFlag) {
+        boolean fullPlayer = true;
+        Set<Object> players = redisUtils.sGet(gameType + "_" + gameFlag);
         for (Object element : players) {
             PlayerRo t = (PlayerRo) element;
             Channel userChannel = ChannelPond.findChannel(String.valueOf(t.getPlayId()));
-            if(ObjectUtils.isEmpty(userChannel)){
+            if (ObjectUtils.isEmpty(userChannel)) {
                 fullPlayer = false;
             }
         }
-        if(fullPlayer){
+        if (fullPlayer) {
             GameEntity game = gameService.findGameByRoom(gameType, gameFlag);
-            if(ObjectUtils.isEmpty(game)){
+            if (ObjectUtils.isEmpty(game)) {
                 gameService.createThirteennGame(gameType, gameFlag);
             }
         }
     }
 
-    private String checkRoomFlag(){
+    private String checkRoomFlag() {
         String flag = "";
-        while (true){
+        while (true) {
             String t = JuliaUtils.randomNickName();
             GameRoomEntityVO room = findOneByFlag(t);
-            if(ObjectUtils.isEmpty(room)){
+            if (ObjectUtils.isEmpty(room)) {
                 flag = t;
                 break;
             }

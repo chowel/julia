@@ -2,9 +2,12 @@ package com.julia.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.julia.entity.GameEntity;
+import com.julia.model.LabaGameRes;
 import com.julia.model.QueryPagement;
 import com.julia.model.dto.*;
 import com.julia.model.vo.CarOrderVO;
+import com.julia.model.vo.GameEntityVO;
 import com.julia.model.vo.GameRoomEntityVO;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IGameService;
@@ -43,5 +46,11 @@ public class PowerRichController {
     public Rv<List<PokerMoldForFive>> receive(@RequestBody ReceivePokerDto dto) {
         dto.setPlayId(PlayerToken.getLoginIdAsInt());
         return new Rv<>(serviceImpl.receive(dto));
+    }
+
+    @ApiOperation("laba游戏开始")
+    @PostMapping("/startLaba")
+    public Rv<LabaGameRes> startLaba(@RequestBody GameEntityVO vo) {
+        return new Rv<>(serviceImpl.startLabaGame(vo.getRoomFlag()));
     }
 }
