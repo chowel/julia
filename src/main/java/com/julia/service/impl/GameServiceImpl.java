@@ -11,6 +11,7 @@ import com.julia.model.*;
 import com.julia.model.dto.ReceivePokerDto;
 import com.julia.model.vo.GameRoomEntityVO;
 import com.julia.model.vo.GameThirteenEntityVO;
+import com.julia.model.vo.PlayersEntityVO;
 import com.julia.service.*;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.julia.socket.ChannelPond;
@@ -68,8 +69,20 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
     }
 
     @Override
-    public Boolean overGameByRoomFlag(String flag) {
-        return lambdaUpdate().eq(GameEntity::getRoomFlag, flag).set(GameEntity::getStatus, 0).update();
+    public Boolean overGameByRoomFlag(String flag, int gameType) {
+        GameEntity game = this.getOne(new QueryWrapper<GameEntity>().eq("room_flag", flag).eq("status", 1));
+        if (!ObjectUtils.isEmpty(game)) {
+            game.setStatus(0);
+            boolean updateRes = updateById(game);
+            if (updateRes) {
+                redisUtils.del(RedisKeyEnum.RECEIVES.getKey() + game.getGameNo());
+                redisUtils.del(RedisKeyEnum.NOTSENDPOKER.getKey() + game.getGameType() + ":" + game.getRoomFlag() +
+                        ":" + game.getGameNo());
+                return updateRes;
+            }
+        }
+        return false;
+//        return lambdaUpdate().eq(GameEntity::getRoomFlag, flag).set(GameEntity::getStatus, 0).update();
     }
 
     @Override
@@ -107,7 +120,8 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
     @Override
     public List<PokerMoldForFive> receive(ReceivePokerDto dto) {
         // TODO 校验是否下发的牌
-        PlayerGameRo playerGame = (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + dto.getPlayId() + "_" + dto.getGameIde());
+        PlayerGameRo playerGame =
+                (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + dto.getPlayId() + ":" + dto.getGameIde());
         // 重复提交
         if (!ObjectUtils.isEmpty(playerGame.getMolds()) && playerGame.getMolds().size() > 0) {
             return playerGame.getMolds();
@@ -150,8 +164,9 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         molds.add(floorMold);
 
         playerGame.setMolds(molds);
-        String playerPokersKey = RedisKeyEnum.PLAYERPOKERS.getKey() + playerGame.getPlayerId() + "_" + playerGame.getGameNo();
-        redisUtils.set(playerPokersKey, playerGame);
+        String PLAYERPOKERSKEY =
+                RedisKeyEnum.PLAYERPOKERS.getKey() + playerGame.getPlayerId() + ":" + playerGame.getGameNo();
+        redisUtils.set(PLAYERPOKERSKEY, playerGame);
 
 
         GameThirteenEntity thirteen = thirteenService.findOneByGameNoWhitPlayerId(playerGame.getPlayerId(), playerGame.getGameNo());
@@ -205,7 +220,8 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         List<PokerMoldForFive> playerIMolds = null;
         if (!ObjectUtils.isEmpty(games.get(0))) {
             playerI =
-                    (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(0).getPlayerId() + "_" + gameNo);
+                    (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(0).getPlayerId() +
+                            ":" + gameNo);
             playerIMolds = playerI.getMolds();
 
         }
@@ -213,20 +229,23 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         List<PokerMoldForFive> playerIIMolds = null;
         if (!ObjectUtils.isEmpty(games.get(1))) {
             playerII =
-                    (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(1).getPlayerId() + "_" + gameNo);
+                    (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(1).getPlayerId() +
+                            ":" + gameNo);
             playerIIMolds = playerII.getMolds();
         }
         PlayerGameRo playerIII = null;
         List<PokerMoldForFive> playerIIIMolds = null;
         if (games.size() > 2) {
             playerIII =
-                    (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(2).getPlayerId() + "_" + gameNo);
+                    (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(2).getPlayerId() +
+                            ":" + gameNo);
             playerIIIMolds = playerIII.getMolds();
         }
         PlayerGameRo playerIIII = null;
         List<PokerMoldForFive> playerVIMolds = null;
         if (games.size() > 3) {
-            playerIIII = (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(2).getPlayerId() + "_" + gameNo);
+            playerIIII =
+                    (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + games.get(2).getPlayerId() + ":" + gameNo);
             playerVIMolds = playerIIII.getMolds();
         }
         // 玩家1 vs 玩家2
@@ -346,11 +365,12 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                 .eq(GameEntity::getGameType, playerI.getGameType())
                 .set(GameEntity::getStatus, 0).update();
 
-        String notSendPokerKey =
-                RedisKeyEnum.NOTSENDPOKER.getKey() + playerI.getGameType() + "_" + playerI.getRoomIde() + "_" + playerI.getGameNo();
+        String NOTSENDPOKERKEY =
+                RedisKeyEnum.NOTSENDPOKER.getKey() + playerI.getGameType() + ":" + playerI.getRoomIde() + ":" + playerI.getGameNo();
 
-        redisUtils.del(notSendPokerKey);
+        redisUtils.del(NOTSENDPOKERKEY);
 
+        // todo alive
 
         sendGameResult(playerI.getGameNo(), playerI.getGameType(), playerI.getRoomIde());
 
@@ -387,21 +407,28 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                     fourPokers.add(pokers.get(j));
                 }
             }
-            String key = RedisKeyEnum.NOTSENDPOKER.getKey() + gameType + "_" + roomIde + "_" + game.getGameNo();
-            redisUtils.lSet(key, onePokers);
-            redisUtils.lSet(key, twoPokers);
-            redisUtils.lSet(key, threePokers);
-            redisUtils.lSet(key, fourPokers);
+            String NOTSENDPOKERKEY =
+                    RedisKeyEnum.NOTSENDPOKER.getKey() + gameType + ":" + roomIde + ":" + game.getGameNo();
+            redisUtils.lSet(NOTSENDPOKERKEY, onePokers);
+            redisUtils.lSet(NOTSENDPOKERKEY, twoPokers);
+            redisUtils.lSet(NOTSENDPOKERKEY, threePokers);
+            redisUtils.lSet(NOTSENDPOKERKEY, fourPokers);
         }
     }
 
     @Override
-    public Boolean rePlayThirteennGame(int userId, int gameType, String roomIde) {
+    public PlayersEntityVO rePlayThirteennGame(int userId, int gameType, String roomIde) {
+        PlayersEntityVO player = playersService.findOneById(Long.valueOf(userId));
+        GameRoomEntityVO room = roomService.findOneByFlag(roomIde);
+        if (room.getLeast() > player.getCoin()) {
+            throw new JuliaException("房间最少金额不足");
+        }
         GameEntity game = findGameByRoom(gameType, roomIde);
         if (ObjectUtils.isEmpty(game)) {
             createThirteennGame(gameType, roomIde);
         }
-        return true;
+        player.setPassword("****");
+        return player;
     }
 
     @SneakyThrows

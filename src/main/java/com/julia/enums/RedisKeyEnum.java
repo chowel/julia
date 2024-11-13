@@ -17,11 +17,11 @@ public enum RedisKeyEnum {
      */
     PLAYERCACHE("JULIA:FIT:PLAYERCACHE:"),
     /**
-     * 房间玩家
+     * 房间玩家  gameType : gameFlag
      */
     ROOMPLAYERS("JULIA:FIT:ROOMPLAYERS:"),
     /**
-     * 房间缓存
+     * 房间缓存  gameFlag
      */
     ROOMCACHE("JULIA:FIT:ROOMCACHE:"),
     /**
@@ -33,11 +33,11 @@ public enum RedisKeyEnum {
      */
     LABAGAME("JULIA:FIT:LABAGAME:"),
     /**
-     * 发给玩家的牌
+     * 发给玩家的牌 playerId : gameNo
      */
     PLAYERPOKERS("JULIA:FIT:PLAYERPOKERS:"),
     /**
-     * 牌局提交牌的玩家数
+     * 牌局提交牌的玩家数 gameNo
      */
     RECEIVES("JULIA:FIT:RECEIVES:"),
     /**

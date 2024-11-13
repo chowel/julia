@@ -192,8 +192,11 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
         Set<Object> roomPlayers = redisUtils.sGet(ROOMPLAYERKEY);
 
         RoomPlayerEntity rPlayer = roomPlayerMapper.selectOne(new QueryWrapper<RoomPlayerEntity>()
-                .eq("player_id", player.getPlayId()));
-        if (!ObjectUtils.isEmpty(rPlayer) && rPlayer.getOnline() == 0) {
+                .eq("player_id", player.getPlayId())
+                .eq("game_type",vo.getGameType())
+                .eq("room_flag",vo.getFlag())
+                .eq("online",0));
+        if (!ObjectUtils.isEmpty(rPlayer)) {
             // 此人再次加入房间
             log.info("此人再次加入房间");
             checkJoin = true;
@@ -243,14 +246,13 @@ public class GameRoomServiceImpl extends ServiceImpl<GameRoomMapper, GameRoomEnt
 
     @Override
     public Boolean close(String flag, Integer gameType) {
-        GameRoomEntity entity = this.getOne(new QueryWrapper<GameRoomEntity>()
-                .eq("flag", flag)
-                .eq("game_type", gameType));
-        if (ObjectUtils.isEmpty(entity)) {
-            return false;
+        boolean res = this.lambdaUpdate().eq(GameRoomEntity::getFlag,flag)
+                .eq(GameRoomEntity::getGameType,gameType)
+                .set(GameRoomEntity::getStatus,2).update();
+        if(res){
+            redisUtils.del(RedisKeyEnum.ROOMCACHE.getKey()+flag);
         }
-        entity.setStatus(2);
-        return updateById(entity);
+        return false;
     }
 
 

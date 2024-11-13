@@ -14,13 +14,17 @@ public class AliveGameRo {
 
     }
 
-    private Integer playId;
+    private Long playId;
 
     private Integer gameType;
 
     private String roomIde;
 
     private String gameIde;
+
+    private String nickName;
+
+    private String loginName;
 
     /**
      * 最小入场金额
@@ -32,11 +36,11 @@ public class AliveGameRo {
      */
     private Integer agame;
 
-    public Integer getPlayId() {
+    public Long getPlayId() {
         return playId;
     }
 
-    public void setPlayId(Integer playId) {
+    public void setPlayId(Long playId) {
         this.playId = playId;
     }
 
@@ -78,5 +82,21 @@ public class AliveGameRo {
 
     public void setAgame(Integer agame) {
         this.agame = agame;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
+
+    public String getLoginName() {
+        return loginName;
+    }
+
+    public void setLoginName(String loginName) {
+        this.loginName = loginName;
     }
 }

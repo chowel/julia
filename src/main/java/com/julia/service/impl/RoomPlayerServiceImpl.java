@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.julia.model.vo.RoomPlayerEntityVO;
 import com.julia.tool.JuliaUtils;
 import com.julia.model.QueryPagement;
+
+import java.util.List;
 import java.util.stream.Collectors;
 /**
 * <p>
@@ -57,6 +59,11 @@ public class RoomPlayerServiceImpl extends ServiceImpl<RoomPlayerMapper, RoomPla
     @Override
     public Boolean remove(Long id) {
             return removeById(id);
+    }
+
+    @Override
+    public List<RoomPlayerEntity> findPlayersByRoomFlag(String roomFlag) {
+        return lambdaQuery().eq(RoomPlayerEntity::getRoomFlag,roomFlag).list();
     }
 }
 

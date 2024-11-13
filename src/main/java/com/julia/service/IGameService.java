@@ -7,6 +7,7 @@ import com.julia.model.vo.GameEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
+import com.julia.model.vo.PlayersEntityVO;
 import com.julia.tool.PokerMoldForFive;
 
 import java.util.List;
@@ -45,7 +46,7 @@ public interface IGameService extends IService<GameEntity> {
     * @Author: chowel 
     * @Date:  
     */
-    Boolean overGameByRoomFlag(String flag);
+    Boolean overGameByRoomFlag(String flag,int gameType);
 
     GameEntity findGameByRoom(int gameType, String roomIde);
 
@@ -84,7 +85,7 @@ public interface IGameService extends IService<GameEntity> {
 
     void createThirteennGame(int gameType, String roomIde);
 
-    Boolean rePlayThirteennGame(int userId, int gameType, String roomIde);
+    PlayersEntityVO rePlayThirteennGame(int userId, int gameType, String roomIde);
 
     /**
      * @Description: 拉霸游戏

@@ -1,8 +1,12 @@
 package com.julia.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.julia.entity.RoomPlayerEntity;
+import com.julia.enums.RedisKeyEnum;
 import com.julia.model.AliveGameRo;
+import com.julia.service.IRoomPlayerService;
 import com.julia.tool.PlayerToken;
+import com.julia.tool.RedisUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.util.ObjectUtils;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import com.julia.model.vo.GameRoomEntityVO;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * <p>
@@ -32,6 +37,12 @@ import javax.annotation.Resource;
 public class GameRoomController {
     @Resource
     IGameRoomService serviceImpl;
+
+    @Resource
+    IRoomPlayerService roomPlayerService;
+
+    @Resource
+    RedisUtils redisUtils;
 
     @ApiOperation("分页查找")
     @PostMapping("/querywhitpage")
@@ -76,14 +87,38 @@ public class GameRoomController {
     }
 
 
-
     @ApiOperation("查找进行中的游戏")
     @GetMapping("/findAliveGame")
-    public Rv<AliveGameRo> findAliveGame(){
+    public Rv<AliveGameRo> findAliveGame() {
         int playId = PlayerToken.getLoginIdAsInt();
         AliveGameRo ro = serviceImpl.findAliveByUserId(playId);
-        if(ObjectUtils.isEmpty(ro)){
-            return new Rv<>("No",ro);
+        if (ObjectUtils.isEmpty(ro)) {
+            return new Rv<>("No", ro);
+        }
+        GameRoomEntityVO room = serviceImpl.findOneByFlag(ro.getRoomIde());
+
+        if (ObjectUtils.isEmpty(room)) {
+            return new Rv<>("No", ro);
+        }
+
+        List<RoomPlayerEntity> players = roomPlayerService.findPlayersByRoomFlag(ro.getRoomIde());
+        int[] checkOnline = {0};
+        if (players.size() > 0) {
+            players.forEach(p -> {
+                if (p.getOnline() == 1) {
+                    checkOnline[0] = checkOnline[0] + 1;
+                }
+            });
+        }
+
+        if (checkOnline[0] == 0) {
+            serviceImpl.close(ro.getRoomIde(),ro.getGameType());
+            redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey() + playId);
+            return new Rv<>("No", ro);
+        }
+        if (room.getStatus() == 2) {
+            redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey() + playId);
+            return new Rv<>("No", ro);
         }
         return new Rv<>(ro);
     }

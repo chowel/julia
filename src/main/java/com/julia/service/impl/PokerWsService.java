@@ -2,6 +2,7 @@ package com.julia.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.julia.entity.GameEntity;
+import com.julia.entity.PlayersEntity;
 import com.julia.enums.RedisKeyEnum;
 import com.julia.model.AliveGameRo;
 import com.julia.model.PlayerGameRo;
@@ -82,7 +83,30 @@ public class PokerWsService {
             int gameType = Integer.parseInt(datas[0]);
             // 13水
             if (gameType == 1) {
-                String ROOMPLAYERKEY = RedisKeyEnum.ROOMPLAYERS.getKey() + (String) bo.getData();
+
+                AliveGameRo alive = (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + userId);
+                //  断线重连
+                if (!ObjectUtils.isEmpty(alive) && datas[1].equals(alive.getRoomIde())) {
+                    PlayerGameRo playerGame =
+                            (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + userId + ":" + alive.getGameIde());
+                    if (!ObjectUtils.isEmpty(playerGame)) {
+                        WebSocketMsgBO sendMsg = new WebSocketMsgBO();
+                        sendMsg.setSub("DISPOKERS");
+                        sendMsg.setData(playerGame);
+                        channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(sendMsg)));
+                    }
+                } else {
+                    // 添加AliveGame
+                    AliveGameRo ro = new AliveGameRo();
+                    ro.setPlayId(Long.valueOf(userId));
+                    ro.setRoomIde(datas[1]);
+                    ro.setGameType(Integer.parseInt(datas[0]));
+                    ro.setLoginName(player.getLoginName());
+                    ro.setNickName(player.getNickName());
+                    redisUtils.set(RedisKeyEnum.ALIVEGAME.getKey() + userId, ro);
+                }
+
+                String ROOMPLAYERKEY = RedisKeyEnum.ROOMPLAYERS.getKey() + datas[0] + ":" + datas[1];
                 Set<Object> players = redisUtils.sGet(ROOMPLAYERKEY);
                 for (Object element : players) {
                     PlayerRo t = (PlayerRo) element;
@@ -103,19 +127,7 @@ public class PokerWsService {
                     }
                 }
 
-                AliveGameRo alive = (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + userId);
-//            断线重连
-                if (!ObjectUtils.isEmpty(alive)) {
 
-                    PlayerGameRo playerGame =
-                            (PlayerGameRo) redisUtils.get(RedisKeyEnum.PLAYERPOKERS.getKey() + userId + "_" + alive.getGameIde());
-
-                    WebSocketMsgBO sendMsg = new WebSocketMsgBO();
-                    sendMsg.setSub("DISPOKERS");
-                    sendMsg.setData(playerGame);
-
-                    channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(sendMsg)));
-                }
             }
             // 拉霸
             if (gameType == 2) {
@@ -128,15 +140,17 @@ public class PokerWsService {
 
         if ("READYPLAY".equals(bo.getSub())) {
             String userId = ChannelPond.findUserIdByChannel(channel);
+            long pId = Long.parseLong(userId);
             String bData = (String) bo.getData();
             String[] datas = bData.split("_");
 //          datas[0]  gameType datas[1] roomflag
             GameEntity game = gameService.findGameByRoom(Integer.parseInt(datas[0]), datas[1]);
+            PlayersEntityVO player = playersService.findOneById(pId);
             if (!ObjectUtils.isEmpty(game)) {
-                String notSendPokerKey =
-                        RedisKeyEnum.NOTSENDPOKER.getKey() + datas[0] + "_" + datas[1] + "_" + game.getGameNo();
+                String NOTSENDPOKERKEY =
+                        RedisKeyEnum.NOTSENDPOKER.getKey() + datas[0] + ":" + datas[1] + ":" + game.getGameNo();
 
-                List<Poker> pokers = (List<Poker>) redisUtils.getLeftRemove(notSendPokerKey);
+                List<Poker> pokers = (List<Poker>) redisUtils.getLeftRemove(NOTSENDPOKERKEY);
 
                 PlayerGameRo playerGame = new PlayerGameRo();
                 playerGame.setPrePokers(pokers);
@@ -145,14 +159,23 @@ public class PokerWsService {
                 playerGame.setPlayerId(Long.valueOf(userId));
                 playerGame.setGameNo(game.getGameNo());
 
-                redisUtils.set(RedisKeyEnum.PLAYERPOKERS.getKey() + userId + "_" + game.getGameNo(), playerGame);
-                // 添加aliveGame
-                AliveGameRo ro = new AliveGameRo();
-                ro.setPlayId(Integer.parseInt(userId));
-                ro.setGameIde(game.getGameNo());
-                ro.setRoomIde(datas[1]);
-                ro.setGameType(Integer.parseInt(datas[0]));
-                redisUtils.set(RedisKeyEnum.ALIVEGAME.getKey() + userId, ro);
+                String PLAYERPOKERSKEY = RedisKeyEnum.PLAYERPOKERS.getKey() + userId + ":" + game.getGameNo();
+
+                redisUtils.set(PLAYERPOKERSKEY, playerGame);
+                // 修改 aliveGame
+                AliveGameRo alive = (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + userId);
+                if (!ObjectUtils.isEmpty(alive)) {
+                    alive.setGameIde(game.getGameNo());
+                    redisUtils.set(RedisKeyEnum.ALIVEGAME.getKey() + userId, alive);
+                }
+//                AliveGameRo ro = new AliveGameRo();
+//                ro.setPlayId(Long.valueOf(userId));
+//                ro.setGameIde(game.getGameNo());
+//                ro.setRoomIde(datas[1]);
+//                ro.setGameType(Integer.parseInt(datas[0]));
+//                ro.setLoginName(player.getLoginName());
+//                ro.setNickName(player.getNickName());
+
 
 //            gameScoreService.saveGamePlayer(game.getGameNo(), Integer.valueOf(userId), game.getGameId());
                 if ("1".equals(datas[0])) {
@@ -181,7 +204,7 @@ public class PokerWsService {
 //        }
         if ("QUITROOM".equals(bo.getSub())) {
             String userId = ChannelPond.findUserIdByChannel(channel);
-            redisUtils.set(RedisKeyEnum.SELFQUIT.getKey() + ":" + userId, "1", 300);
+            redisUtils.set(RedisKeyEnum.SELFQUIT.getKey() + ":" + userId, "1", 30);
             PlayersEntityVO player = playersService.findOneById(Long.valueOf(userId));
 
             log.info("退出房间->userId: " + userId);
@@ -205,7 +228,7 @@ public class PokerWsService {
                         roomPlayerService.playerSetOnline(playerId, 0, wsdatas[1]);
                         if ((playerNum - 1) == 0) {
                             roomService.close(wsdatas[1], gameType);
-                            gameService.overGameByRoomFlag(wsdatas[1]);
+                            gameService.overGameByRoomFlag(wsdatas[1],gameType);
                         }
                         redisUtils.setRemove(ROOMPLAYERKEY, t);
                     } else {
@@ -222,7 +245,7 @@ public class PokerWsService {
             }
             if (gameType == 2) {
                 roomService.close(wsdatas[1], gameType);
-                gameService.overGameByRoomFlag(wsdatas[1]);
+                gameService.overGameByRoomFlag(wsdatas[1],gameType);
             }
         }
 
@@ -230,7 +253,7 @@ public class PokerWsService {
             String bData = (String) bo.getData();
             String[] datas = bData.split("_");
             // datas[0]->gameNo datas[1]->roomIde
-            String RECEIVESKEY = RedisKeyEnum.RECEIVES.getKey() + "_" + datas[0];
+            String RECEIVESKEY = RedisKeyEnum.RECEIVES.getKey() + datas[0];
             redisUtils.incr(RECEIVESKEY, 1);
             int gameReceive = (int) redisUtils.get(RECEIVESKEY);
             GameRoomEntityVO room = roomService.findOneByFlag(datas[1]);
@@ -256,10 +279,40 @@ public class PokerWsService {
 
     }
 
+    @SneakyThrows
     public void delByUserId(String removeId) {
         String selfQuit = (String) redisUtils.get(RedisKeyEnum.SELFQUIT.getKey() + ":" + removeId);
         // 主动退出不存在,就是被动断线处理
         if (!StringUtils.hasLength(selfQuit)) {
+            AliveGameRo ro = (AliveGameRo) redisUtils.get(RedisKeyEnum.ALIVEGAME.getKey() + removeId);
+//            PlayersEntityVO rPlayer = playersService.findOneById(Long.valueOf(removeId));
+            String ROOMPLAYERKEY = RedisKeyEnum.ROOMPLAYERS.getKey() + ro.getGameType() + ":" + ro.getRoomIde();
+            PlayerRo removePlayer = new PlayerRo();
+            removePlayer.setPlayId(Long.valueOf(ro.getPlayId()));
+            removePlayer.setCoin(0);
+            removePlayer.setLoginName(ro.getLoginName());
+            removePlayer.setNickName(ro.getNickName());
+            Set<Object> players = redisUtils.sGet(ROOMPLAYERKEY);
+            for (Object element : players) {
+                PlayerRo t = (PlayerRo) element;
+                Channel userChannel = ChannelPond.findChannel(String.valueOf(t.getPlayId()));
+                if (!ObjectUtils.isEmpty(userChannel)) {
+                    WebSocketMsgBO myMsg = new WebSocketMsgBO();
+                    myMsg.setSub("OFFLINE");
+                    myMsg.setData(removePlayer);
+                    userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(myMsg)));
+                } else {
+                    log.info("断线用户" + t.getNickName());
+                    roomPlayerService.playerSetOnline(t.getPlayId(), 0, ro.getRoomIde());
+                    if ((players.size() - 1) == 0) {
+                        log.info("关闭房间结束游戏");
+                        roomService.close(ro.getRoomIde(), ro.getGameType());
+                        gameService.overGameByRoomFlag(ro.getRoomIde(),ro.getGameType());
+                    }
+                    redisUtils.setRemove(ROOMPLAYERKEY, t);
+                }
+            }
+
 
         }
     }

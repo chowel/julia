@@ -1,6 +1,7 @@
 package com.julia.controller;
 
 import com.julia.model.AliveGameRo;
+import com.julia.model.vo.PlayersEntityVO;
 import com.julia.tool.PlayerToken;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -63,7 +64,7 @@ public class GameController {
 
     @ApiOperation("开始新游戏")
     @PostMapping("/reThirteenGame")
-    public Rv<Boolean> rePlayThirteenGame(@RequestBody GameEntityVO vo){
+    public Rv<PlayersEntityVO> rePlayThirteenGame(@RequestBody GameEntityVO vo){
         int playId = PlayerToken.getLoginIdAsInt();
         return new Rv<>(serviceImpl.rePlayThirteennGame(playId,vo.getGameType(),vo.getRoomFlag()));
     }

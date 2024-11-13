@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
 
+import java.util.List;
+
 /**
  * <p>
  * 房间玩家 服务类
@@ -69,5 +71,7 @@ public interface IRoomPlayerService extends IService<RoomPlayerEntity> {
      * @Date: 2024-09-30
      */
     Boolean remove(Long id);
+
+    List<RoomPlayerEntity> findPlayersByRoomFlag(String roomFlag);
 }
 
