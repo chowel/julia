@@ -48,6 +48,10 @@ public enum RedisKeyEnum {
      * 玩家进行中的游戏
      */
     ALIVEGAME("JULIA:FIT:ALIVEGAME:"),
+    /**
+     * 玩家心跳
+     */
+    HEARTBEAT("JULIA:FIT:HEARTBEAT:"),
     ;
 
 

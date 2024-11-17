@@ -64,7 +64,10 @@ public class PokerWsService {
         // 心跳
         if ("PING".equals(bo.getSub())) {
             String userId = ChannelPond.findUserIdByChannel(channel);
-//            log.info("心跳->userId: " + userId);
+            String heart = (String) redisUtils.get(RedisKeyEnum.HEARTBEAT.getKey() + userId);
+            if (!StringUtils.hasLength(heart)) {
+                redisUtils.set(RedisKeyEnum.HEARTBEAT.getKey() + userId, "1", 3600);
+            }
             WebSocketMsgBO myMsg = new WebSocketMsgBO();
             myMsg.setSub("PONG");
             myMsg.setData("PONG");
@@ -228,7 +231,7 @@ public class PokerWsService {
                         roomPlayerService.playerSetOnline(playerId, 0, wsdatas[1]);
                         if ((playerNum - 1) == 0) {
                             roomService.close(wsdatas[1], gameType);
-                            gameService.overGameByRoomFlag(wsdatas[1],gameType);
+                            gameService.overGameByRoomFlag(wsdatas[1], gameType);
                         }
                         redisUtils.setRemove(ROOMPLAYERKEY, t);
                     } else {
@@ -245,7 +248,7 @@ public class PokerWsService {
             }
             if (gameType == 2) {
                 roomService.close(wsdatas[1], gameType);
-                gameService.overGameByRoomFlag(wsdatas[1],gameType);
+                gameService.overGameByRoomFlag(wsdatas[1], gameType);
             }
         }
 
@@ -258,6 +261,8 @@ public class PokerWsService {
             int gameReceive = (int) redisUtils.get(RECEIVESKEY);
             GameRoomEntityVO room = roomService.findOneByFlag(datas[1]);
             if (gameReceive == room.getPlayers()) {
+                redisUtils.del(RECEIVESKEY);
+//                redisUtils.del(RedisKeyEnum.NOTSENDPOKER.getKey() + ":1:" + datas[1] + ":" + datas[0]);
                 gameService.countScore(datas[0], datas[1]);
             }
         }
@@ -307,7 +312,7 @@ public class PokerWsService {
                     if ((players.size() - 1) == 0) {
                         log.info("关闭房间结束游戏");
                         roomService.close(ro.getRoomIde(), ro.getGameType());
-                        gameService.overGameByRoomFlag(ro.getRoomIde(),ro.getGameType());
+                        gameService.overGameByRoomFlag(ro.getRoomIde(), ro.getGameType());
                     }
                     redisUtils.setRemove(ROOMPLAYERKEY, t);
                 }

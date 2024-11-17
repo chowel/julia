@@ -9,33 +9,33 @@ package com.julia.tool;
 public class PokerMoldForFive {
     private String name;
     private String cname;
-    private Integer score;
+    private int score;
     private String suit;
 
-    private Integer range;
+    private int range;
 
 
 
     /**
      * 最大
      */
-    private Integer max;
+    private int max;
     /**
      * 次大
      */
-    private Integer sub;
+    private int sub;
     /**
      * 中间
      */
-    private Integer mid;
+    private int mid;
     /**
      * 次小
      */
-    private Integer little;
+    private int little;
     /**
      * 最小
      */
-    private Integer minimum;
+    private int minimum;
 
     public String getName() {
         return name;
@@ -53,11 +53,11 @@ public class PokerMoldForFive {
         this.cname = cname;
     }
 
-    public Integer getScore() {
+    public int getScore() {
         return score;
     }
 
-    public void setScore(Integer score) {
+    public void setScore(int score) {
         this.score = score;
     }
 
@@ -69,51 +69,51 @@ public class PokerMoldForFive {
         this.suit = suit;
     }
 
-    public Integer getMax() {
-        return max;
-    }
-
-    public void setMax(Integer max) {
-        this.max = max;
-    }
-
-    public Integer getSub() {
-        return sub;
-    }
-
-    public void setSub(Integer sub) {
-        this.sub = sub;
-    }
-
-    public Integer getMid() {
-        return mid;
-    }
-
-    public void setMid(Integer mid) {
-        this.mid = mid;
-    }
-
-    public Integer getLittle() {
-        return little;
-    }
-
-    public void setLittle(Integer little) {
-        this.little = little;
-    }
-
-    public Integer getMinimum() {
-        return minimum;
-    }
-
-    public void setMinimum(Integer minimum) {
-        this.minimum = minimum;
-    }
-
-    public Integer getRange() {
+    public int getRange() {
         return range;
     }
 
-    public void setRange(Integer range) {
+    public void setRange(int range) {
         this.range = range;
+    }
+
+    public int getMax() {
+        return max;
+    }
+
+    public void setMax(int max) {
+        this.max = max;
+    }
+
+    public int getSub() {
+        return sub;
+    }
+
+    public void setSub(int sub) {
+        this.sub = sub;
+    }
+
+    public int getMid() {
+        return mid;
+    }
+
+    public void setMid(int mid) {
+        this.mid = mid;
+    }
+
+    public int getLittle() {
+        return little;
+    }
+
+    public void setLittle(int little) {
+        this.little = little;
+    }
+
+    public int getMinimum() {
+        return minimum;
+    }
+
+    public void setMinimum(int minimum) {
+        this.minimum = minimum;
     }
 }

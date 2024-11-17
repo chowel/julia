@@ -78,6 +78,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                 redisUtils.del(RedisKeyEnum.RECEIVES.getKey() + game.getGameNo());
                 redisUtils.del(RedisKeyEnum.NOTSENDPOKER.getKey() + game.getGameType() + ":" + game.getRoomFlag() +
                         ":" + game.getGameNo());
+
                 return updateRes;
             }
         }
@@ -157,6 +158,251 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
         PokerMoldForFive headerMold = PokerUtils.headerForThree(headerGear);
         PokerMoldForFive midMold = createMold(midGear);
         PokerMoldForFive floorMold = createMold(floorGear);
+
+        // 倒水I
+        assert headerMold != null;
+        if (headerMold.getRange() > midMold.getRange() || midMold.getRange() > floorMold.getRange()) {
+            PokerMoldForFive daoBD = new PokerMoldForFive();
+            daoBD.setName("Bad");
+            daoBD.setCname("倒水");
+            daoBD.setScore(0);
+            daoBD.setSuit("NONE");
+            daoBD.setRange(0);
+
+            daoBD.setMax(5);
+            daoBD.setSub(4);
+            daoBD.setMid(3);
+            daoBD.setLittle(2);
+            daoBD.setMinimum(1);
+
+            headerMold = daoBD;
+            midMold = daoBD;
+            floorMold = daoBD;
+        }
+        // 倒水II
+        if (midMold.getRange() == floorMold.getRange() && midMold.getRange() > 0) {
+            boolean checkDao = false;
+            List<Integer> res = new ArrayList<>();
+            List<Integer> mid = new ArrayList<>(List.of(midMold.getMax(), midMold.getSub(), midMold.getMid(),
+                    midMold.getLittle(), midMold.getMinimum()));
+            List<Integer> floor = new ArrayList<>(List.of(floorMold.getMax(), floorMold.getSub(), floorMold.getMid(),
+                    floorMold.getLittle(), floorMold.getMinimum()));
+            for (int i = 0; i < mid.size(); i++) {
+                if (mid.get(i) > floor.get(i)) {
+                    res.add(1);
+                }
+                if (mid.get(i).equals(floor.get(i))) {
+                    res.add(0);
+                }
+                if (mid.get(i) < floor.get(i)) {
+                    res.add(-1);
+                }
+            }
+
+            for (int i = 0; i < res.size(); i++) {
+                if (res.get(i) == -1) {
+                    break;
+                }
+                if (res.get(i) == 1) {
+                    checkDao = true;
+                    break;
+                }
+            }
+
+            if (checkDao) {
+                PokerMoldForFive daoBD = new PokerMoldForFive();
+                daoBD.setName("Bad");
+                daoBD.setCname("倒水");
+                daoBD.setScore(0);
+                daoBD.setSuit("NONE");
+                daoBD.setRange(0);
+
+                daoBD.setMax(5);
+                daoBD.setSub(4);
+                daoBD.setMid(3);
+                daoBD.setLittle(2);
+                daoBD.setMinimum(1);
+
+                headerMold = daoBD;
+                midMold = daoBD;
+                floorMold = daoBD;
+            }
+        }
+        // 倒水II
+        if (midMold.getRange() > 0
+                && headerMold.getRange() == midMold.getRange()) {
+            boolean checkDao = false;
+            List<Integer> res = new ArrayList<>();
+            List<Integer> head = new ArrayList<>(List.of(headerMold.getMax(), headerMold.getSub(), headerMold.getMid()));
+            List<Integer> mid = new ArrayList<>(List.of(midMold.getMax(), midMold.getSub(), midMold.getMid()));
+//            List<Integer> floor = new ArrayList<>(List.of(floorMold.getMax(), floorMold.getSub(), floorMold.getMid()));
+            for (int i = 0; i < mid.size(); i++) {
+                if (head.get(i) > mid.get(i)) {
+                    res.add( 1);
+                }
+                if (head.get(i).equals(mid.get(i))) {
+                    res.add( 0);
+                }
+                if (head.get(i) < mid.get(i)) {
+                    res.add(-1);
+                }
+            }
+
+            for (int i = 0; i < res.size(); i++) {
+                if (res.get(i) == -1) {
+                    break;
+                }
+                if (res.get(i) == 1) {
+                    checkDao = true;
+                    break;
+                }
+            }
+
+            if (checkDao) {
+                PokerMoldForFive daoBD = new PokerMoldForFive();
+                daoBD.setName("Bad");
+                daoBD.setCname("倒水");
+                daoBD.setScore(0);
+                daoBD.setSuit("NONE");
+                daoBD.setRange(0);
+
+                daoBD.setMax(5);
+                daoBD.setSub(4);
+                daoBD.setMid(3);
+                daoBD.setLittle(2);
+                daoBD.setMinimum(1);
+
+                headerMold = daoBD;
+                midMold = daoBD;
+                floorMold = daoBD;
+            }
+        }
+
+
+        // 六対半
+        if (midMold.getRange() == 3 && floorMold.getRange() == 3) {
+            Set<Integer> vals = new HashSet<>();
+            headerGear.forEach(p -> vals.add(p.getValue()));
+            midGear.forEach(p -> vals.add(p.getValue()));
+            floorGear.forEach(p -> vals.add(p.getValue()));
+
+            if (vals.size() == 7) {
+                PokerMoldForFive shBD = new PokerMoldForFive();
+                shBD.setName("SixPair");
+                shBD.setCname("六対半");
+                shBD.setScore(1);
+                shBD.setSuit("NONE");
+                shBD.setRange(10);
+
+                shBD.setMax(14);
+                shBD.setSub(13);
+                shBD.setMid(12);
+                shBD.setLittle(11);
+                shBD.setMinimum(10);
+
+                headerMold = shBD;
+                midMold = shBD;
+                floorMold = shBD;
+            }
+        }
+
+        // 三顺
+        if (midMold.getRange() == 5 && floorMold.getRange() == 5) {
+            headerGear.sort(Comparator.comparing(Poker::getValue, Comparator.reverseOrder()));
+            boolean IsStraight = false;
+
+
+            int before = headerGear.get(1).getValue();
+            int present = headerGear.get(2).getValue();
+
+            if ((before - present) == 1) {
+                if (headerGear.get(0).getValue() - headerGear.get(1).getValue() == 1) {
+                    IsStraight = true;
+                }
+                if (headerGear.get(1).getValue() == 3 && headerGear.get(0).getValue() == 14) {
+                    IsStraight = true;
+                }
+            }
+
+            if (IsStraight) {
+                PokerMoldForFive tsBD = new PokerMoldForFive();
+                tsBD.setName("ThreeStraight");
+                tsBD.setCname("三顺");
+                tsBD.setScore(1);
+                tsBD.setSuit("NONE");
+                tsBD.setRange(10);
+
+                tsBD.setMax(14);
+                tsBD.setSub(13);
+                tsBD.setMid(12);
+                tsBD.setLittle(11);
+                tsBD.setMinimum(10);
+
+                headerMold = tsBD;
+                midMold = tsBD;
+                floorMold = tsBD;
+                // 13顺
+                Set<Integer> vals = new HashSet<>();
+                headerGear.forEach(p -> vals.add(p.getValue()));
+                if (vals.size() == 13) {
+                    PokerMoldForFive ttfBDh = new PokerMoldForFive();
+                    ttfBDh.setName("ThirteenStraight");
+                    ttfBDh.setCname("十三顺");
+                    ttfBDh.setScore(3);
+                    ttfBDh.setRange(11);
+                    ttfBDh.setSuit("NONE");
+
+                    ttfBDh.setMax(14);
+                    ttfBDh.setSub(13);
+                    ttfBDh.setMid(12);
+                    ttfBDh.setLittle(11);
+                    ttfBDh.setMinimum(10);
+                    headerMold = ttfBDh;
+
+
+                    PokerMoldForFive ttfBD = new PokerMoldForFive();
+                    ttfBD.setName("ThirteenStraight");
+                    ttfBD.setCname("十三顺");
+                    ttfBD.setScore(5);
+                    ttfBD.setRange(11);
+                    ttfBD.setSuit("NONE");
+
+                    ttfBD.setMax(14);
+                    ttfBD.setSub(13);
+                    ttfBD.setMid(12);
+                    ttfBD.setLittle(11);
+                    ttfBD.setMinimum(10);
+
+                    midMold = ttfBD;
+                    floorMold = ttfBD;
+                }
+
+            }
+        }
+
+        // 三花
+        if (midMold.getRange() == 6 && floorMold.getRange() == 6) {
+            Set<String> suits = new HashSet<>();
+            headerGear.forEach(p -> suits.add(p.getSuit()));
+            if (suits.size() == 1) {
+                PokerMoldForFive tfBD = new PokerMoldForFive();
+                tfBD.setName("ThreeFlush");
+                tfBD.setCname("三同花");
+                tfBD.setScore(1);
+                tfBD.setRange(10);
+
+                tfBD.setMax(14);
+                tfBD.setSub(13);
+                tfBD.setMid(12);
+                tfBD.setLittle(11);
+                tfBD.setMinimum(10);
+
+                headerMold = tfBD;
+                midMold = tfBD;
+                floorMold = tfBD;
+            }
+        }
+
 
         List<PokerMoldForFive> molds = new ArrayList<>();
         molds.add(headerMold);
@@ -521,7 +767,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                 otherScores = otherScores + t2Score;
             }
 
-            if (t1.getRange().equals(t2.getRange())) {
+            if (t1.getRange() == t2.getRange()) {
                 if (t1.getMax() > t2.getMax()) {
                     int t1Score = t1.getScore();
                     if (i == 1 && (t1.getRange() == 7 || t1.getRange() == 8 || t1.getRange() == 9)) {
@@ -539,7 +785,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                     otherScores = otherScores + t2Score;
                 }
 
-                if (t1.getMax().equals(t2.getMax())) {
+                if (t1.getMax() == t2.getMax()) {
                     if (t1.getSub() > t2.getSub()) {
                         int t1Score = t1.getScore();
                         if (i == 1 && (t1.getRange() == 7 || t1.getRange() == 8 || t1.getRange() == 9)) {
@@ -557,7 +803,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                         otherScores = otherScores + t2Score;
                     }
 
-                    if (t1.getSub().equals(t2.getSub())) {
+                    if (t1.getSub() == t2.getSub()) {
                         if (t1.getMid() > t2.getMid()) {
                             int t1Score = t1.getScore();
                             if (i == 1 && (t1.getRange() == 7 || t1.getRange() == 8 || t1.getRange() == 9)) {
@@ -575,7 +821,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                             otherScores = otherScores + t2Score;
                         }
 
-                        if (t1.getMid().equals(t2.getMid())) {
+                        if (t1.getMid() == t2.getMid()) {
                             if (t1.getLittle() > t2.getLittle()) {
                                 int t1Score = t1.getScore();
                                 if (i == 1 && (t1.getRange() == 7 || t1.getRange() == 8 || t1.getRange() == 9)) {
@@ -593,7 +839,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                                 otherScores = otherScores + t2Score;
                             }
 
-                            if (t1.getLittle().equals(t2.getLittle())) {
+                            if (t1.getLittle() == t2.getLittle()) {
                                 if (t1.getMinimum() > t2.getMinimum()) {
                                     int t1Score = t1.getScore();
                                     if (i == 1 && (t1.getRange() == 7 || t1.getRange() == 8 || t1.getRange() == 9)) {
@@ -611,7 +857,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                                     otherScores = otherScores + t2Score;
                                 }
 
-                                if (t1.getMinimum().equals(t2.getMinimum())) {
+                                if (t1.getMinimum() == t2.getMinimum()) {
                                     oneScores = 0;
                                     otherScores = 0;
                                 }
@@ -645,6 +891,9 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
 
         List<GameThirteenEntityVO> result = games.stream().map(
                 (entity -> {
+
+                    redisUtils.del(RedisKeyEnum.PLAYERPOKERS.getKey() + entity.getPlayerId() + ":" + entity.getGameNo());
+
                     GameThirteenEntityVO t = JuliaUtils.convertTo(new GameThirteenEntityVO(), entity);
                     t.setHeadPokers(PokerUtils.findPokersByid(t.getHeadgearPokers()));
                     t.setMidPokers(PokerUtils.findPokersByid(t.getMidgearPoker()));
@@ -652,6 +901,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, GameEntity> impleme
                     return t;
                 })
         ).collect(Collectors.toList());
+
 
         String ROOMPLAYERKEY = RedisKeyEnum.ROOMPLAYERS.getKey() + gameType + ":" + roomIde;
         Set<Object> players = redisUtils.sGet(ROOMPLAYERKEY);

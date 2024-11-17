@@ -87,19 +87,19 @@ public class ApiController {
     @ApiOperation("test")
     @GetMapping("/testPoker")
     public Rv<PokerMoldForFive> testPoker() {
-//        Poker p27 = new Poker(27, 2, "Clubs", "2");
-//        Poker p28 = new Poker(28, 3, "Clubs", "3");
-//        Poker p16 = new Poker(16, 4, "Diamonds", "4");
-//        Poker p17 = new Poker(17, 5, "Diamonds", "5");
-//        Poker p20 = new Poker(52, 14, "Spades", "A");
-//
-//        List<Poker> FiveList = new ArrayList<>();
-//        FiveList.add(p27);FiveList.add(p28);FiveList.add(p16);FiveList.add(p17);FiveList.add(p20);
+        Poker p27 = new Poker(26, 14, "Diamonds", "A");
+        Poker p28 = new Poker(4, 5, "Hearts", "5");
+        Poker p16 = new Poker(39, 14, "Clubs", "A");
+        Poker p17 = new Poker(17, 5, "Diamonds", "5");
+        Poker p20 = new Poker(52, 14, "Spades", "A");
 
-        List<Poker> pokers = PokerUtils.shufflePoker();
-        List<Poker> FiveList = pokers.stream()
-                .limit(5) // 限制为前5个元素
-                .collect(Collectors.toList());
+        List<Poker> FiveList = new ArrayList<>();
+        FiveList.add(p27);FiveList.add(p28);FiveList.add(p16);FiveList.add(p17);FiveList.add(p20);
+
+//        List<Poker> pokers = PokerUtils.shufflePoker();
+//        List<Poker> FiveList = pokers.stream()
+//                .limit(5) // 限制为前5个元素
+//                .collect(Collectors.toList());
 
 //        log.info(FiveList.toString());
         PokerMoldForFive mold= PokerUtils.generateMold(FiveList);
