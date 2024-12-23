@@ -92,9 +92,16 @@ public class GameRoomController {
     public Rv<AliveGameRo> findAliveGame() {
         int playId = PlayerToken.getLoginIdAsInt();
         AliveGameRo ro = serviceImpl.findAliveByUserId(playId);
+
         if (ObjectUtils.isEmpty(ro)) {
             return new Rv<>("No", ro);
         }
+        String quitRoomFlag = (String) redisUtils.get(RedisKeyEnum.SELFQUIT.getKey() + playId);
+        if (ro.getRoomIde().equals(quitRoomFlag)) {
+            redisUtils.del(RedisKeyEnum.ALIVEGAME.getKey() + playId);
+            return new Rv<>("No", ro);
+        }
+
         GameRoomEntityVO room = serviceImpl.findOneByFlag(ro.getRoomIde());
 
         if (ObjectUtils.isEmpty(room)) {

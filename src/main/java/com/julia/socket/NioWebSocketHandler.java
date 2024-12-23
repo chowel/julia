@@ -51,8 +51,9 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         if (msg instanceof FullHttpRequest) {
+            handleBinaryRequest(ctx, (FullHttpRequest) msg);
             //以http请求形式接入，但是走的是websocket
-            handleHttpRequest(ctx, (FullHttpRequest) msg);
+//            handleHttpRequest(ctx, (FullHttpRequest) msg);
         } else if (msg instanceof WebSocketFrame) {
 //            log.info("处理websocket客户端的消息: " + msg);
             handlerWebSocketFrame(ctx, (WebSocketFrame) msg);
@@ -91,20 +92,46 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                     new PongWebSocketFrame(frame.content().retain()));
             return;
         }
-        // 仅支持文本消息，不支持二进制消息
-        if (!(frame instanceof TextWebSocketFrame)) {
-            log.info("本例程仅支持文本消息，不支持二进制消息");
-            throw new UnsupportedOperationException(String.format(
-                    "%s frame types not supported", frame.getClass().getName()));
+         // 支持文本消息
+        if (frame instanceof TextWebSocketFrame) {
+            // 收到消息体
+            String request = ((TextWebSocketFrame) frame).text();
+            nioWebSocketHandler.service.handleChannelMsg(request, ctx.channel());
         }
-        // 收到消息体
-        String request = ((TextWebSocketFrame) frame).text();
-//        log.info(request);
-        // 业务处理
-//        nioWebSocketHandler.service.handleMsg(request);
-        // 需要当前频道的业务处理
-        nioWebSocketHandler.service.handleChannelMsg(request, ctx.channel());
+        // 二进制
+//        if (frame instanceof BinaryWebSocketFrame) {
+//            BinaryWebSocketFrame binaryWebSocketFrame = (BinaryWebSocketFrame)frame;
+//            log.info("服务器接收到二进制消息,消息长度:[{}]", binaryWebSocketFrame.content().capacity());
+//            ByteBuf byteBuf = Unpooled.directBuffer(binaryWebSocketFrame.content().capacity());
+//            byteBuf.writeBytes(binaryWebSocketFrame.content());
+//            ctx.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
+//        }
 
+
+    }
+
+    private void handleBinaryRequest(ChannelHandlerContext ctx,
+                                     FullHttpRequest req) {
+        if (!req.decoderResult().isSuccess()
+                || (!"websocket".equals(req.headers().get("Upgrade")))) {
+            //若不是websocket方式，则创建BAD_REQUEST的req，返回给客户端
+            sendHttpResponse(ctx, req, new DefaultFullHttpResponse(
+                    HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST));
+            return;
+        }
+
+        log.info(req.uri());
+
+        WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
+                "chat", null, false);
+        handshaker = wsFactory.newHandshaker(req);
+
+        if (handshaker == null) {
+            WebSocketServerHandshakerFactory
+                    .sendUnsupportedVersionResponse(ctx.channel());
+        } else {
+            handshaker.handshake(ctx.channel(), req);
+        }
     }
 
     /**
@@ -134,9 +161,6 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
             String id = (String) PlayerToken.getLoginIdByToken(uriArr[2]);
             if (StringUtils.hasLength(id)) {
                 ChannelPond.addChannel(ctx.channel(), id);
-                // 加入
-//                nioWebSocketHandler.service.joinZset(id);
-
                 if (handshaker == null) {
                     WebSocketServerHandshakerFactory
                             .sendUnsupportedVersionResponse(ctx.channel());
@@ -144,7 +168,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                     handshaker.handshake(ctx.channel(), req);
                 }
 
-            }else{
+            } else {
                 sendHttpResponse(ctx, req, new DefaultFullHttpResponse(
                         HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST));
             }
