@@ -24,7 +24,7 @@ import java.net.InetSocketAddress;
  * @author: Chowel.Master
  * @create: 2023-01-10 17:15
  **/
-@Component
+//@Component
 @Log4j2
 public class NettyServer {
     @PostConstruct
