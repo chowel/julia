@@ -9,8 +9,10 @@ import com.julia.model.dto.LoginDto;
 import com.julia.model.dto.NewFortuneDTO;
 import com.julia.model.vo.CreateFortuneVO;
 import com.julia.model.vo.FortuneApiVO;
+import com.julia.model.vo.StackPlayerEntityVO;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IFortuneService;
+import com.julia.service.IStackPlayerService;
 import com.julia.service.IYaoService;
 import com.julia.service.impl.WebSocketService;
 import com.julia.socket.ChannelPond;
@@ -47,10 +49,19 @@ public class ApiController {
     @Resource
     IFortuneService serviceImpl;
 
+    @Resource
+    IStackPlayerService playerService;
+
     @ApiOperation("登陆/获取token")
     @PostMapping("/login")
     public Rv<YaoEntityVO> platLogin(@RequestBody LoginDto dto) {
         return new Rv<>(yaoService.login(dto));
+    }
+
+    @ApiOperation("玩家登录")
+    @PostMapping("/playerLogin")
+    public Rv<StackPlayerEntityVO> playerLogin(@RequestBody LoginDto dto) {
+        return new Rv<>(playerService.playerLogin(dto));
     }
 
     @ApiOperation("盘方获取token")
