@@ -26,7 +26,8 @@ public class AdminToken {
     public static StpLogic stpLogic = new StpLogic(TYPE){
         @Override
         public String splicingKeyTokenName() {
-            return "kladmin";
+            String tokenName = super.splicingKeyTokenName();
+            return  tokenName + "-Admin";
         }
     };
 

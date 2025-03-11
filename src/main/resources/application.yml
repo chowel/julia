@@ -34,7 +34,7 @@ mybatis-plus:
 # Sa-Token配置
 sa-token:
   # token 名称 (同时也是cookie名称)
-  token-name: klong
+  token-name: Klong
   # token 有效期，单位s 默认30天, -1代表永不过期
   timeout: -1
   # token 临时有效期 (指定时间内无操作就视为token过期) 单位: 秒

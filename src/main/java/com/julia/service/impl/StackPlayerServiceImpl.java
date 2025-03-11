@@ -1,5 +1,6 @@
 package com.julia.service.impl;
 
+import cn.dev33.satoken.secure.BCrypt;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.entity.StackPlayerEntity;
@@ -8,6 +9,7 @@ import com.julia.model.dto.LoginDto;
 import com.julia.service.IStackPlayerService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.julia.tool.JuliaException;
+import com.julia.tool.PlayerToken;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.StackPlayerEntityVO;
 import com.julia.tool.JuliaUtils;
@@ -61,8 +63,18 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
         if(ObjectUtils.isEmpty(player)){
             throw new JuliaException("玩家不存在");
         }
+        if (!BCrypt.checkpw(dto.getPassword(), player.getPassword())) {
+            throw new JuliaException("密码错误");
+        }
+        if (player.getStatus() == 0) {
+            throw new JuliaException("用户封禁");
+        }
 
-        return null;
+        PlayerToken.login(player.getUserId());
+        StackPlayerEntityVO vo = JuliaUtils.convertTo(new StackPlayerEntityVO(), player);
+        vo.setToken(PlayerToken.getTokenValue());
+        vo.setPassword("****");
+        return vo;
     }
 }
 

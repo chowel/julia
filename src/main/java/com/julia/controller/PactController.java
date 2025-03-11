@@ -3,6 +3,7 @@ package com.julia.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.julia.entity.YaoEntity;
 import com.julia.service.IYaoService;
+import com.julia.tool.AdminToken;
 import com.julia.tool.JuliaUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
  */
 @Api(tags = "菜单/接口权限項")
 @RestController
-@RequestMapping("/julia/profess/pactEntity")
+@RequestMapping("/kl/profess/pact")
 public class PactController {
     @Resource
     IPactService serviceImpl;
@@ -71,7 +72,7 @@ public class PactController {
     @ApiOperation("获取用户菜单")
     @GetMapping("getMenus")
     public Rv<List<PactEntityVO>> getMenusByYaoId() {
-        YaoEntity yao = yaoService.getById(StpUtil.getLoginIdAsInt());
+        YaoEntity yao = yaoService.getById(AdminToken.getLoginIdAsInt());
         return new Rv<>(serviceImpl.findPactById(yao.getRoleId()));
     }
 

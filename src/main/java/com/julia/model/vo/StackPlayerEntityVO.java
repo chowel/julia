@@ -71,6 +71,9 @@ public class StackPlayerEntityVO extends BaseEntity {
     @ApiModelProperty("预约留言")
     private String note;
 
+    @ApiModelProperty("token")
+    private String token;
+
     @Override
     public String toString() {
         return "{" +
