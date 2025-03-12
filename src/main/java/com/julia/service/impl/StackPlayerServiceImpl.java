@@ -17,50 +17,54 @@ import com.julia.model.QueryPagement;
 import org.springframework.util.ObjectUtils;
 
 import java.util.stream.Collectors;
+
 /**
-* <p>
-    * 玩家 服务实现类
-    * </p>
-*
-* @author chowel
-* @since 2025-03-09
-*/
+ * <p>
+ * 玩家 服务实现类
+ * </p>
+ *
+ * @author chowel
+ * @since 2025-03-09
+ */
 @Service
 public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, StackPlayerEntity> implements IStackPlayerService {
     @Override
     public Page<StackPlayerEntityVO> findForPage(QueryPagement queryPagement) {
         Page<StackPlayerEntity> p = new LambdaQueryChainWrapper<StackPlayerEntity>(getBaseMapper()).page(new Page<StackPlayerEntity>(queryPagement.getStartPage(),
-        queryPagement.getPageSize()));
+                queryPagement.getPageSize()));
         Page<StackPlayerEntityVO> page = JuliaUtils.convertTo(new Page<StackPlayerEntityVO>(), p);
-                page.setRecords(p.getRecords().stream().map(e -> JuliaUtils.convertTo(new StackPlayerEntityVO(), e)).collect(Collectors.toList()));
-                return page;
+        page.setRecords(p.getRecords().stream().map(e -> JuliaUtils.convertTo(new StackPlayerEntityVO(), e)).collect(Collectors.toList()));
+        return page;
     }
 
     @Override
     public StackPlayerEntityVO findOneById(Long id) {
-            StackPlayerEntity entity = getById(id);
-            return JuliaUtils.convertTo(new StackPlayerEntityVO(), entity);
+        StackPlayerEntity entity = getById(id);
+        return JuliaUtils.convertTo(new StackPlayerEntityVO(), entity);
     }
 
     @Override
-    public Boolean saveStackPlayerEntity(StackPlayerEntityVO vo) {
-            return save(JuliaUtils.convertTo(new StackPlayerEntity(), vo));
+    public Boolean saveStackPlayerEntity(LoginDto dto) {
+        StackPlayerEntity player = new StackPlayerEntity();
+        player.setLoginName(dto.getName());
+        player.setPassword(BCrypt.hashpw(dto.getPassword()));
+        return save(player);
     }
 
     @Override
     public Boolean alter(StackPlayerEntityVO vo) {
-            return updateById(JuliaUtils.convertTo(new StackPlayerEntity(), vo));
+        return updateById(JuliaUtils.convertTo(new StackPlayerEntity(), vo));
     }
 
     @Override
     public Boolean remove(Long id) {
-            return removeById(id);
+        return removeById(id);
     }
 
     @Override
     public StackPlayerEntityVO playerLogin(LoginDto dto) {
-        StackPlayerEntity player  = lambdaQuery().eq(StackPlayerEntity::getLoginName,dto.getName()).one();
-        if(ObjectUtils.isEmpty(player)){
+        StackPlayerEntity player = lambdaQuery().eq(StackPlayerEntity::getLoginName, dto.getName()).one();
+        if (ObjectUtils.isEmpty(player)) {
             throw new JuliaException("玩家不存在");
         }
         if (!BCrypt.checkpw(dto.getPassword(), player.getPassword())) {
