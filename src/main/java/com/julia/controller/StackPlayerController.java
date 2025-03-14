@@ -39,11 +39,11 @@ public class StackPlayerController {
     public Rv<StackPlayerEntityVO> getStackPlayerEntityOne(@PathVariable Long id) {
         return new Rv<>(serviceImpl.findOneById(id)); }
 
-    @ApiOperation("添加")
-    @PostMapping("/add")
-    public Rv<Boolean> addStackPlayerEntityOne(@RequestBody StackPlayerEntityVO vo) {
-            return new Rv<>(serviceImpl.saveStackPlayerEntity(vo));
-    }
+//    @ApiOperation("添加")
+//    @PostMapping("/add")
+//    public Rv<Boolean> addStackPlayerEntityOne(@RequestBody StackPlayerEntityVO vo) {
+//            return new Rv<>(serviceImpl.saveStackPlayerEntity(vo));
+//    }
 
     @ApiOperation("修改")
     @PostMapping("/changed")
