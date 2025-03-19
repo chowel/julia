@@ -167,54 +167,6 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
     @Override
     public Boolean dispenseCar(DrawerPollDTO dto) {
-        FortuneEntity fortune = getOneByFortuneNo(dto.getFortuneNo());
-
-        if (!ObjectUtils.isEmpty(fortune)) {
-            if (fortune.getStatus() != 0) {
-                return false;
-            }
-            // todo 判断超时
-
-            LocalDateTime localDateTime = fortune.getCreateTime();
-            ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.systemDefault());
-            logger.info("ZonedDateTime: " + zonedDateTime);
-            long timestamp = zonedDateTime.toInstant().toEpochMilli();
-            logger.info("Timestamp (milliseconds): " + timestamp);
-            long ct = System.currentTimeMillis();
-            if ((ct - timestamp) > 6000000) {
-                fortune.setStatus(1);
-                fortune.setHandoutTime(ct);
-                String callbackReturn = handleCallBack(fortune);
-                if (StringUtils.hasLength(callbackReturn)) {
-
-                    fortune.setCheckCallback(1);
-
-                } else {
-                    fortune.setCheckCallback(2);
-                }
-                updateById(fortune);
-                throw new JuliaException("订单过期");
-            }
-            fortune.setDrawer(dto.getDrawer());
-            FortuneRedis fortuneRedis = JuliaUtils.convertTo(new FortuneRedis(), fortune);
-            if (webSocketService.hanldeFortune(fortuneRedis)) {
-//                分发车队
-                fortune.setStatus(2);
-                updateById(fortune);
-                return true;
-            } else {
-                fortune.setStatus(3);
-                fortune.setMsg("");
-                String callbackReturn = handleCallBack(fortune);
-
-                if (StringUtils.hasLength(callbackReturn)) {
-                    fortune.setCheckCallback(1);
-                } else {
-                    fortune.setCheckCallback(2);
-                }
-                updateById(fortune);
-            }
-        }
         return false;
     }
 

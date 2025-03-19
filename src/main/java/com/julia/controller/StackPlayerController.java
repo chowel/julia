@@ -1,5 +1,7 @@
 package com.julia.controller;
 
+import com.julia.model.vo.PayConfigEntityVO;
+import com.julia.service.IPayConfigService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +14,7 @@ import com.julia.model.vo.StackPlayerEntityVO;
 import com.julia.model.QueryPagement;
 import com.julia.tool.Rv;
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * <p>
@@ -28,11 +31,20 @@ public class StackPlayerController {
     @Resource
     IStackPlayerService serviceImpl;
 
-    @ApiOperation("分页查找")
-    @PostMapping("/querywhitpage")
-    public Rv<Page<StackPlayerEntityVO>> queryStackPlayerEntityWhitPage(@RequestBody QueryPagement queryPagement) {
-        return new Rv<>(serviceImpl.findForPage(queryPagement));
-    }
+    @Resource
+    IPayConfigService payConfigService;
+//
+//    @ApiOperation("获取支付配置")
+//    @GetMapping("/professPayments")
+//    public Rv<List<PayConfigEntityVO>> professPayments() {
+//        return new Rv<>(payConfigService.allconfig());
+//    }
+//
+//    @ApiOperation("分页查找")
+//    @PostMapping("/querywhitpage")
+//    public Rv<Page<StackPlayerEntityVO>> queryStackPlayerEntityWhitPage(@RequestBody QueryPagement queryPagement) {
+//        return new Rv<>(serviceImpl.findForPage(queryPagement));
+//    }
 
     @ApiOperation("根据id查找")
     @GetMapping("/query/{id}")

@@ -3,6 +3,7 @@ package com.julia.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.julia.mapper.ObtainMapper;
 import com.julia.model.CaptchaVo;
+import com.julia.model.alipay.CallbackParam;
 import com.julia.model.dto.DrawerPollDTO;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.LoginDto;
@@ -23,6 +24,7 @@ import io.netty.channel.Channel;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -70,11 +72,12 @@ public class ApiController {
         return new Rv<>(playerService.saveStackPlayerEntity(dto));
     }
 
-//    @ApiOperation("盘方获取token")
-//    @PostMapping("/getToken")
-//    public Rv<String> getToken(@RequestBody LoginDto dto) {
-//        return new Rv<>(yaoService.getTokenByPan(dto));
-//    }
+    @ApiOperation("回调函数")
+    @GetMapping("/callBack")
+    public String alipayCallBack(CallbackParam param) {
+        log.info(param.getNotify_id());
+        return "success";
+    }
 
     @ApiOperation("test")
     @GetMapping("/test")
@@ -89,18 +92,18 @@ public class ApiController {
 
 
     //   收银台接口
-    @ApiOperation("find")
-    @GetMapping("/getOne/{fortuneNo}")
-    public Rv<FortuneApiVO> getOne(@PathVariable String fortuneNo) {
-        return new Rv<>(serviceImpl.getOneByNo(fortuneNo));
-    }
+//    @ApiOperation("find")
+//    @GetMapping("/getOne/{fortuneNo}")
+//    public Rv<FortuneApiVO> getOne(@PathVariable String fortuneNo) {
+//        return new Rv<>(serviceImpl.getOneByNo(fortuneNo));
+//    }
 
     //   收银台接口
-    @ApiOperation("Poll")
-    @PostMapping("/poll")
-    public Rv<Boolean> drawerPoll(@RequestBody DrawerPollDTO dto) {
-        return new Rv<>(serviceImpl.dispenseCar(dto));
-    }
+//    @ApiOperation("Poll")
+//    @PostMapping("/poll")
+//    public Rv<Boolean> drawerPoll(@RequestBody DrawerPollDTO dto) {
+//        return new Rv<>(serviceImpl.dispenseCar(dto));
+//    }
 
 
 //    @ApiOperation("获取收单")

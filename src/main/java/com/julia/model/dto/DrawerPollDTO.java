@@ -17,9 +17,9 @@ import lombok.Setter;
 @ApiModel(value = "DrawerPollDTO", description = "DrawerPollDTO")
 public class DrawerPollDTO {
 
-    @ApiModelProperty("付款人账号")
-    private String drawer;
+    @ApiModelProperty("支付网址")
+    private String payUrl;
 
-    @ApiModelProperty("平台订单号")
-    private String fortuneNo;
+    @ApiModelProperty("订单编号")
+    private String orderNo;
 }

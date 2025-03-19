@@ -221,4 +221,18 @@ public class JuliaUtils {
         return targetTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
 
     }
+
+
+    public static String GeneratorOderNo(Integer playerId) {
+        long ct = System.currentTimeMillis();
+        Random random = new Random();
+        StringBuilder randomLetters = new StringBuilder();
+        for (int i = 0; i < 4; i++) {
+            // 生成一个随机的小写字母
+            char randomLetter = (char) ('A' + random.nextInt(26));
+            // 将随机字母添加到字符串构建器中
+            randomLetters.append(randomLetter);
+        }
+        return "GE" + ct + playerId + randomLetters;
+    }
 }

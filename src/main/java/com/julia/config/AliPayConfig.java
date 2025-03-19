@@ -38,8 +38,8 @@ public class AliPayConfig {
     @Value("${alipay.alipayCertPath}")
     private String alipay_cert_path;
 
-    @Value("${alipay.notifyUrl}")
-    private String notifyUrl;
+//    @Value("${alipay.notifyUrl}")
+//    private String notifyUrl;
 
     @Bean
     public AlipayClient alipayClient() throws AlipayApiException {
