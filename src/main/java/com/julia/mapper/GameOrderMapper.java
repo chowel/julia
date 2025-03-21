@@ -1,12 +1,12 @@
 package com.julia.mapper;
 
-import com.julia.entity.OrderEntity;
+import com.julia.entity.GameOrderEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 游戏充值订单表 Mapper 接口
  * </p>
  *
  * @author chowel
@@ -14,6 +14,6 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 
-public interface OrderMapper extends BaseMapper<OrderEntity> {
+public interface GameOrderMapper extends BaseMapper<GameOrderEntity> {
 
 }

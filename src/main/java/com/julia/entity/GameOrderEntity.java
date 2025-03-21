@@ -10,7 +10,7 @@ import lombok.Setter;
 
 /**
  * <p>
- * 
+ * 游戏充值订单表
  * </p>
  *
  * @author chowel
@@ -18,8 +18,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("order")
-public class OrderEntity extends BaseEntity {
+@TableName("game_order")
+public class GameOrderEntity extends BaseEntity {
 
     /**
      * 主键id

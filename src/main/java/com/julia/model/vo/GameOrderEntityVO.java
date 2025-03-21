@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.julia.tool.BaseEntity;
 
 import org.springframework.beans.BeanUtils;
-import com.julia.entity.OrderEntity;
+import com.julia.entity.GameOrderEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -15,7 +15,7 @@ import lombok.Setter;
 
 /**
  * <p>
- * 
+ * 游戏充值订单表
  * </p>
  *
  * @author chowel
@@ -23,8 +23,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@ApiModel(value = "OrderEntityVO", description = "VO")
-public class OrderEntityVO extends BaseEntity {
+@ApiModel(value = "GameOrderEntityVO", description = "游戏充值订单表VO")
+public class GameOrderEntityVO extends BaseEntity {
 
     @ApiModelProperty("主键id")
     private Integer orderId;

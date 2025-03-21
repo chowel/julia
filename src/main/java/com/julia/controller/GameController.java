@@ -1,11 +1,9 @@
 package com.julia.controller;
 
 import com.julia.model.dto.DrawerPollDTO;
-import com.julia.model.dto.LoginDto;
-import com.julia.model.vo.OrderEntityVO;
+import com.julia.model.vo.GameOrderEntityVO;
 import com.julia.model.vo.PayConfigEntityVO;
-import com.julia.model.vo.YaoEntityVO;
-import com.julia.service.IOrderService;
+import com.julia.service.IGameOrderService;
 import com.julia.service.IPayConfigService;
 import com.julia.tool.PlayerToken;
 import com.julia.tool.Rv;
@@ -33,7 +31,7 @@ public class GameController {
     IPayConfigService payConfigService;
 
     @Resource
-    IOrderService orderServiceImpl;
+    IGameOrderService gameOrderService;
 
     @ApiOperation("获取支付配置")
     @GetMapping("/getpayments")
@@ -44,9 +42,9 @@ public class GameController {
 
     @ApiOperation("添加订单")
     @PostMapping("/addOrder")
-    public Rv<DrawerPollDTO> createOrder(@RequestBody OrderEntityVO vo) {
+    public Rv<DrawerPollDTO> createOrder(@RequestBody GameOrderEntityVO vo) {
         vo.setPlayerId(PlayerToken.getLoginIdAsInt());
-        return new Rv<>(orderServiceImpl.saveOrderEntity(vo));
+        return new Rv<>(gameOrderService.saveGameOrderEntity(vo));
     }
 
 }
