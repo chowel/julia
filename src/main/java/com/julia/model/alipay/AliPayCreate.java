@@ -17,9 +17,9 @@ import java.util.List;
 @Getter
 @Setter
 public class AliPayCreate {
-/**
-* @Description: 必填
-*/
+    /**
+     * @Description: 必填
+     */
     private String outTradeNo;
     /**
      * @Description: 必填

@@ -49,56 +49,42 @@ public class AlipayService {
         // 构造请求参数以调用接口
         AlipayTradeWapPayRequest request = new AlipayTradeWapPayRequest();
         AlipayTradeWapPayModel model = new AlipayTradeWapPayModel();
-
         // 设置商户订单号
         model.setOutTradeNo(aliPayCreate.getOutTradeNo());
-
         // 设置订单总金额
         model.setTotalAmount(aliPayCreate.getTotalAmount());
-
         // 设置订单标题
         model.setSubject(aliPayCreate.getSubject());
-
         // 设置产品码
         model.setProductCode("QUICK_WAP_WAY");
-
         if (StringUtils.hasLength(aliPayCreate.getAuthToken())) {
             // 设置针对用户授权接口
             model.setAuthToken(aliPayCreate.getAuthToken());
         }
-
         if (StringUtils.hasLength(aliPayCreate.getQuitUrl())) {
             // 设置用户付款中途退出返回商户网站的地址
             model.setQuitUrl(aliPayCreate.getQuitUrl());
         }
-
         if (!ObjectUtils.isEmpty(aliPayCreate.getGoods()) && aliPayCreate.getGoods().size() > 1) {
             model.setGoodsDetail(aliPayCreate.getGoods());
         }
-
         if (StringUtils.hasLength(aliPayCreate.getTimeExpire())) {
             // 设置订单绝对超时时间
             model.setTimeExpire(aliPayCreate.getTimeExpire());
         }
-
         if (StringUtils.hasLength(aliPayCreate.getBusinessParams())) {
             model.setBusinessParams(aliPayCreate.getBusinessParams());
         }
-
         if (StringUtils.hasLength(aliPayCreate.getPassbackParams())) {
             model.setPassbackParams(aliPayCreate.getPassbackParams());
         }
-
         if (StringUtils.hasLength(aliPayCreate.getMerchantOrderNo())) {
             // 设置商户的原始订单号
             model.setMerchantOrderNo(aliPayCreate.getMerchantOrderNo());
         }
-
         request.setBizModel(model);
 
         AlipayTradeWapPayResponse response = alipayClient.pageExecute(request, "POST");
-
-
         if (response.isSuccess()) {
             log.info("调用成功");
             return response.getBody();
