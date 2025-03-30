@@ -1,6 +1,7 @@
 package com.julia.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.alipay.api.internal.util.AlipaySignature;
 import com.julia.mapper.ObtainMapper;
 import com.julia.model.CaptchaVo;
 import com.julia.model.alipay.CallbackParam;
@@ -23,15 +24,16 @@ import com.julia.tool.Rv;
 import io.netty.channel.Channel;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @program: julia
@@ -112,11 +114,33 @@ public class ApiController {
 //        return new Rv<>(serviceImpl.findOneByNo(dto.getFortuneNo()));
 //    }
 //
-//    @ApiOperation("发起回调")
-//    @PostMapping("/handCallBack")
-//    public Rv<Boolean> handCallBack(@RequestBody FortuneDTO dto) {
-//        return new Rv<>(serviceImpl.callBack(dto));
+@SneakyThrows
+@ApiOperation("支付宝订单支付回调")
+@PostMapping("/callback")
+public String callback(HttpServletRequest request) {
+    log.info("支付宝订单支付回调");
+    Map<String, String> params = new HashMap<String, String>();
+    Map requestParams = request.getParameterMap();
+    for (Iterator iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
+        String name = (String) iter.next();
+        String[] values = (String[]) requestParams.get(name);
+        String valueStr = "";
+        for (int i = 0; i < values.length; i++) {
+            valueStr = (i == values.length - 1) ? valueStr + values[i] : valueStr + values[i] + ",";
+        }
+        //乱码解决，这段代码在出现乱码时使用。
+        //valueStr = new String(valueStr.getBytes("ISO-8859-1"), "utf-8");
+        params.put(name, valueStr);
+    }
+//    boolean flag = AlipaySignature.rsaCertCheckV1(params, alipayCertPublicKey, "UTF-8", "RSA2");
+
+//    if (flag) {
+//        logger.info("验签通过");
+//        alipayService.handleCallBack(params);
+//        return "success";
 //    }
+    return "fail";
+}
 //
 //    @ApiOperation("创建财神")
 //    @PostMapping("/createFortune")

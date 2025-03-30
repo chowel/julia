@@ -42,7 +42,7 @@ public class SwaggerConfig implements WebMvcConfigurer {
     public Docket createRestApi() {
         ParameterBuilder platformToken = new ParameterBuilder();
         List<Parameter> pars = new ArrayList<Parameter>();
-        platformToken.name("julia").description("瑶瑶领先").modelRef(new ModelRef("string")).parameterType("header")
+        platformToken.name("klplayer").description("瑶瑶领先").modelRef(new ModelRef("string")).parameterType("header")
                 .required(false).build();
         pars.add(platformToken.build());
         ResponseMessage message500 = new ResponseMessageBuilder()
