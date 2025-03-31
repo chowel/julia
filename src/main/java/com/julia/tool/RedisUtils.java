@@ -766,7 +766,8 @@ public class RedisUtils {
      * * @param v2
      * * @return */
     public Set<Object> rangeByScore(String key, double v1, double v2) {
-        return redisTemplate.opsForZSet().rangeByScore(key, v1, v2);
+//        return redisTemplate.opsForZSet().rangeByScore(key, v1, v2);
+        return redisTemplate.opsForZSet().range(key,0,0);
     }
     /** * 删除指定value的值
      * *

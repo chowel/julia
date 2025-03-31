@@ -70,5 +70,8 @@ public interface IStackPlayerService extends IService<StackPlayerEntity> {
      * @Date:
      */
     StackPlayerEntityVO playerLogin(LoginDto dto);
+
+
+    StackPlayerEntity findPlayerForPay();
 }
 

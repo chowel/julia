@@ -47,26 +47,26 @@ public class GameOrderServiceImpl extends ServiceImpl<GameOrderMapper, GameOrder
 
     @Override
     public DrawerPollDTO saveGameOrderEntity(GameOrderEntityVO vo) {
-        GameOrderEntity order = JuliaUtils.convertTo(new GameOrderEntity(), vo);
-        order.setOrderNo(JuliaUtils.GeneratorOderNo(vo.getPlayerId()));
-        if (save(order)) {
-            // todo 去支付宝
-            AliPayCreate aliPayCreate = new AliPayCreate();
-            aliPayCreate.setOutTradeNo(order.getOrderNo());
-            aliPayCreate.setSubject(order.getSubject());
-            Long price =order.getTotal();
-
-            aliPayCreate.setTotalAmount(String.format("%.2f",price/100.0));
-
-            String payUrl =  alipayService.createPay(aliPayCreate);
-            if(StringUtils.hasLength(payUrl)){
-                DrawerPollDTO dto = new DrawerPollDTO();
-                dto.setOrderNo(order.getOrderNo());
-                dto.setPayUrl(payUrl);
-                return dto;
-            }
-
-        }
+//        GameOrderEntity order = JuliaUtils.convertTo(new GameOrderEntity(), vo);
+//        order.setOrderNo(JuliaUtils.GeneratorOderNo(vo.getPlayerId()));
+//        if (save(order)) {
+//            // todo 去支付宝
+//            AliPayCreate aliPayCreate = new AliPayCreate();
+//            aliPayCreate.setOutTradeNo(order.getOrderNo());
+//            aliPayCreate.setSubject(order.getSubject());
+//            Long price =order.getTotal();
+//
+//            aliPayCreate.setTotalAmount(String.format("%.2f",price/100.0));
+//
+//            String payUrl =  alipayService.createPay(aliPayCreate);
+//            if(StringUtils.hasLength(payUrl)){
+//                DrawerPollDTO dto = new DrawerPollDTO();
+//                dto.setOrderNo(order.getOrderNo());
+//                dto.setPayUrl(payUrl);
+//                return dto;
+//            }
+//
+//        }
         return null;
     }
 

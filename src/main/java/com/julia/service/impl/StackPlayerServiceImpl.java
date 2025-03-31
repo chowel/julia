@@ -4,18 +4,23 @@ import cn.dev33.satoken.secure.BCrypt;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.entity.StackPlayerEntity;
+import com.julia.enums.RedisKeyEnum;
 import com.julia.mapper.StackPlayerMapper;
 import com.julia.model.dto.LoginDto;
 import com.julia.service.IStackPlayerService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.julia.tool.JuliaException;
 import com.julia.tool.PlayerToken;
+import com.julia.tool.RedisUtils;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.StackPlayerEntityVO;
 import com.julia.tool.JuliaUtils;
 import com.julia.model.QueryPagement;
 import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +33,10 @@ import java.util.stream.Collectors;
  */
 @Service
 public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, StackPlayerEntity> implements IStackPlayerService {
+
+    @Resource
+    RedisUtils redisUtils;
+
     @Override
     public Page<StackPlayerEntityVO> findForPage(QueryPagement queryPagement) {
         Page<StackPlayerEntity> p = new LambdaQueryChainWrapper<StackPlayerEntity>(getBaseMapper()).page(new Page<StackPlayerEntity>(queryPagement.getStartPage(),
@@ -45,8 +54,8 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
 
     @Override
     public Boolean saveStackPlayerEntity(LoginDto dto) {
-        StackPlayerEntity player = this.lambdaQuery().eq(StackPlayerEntity::getLoginName,dto.getName()).one();
-        if(!ObjectUtils.isEmpty(player)){
+        StackPlayerEntity player = this.lambdaQuery().eq(StackPlayerEntity::getLoginName, dto.getName()).one();
+        if (!ObjectUtils.isEmpty(player)) {
             throw new JuliaException("该用户已存在");
         }
         player = new StackPlayerEntity();
@@ -83,6 +92,28 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
         vo.setToken(PlayerToken.getTokenValue());
         vo.setPassword("****");
         return vo;
+    }
+
+    @Override
+    public StackPlayerEntity findPlayerForPay() {
+        if (redisUtils.hasKey(RedisKeyEnum.PLAYERSZET.getKey())) {
+            Set<Object> playersSet = redisUtils.rangeByScore(RedisKeyEnum.PLAYERSZET.getKey(), 0, 0);
+            StackPlayerEntity entity = new StackPlayerEntity();
+            if (playersSet.size() > 0) {
+                for (Object e : playersSet) {
+                    entity = (StackPlayerEntity) e;
+                }
+                return entity;
+            }
+        } else {
+            List<StackPlayerEntity> list = lambdaQuery().list();
+            list.forEach(player -> {
+                redisUtils.addZset(RedisKeyEnum.PLAYERSZET.getKey(), player, player.getCoin());
+            });
+            redisUtils.expire(RedisKeyEnum.PLAYERSZET.getKey(), 3600 * 48);
+            return list.get(0);
+        }
+        return null;
     }
 }
 

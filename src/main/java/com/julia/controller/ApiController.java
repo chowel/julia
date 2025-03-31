@@ -2,6 +2,8 @@ package com.julia.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.alipay.api.internal.util.AlipaySignature;
+import com.julia.entity.StackPlayerEntity;
+import com.julia.entity.alipaymodel.PayByAliPay;
 import com.julia.mapper.ObtainMapper;
 import com.julia.model.CaptchaVo;
 import com.julia.model.alipay.CallbackParam;
@@ -9,17 +11,16 @@ import com.julia.model.dto.DrawerPollDTO;
 import com.julia.model.dto.FortuneDTO;
 import com.julia.model.dto.LoginDto;
 import com.julia.model.dto.NewFortuneDTO;
-import com.julia.model.vo.CreateFortuneVO;
-import com.julia.model.vo.FortuneApiVO;
-import com.julia.model.vo.StackPlayerEntityVO;
-import com.julia.model.vo.YaoEntityVO;
+import com.julia.model.vo.*;
 import com.julia.service.IFortuneService;
 import com.julia.service.IStackPlayerService;
 import com.julia.service.IYaoService;
+import com.julia.service.impl.AlipayService;
 import com.julia.service.impl.WebSocketService;
 import com.julia.socket.ChannelPond;
 import com.julia.tool.Captcha;
 import com.julia.tool.JuliaUtils;
+import com.julia.tool.PlayerToken;
 import com.julia.tool.Rv;
 import io.netty.channel.Channel;
 import io.swagger.annotations.Api;
@@ -51,10 +52,10 @@ public class ApiController {
     IYaoService yaoService;
 
     @Resource
-    IFortuneService serviceImpl;
+    IStackPlayerService playerService;
 
     @Resource
-    IStackPlayerService playerService;
+    AlipayService alipayService;
 
     @ApiOperation("登陆/获取token")
     @PostMapping("/login")
@@ -74,64 +75,49 @@ public class ApiController {
         return new Rv<>(playerService.saveStackPlayerEntity(dto));
     }
 
-    @ApiOperation("回调函数")
-    @GetMapping("/callBack")
-    public String alipayCallBack(CallbackParam param) {
-        log.info(param.getNotify_id());
-        return "success";
-    }
+//    @ApiOperation("回调函数")
+//    @GetMapping("/callBack")
+//    public String alipayCallBack(CallbackParam param) {
+//        log.info(param.getNotify_id());
+//        return "success";
+//    }
 
     @ApiOperation("test")
     @GetMapping("/test")
     public Rv<String> test() {
-        Channel c  = ChannelPond.findChannel("5");
-        if(!ObjectUtils.isEmpty(c)){
-            ChannelPond.removeChannel(c);
-        }
-
-        return new Rv<>("OK: ");
+//        Channel c = ChannelPond.findChannel("5");
+//        if (!ObjectUtils.isEmpty(c)) {
+//            ChannelPond.removeChannel(c);
+//        }
+        StackPlayerEntity entity =  playerService.findPlayerForPay();
+        return new Rv<>(entity.getNickName());
     }
 
-
-    //   收银台接口
-//    @ApiOperation("find")
-//    @GetMapping("/getOne/{fortuneNo}")
-//    public Rv<FortuneApiVO> getOne(@PathVariable String fortuneNo) {
-//        return new Rv<>(serviceImpl.getOneByNo(fortuneNo));
-//    }
-
-    //   收银台接口
-//    @ApiOperation("Poll")
-//    @PostMapping("/poll")
-//    public Rv<Boolean> drawerPoll(@RequestBody DrawerPollDTO dto) {
-//        return new Rv<>(serviceImpl.dispenseCar(dto));
-//    }
-
-
-//    @ApiOperation("获取收单")
-//    @PostMapping("/getFortune")
-//    public Rv<FortuneApiVO> getFortune(@RequestBody FortuneDTO dto) {
-//        return new Rv<>(serviceImpl.findOneByNo(dto.getFortuneNo()));
-//    }
-//
-@SneakyThrows
-@ApiOperation("支付宝订单支付回调")
-@PostMapping("/callback")
-public String callback(HttpServletRequest request) {
-    log.info("支付宝订单支付回调");
-    Map<String, String> params = new HashMap<String, String>();
-    Map requestParams = request.getParameterMap();
-    for (Iterator iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
-        String name = (String) iter.next();
-        String[] values = (String[]) requestParams.get(name);
-        String valueStr = "";
-        for (int i = 0; i < values.length; i++) {
-            valueStr = (i == values.length - 1) ? valueStr + values[i] : valueStr + values[i] + ",";
-        }
-        //乱码解决，这段代码在出现乱码时使用。
-        //valueStr = new String(valueStr.getBytes("ISO-8859-1"), "utf-8");
-        params.put(name, valueStr);
+    @ApiOperation("添加订单")
+    @PostMapping("/pay")
+    public Rv<DrawerPollDTO> createOrderByPay(@RequestBody PayByAliPay vo) {
+        return new Rv<>(alipayService.savePay(vo));
     }
+
+    @SneakyThrows
+    @ApiOperation("支付宝订单支付回调")
+    @PostMapping("/callback")
+    public String callback(HttpServletRequest request) {
+        log.info("支付宝订单支付回调");
+        Map<String, String> params = new HashMap<String, String>();
+        Map requestParams = request.getParameterMap();
+        for (Iterator iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
+            String name = (String) iter.next();
+            String[] values = (String[]) requestParams.get(name);
+            String valueStr = "";
+            for (int i = 0; i < values.length; i++) {
+                valueStr = (i == values.length - 1) ? valueStr + values[i] : valueStr + values[i] + ",";
+            }
+            //乱码解决，这段代码在出现乱码时使用。
+            //valueStr = new String(valueStr.getBytes("ISO-8859-1"), "utf-8");
+            log.info("Name: {}  Value:{}", name, valueStr);
+            params.put(name, valueStr);
+        }
 //    boolean flag = AlipaySignature.rsaCertCheckV1(params, alipayCertPublicKey, "UTF-8", "RSA2");
 
 //    if (flag) {
@@ -139,8 +125,8 @@ public String callback(HttpServletRequest request) {
 //        alipayService.handleCallBack(params);
 //        return "success";
 //    }
-    return "fail";
-}
+        return "fail";
+    }
 //
 //    @ApiOperation("创建财神")
 //    @PostMapping("/createFortune")

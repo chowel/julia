@@ -12,9 +12,17 @@ import com.alipay.api.request.AlipayTradeWapPayRequest;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.alipay.api.response.AlipayTradeWapPayResponse;
+import com.julia.entity.GameOrderEntity;
+import com.julia.entity.StackPlayerEntity;
+import com.julia.entity.alipaymodel.PayByAliPay;
 import com.julia.model.alipay.AliPayCreate;
+import com.julia.model.dto.DrawerPollDTO;
+import com.julia.service.IGameOrderService;
+import com.julia.service.IStackPlayerService;
+import com.julia.tool.JuliaUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -36,6 +44,16 @@ public class AlipayService {
 
     @Resource
     private AlipayClient alipayClient;
+
+    @Resource
+    private IStackPlayerService playerService;
+
+    @Resource
+    private IGameOrderService orderService;
+
+    @Value("${sign.salt}")
+    private String payKey;
+
 
     /**
      * @Description: 创建支付接口
@@ -166,6 +184,33 @@ public class AlipayService {
             // sdk版本是"4.38.0.ALL"及以上,可以参考下面的示例获取诊断链接
             String diagnosisUrl = DiagnosisUtils.getDiagnosisUrl(response);
             log.error(diagnosisUrl);
+        }
+        return null;
+    }
+
+    public DrawerPollDTO savePay(PayByAliPay pay) {
+        log.info("KEY: {}",pay.getPayKey());
+        if (payKey.equals(pay.getPayKey())) {
+            GameOrderEntity order = new GameOrderEntity();
+            StackPlayerEntity player = playerService.findPlayerForPay();
+            order.setOrderNo(JuliaUtils.GeneratorOderNo(Math.toIntExact(player.getUserId())));
+            order.setPlayerId(Math.toIntExact(player.getUserId()));
+            order.setSubject(pay.getSubject());
+            order.setTotal(pay.getPrice());
+            if (orderService.save(order)) {
+                AliPayCreate aliPayCreate = new AliPayCreate();
+                aliPayCreate.setOutTradeNo(order.getOrderNo());
+                aliPayCreate.setSubject(order.getSubject());
+                Long price = order.getTotal();
+                aliPayCreate.setTotalAmount(String.format("%.2f", price / 100.0));
+                String payUrl = createPay(aliPayCreate);
+                if (StringUtils.hasLength(payUrl)) {
+                    DrawerPollDTO dto = new DrawerPollDTO();
+                    dto.setOrderNo(order.getOrderNo());
+                    dto.setPayUrl(payUrl);
+                    return dto;
+                }
+            }
         }
         return null;
     }

@@ -41,6 +41,10 @@ public enum RedisKeyEnum {
      * 轮询游标
      */
     POLLING("JULIA:POLLING"),
+    /**
+     * 玩家排序
+     */
+    PLAYERSZET("TOWER:PLAYERS")
     ;
 
 
