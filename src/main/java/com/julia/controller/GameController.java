@@ -5,6 +5,7 @@ import com.julia.model.vo.GameOrderEntityVO;
 import com.julia.model.vo.PayConfigEntityVO;
 import com.julia.service.IGameOrderService;
 import com.julia.service.IPayConfigService;
+import com.julia.service.impl.AlipayService;
 import com.julia.tool.PlayerToken;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
@@ -31,6 +32,9 @@ public class GameController {
     IPayConfigService payConfigService;
 
     @Resource
+    AlipayService alipayService;
+
+    @Resource
     IGameOrderService gameOrderService;
 
     @ApiOperation("获取支付配置")
@@ -40,11 +44,14 @@ public class GameController {
     }
 
 
-    @ApiOperation("添加订单")
-    @PostMapping("/addOrder")
-    public Rv<DrawerPollDTO> createOrder(@RequestBody GameOrderEntityVO vo) {
+    @ApiOperation("预添加订单")
+    @PostMapping("/preAddOrder")
+    public Rv<DrawerPollDTO> preAddOrder(@RequestBody GameOrderEntityVO vo) {
         vo.setPlayerId(PlayerToken.getLoginIdAsInt());
-        return new Rv<>(gameOrderService.saveGameOrderEntity(vo));
+        return new Rv<>(gameOrderService.preCreateOrder(vo));
     }
+
+
+
 
 }

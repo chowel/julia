@@ -20,4 +20,6 @@ public class PayByAliPay {
 
     private String subject;
 
+    private String orderNo;
+
 }

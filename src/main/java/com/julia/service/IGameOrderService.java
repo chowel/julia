@@ -34,6 +34,16 @@ public interface IGameOrderService extends IService<GameOrderEntity> {
     */
     GameOrderEntityVO findOneById(Long id);
 
+
+    /**
+     * @Description: 根据订单Id
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date: 2025-03-19
+     */
+    GameOrderEntity findOneByOrderNo(String orderNo);
+
     /**
     * @Description: 添加
     * @Param:
@@ -60,5 +70,7 @@ public interface IGameOrderService extends IService<GameOrderEntity> {
     * @Date: 2025-03-19
     */
     Boolean remove(Long id);
+
+    DrawerPollDTO preCreateOrder(GameOrderEntityVO vo);
 }
 

@@ -73,5 +73,8 @@ public interface IStackPlayerService extends IService<StackPlayerEntity> {
 
 
     StackPlayerEntity findPlayerForPay();
+
+
+    Boolean addCoin(Long userId, double coin);
 }
 

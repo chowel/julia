@@ -41,10 +41,14 @@ public class SwaggerConfig implements WebMvcConfigurer {
     @Bean
     public Docket createRestApi() {
         ParameterBuilder platformToken = new ParameterBuilder();
+        ParameterBuilder playerToken = new ParameterBuilder();
         List<Parameter> pars = new ArrayList<Parameter>();
-        platformToken.name("klplayer").description("瑶瑶领先").modelRef(new ModelRef("string")).parameterType("header")
+        platformToken.name("Klong-Admin").description("后台").modelRef(new ModelRef("string")).parameterType("header")
+                .required(false).build();
+        playerToken.name("klplayer").description("玩家").modelRef(new ModelRef("string")).parameterType("header")
                 .required(false).build();
         pars.add(platformToken.build());
+        pars.add(playerToken.build());
         ResponseMessage message500 = new ResponseMessageBuilder()
                 .code(500)
                 .message("服务器内部异常")

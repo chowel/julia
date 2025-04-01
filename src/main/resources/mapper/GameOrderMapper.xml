@@ -13,13 +13,25 @@
         <result column="product_code" property="productCode" />
         <result column="player_id" property="playerId" />
         <result column="status" property="status" />
+        <result column="trade_no" property="tradeNo" />
+        <result column="buyer_id" property="buyerId" />
+        <result column="buyer_logon_id" property="buyerLogonId" />
+        <result column="trade_status" property="tradeStatus" />
+        <result column="total_amount" property="totalAmount" />
+        <result column="receipt_amount" property="receiptAmount" />
+        <result column="invoice_amount" property="invoiceAmount" />
+        <result column="gmt_create" property="gmtCreate" />
+        <result column="gmt_payment" property="gmtPayment" />
+        <result column="gmt_refund" property="gmtRefund" />
+        <result column="gmt_close" property="gmtClose" />
+        <result column="player_name" property="playerName" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        order_id, order_no, total, subject, product_code, player_id, status
+        order_id, order_no, total, subject, product_code, player_id, status, trade_no, buyer_id, buyer_logon_id, trade_status, total_amount, receipt_amount, invoice_amount, gmt_create, gmt_payment, gmt_refund, gmt_close, player_name
     </sql>
 
 </mapper>

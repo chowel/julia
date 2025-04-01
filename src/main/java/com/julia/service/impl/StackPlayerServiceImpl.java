@@ -21,6 +21,7 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 /**
@@ -114,6 +115,14 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
             return list.get(0);
         }
         return null;
+    }
+
+    @Override
+    public Boolean addCoin(Long userId, double coin) {
+        StackPlayerEntity player = getById(userId);
+        redisUtils.addScore(RedisKeyEnum.PLAYERSZET.getKey(), player, coin);
+        player.setCoin((int) (player.getCoin() + coin));
+        return updateById(player);
     }
 }
 

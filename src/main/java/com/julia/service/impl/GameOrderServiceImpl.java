@@ -3,11 +3,13 @@ package com.julia.service.impl;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.entity.GameOrderEntity;
+import com.julia.entity.StackPlayerEntity;
 import com.julia.mapper.GameOrderMapper;
 import com.julia.model.alipay.AliPayCreate;
 import com.julia.model.dto.DrawerPollDTO;
 import com.julia.service.IGameOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.julia.service.IStackPlayerService;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.GameOrderEntityVO;
 import com.julia.tool.JuliaUtils;
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
 public class GameOrderServiceImpl extends ServiceImpl<GameOrderMapper, GameOrderEntity> implements IGameOrderService {
 
     @Resource
-    AlipayService alipayService;
+    private IStackPlayerService playerService;
 
     @Override
     public Page<GameOrderEntityVO> findForPage(QueryPagement queryPagement) {
@@ -43,6 +45,11 @@ public class GameOrderServiceImpl extends ServiceImpl<GameOrderMapper, GameOrder
     public GameOrderEntityVO findOneById(Long id) {
             GameOrderEntity entity = getById(id);
             return JuliaUtils.convertTo(new GameOrderEntityVO(), entity);
+    }
+
+    @Override
+    public GameOrderEntity findOneByOrderNo(String orderNo) {
+        return lambdaQuery().eq(GameOrderEntity::getOrderNo,orderNo).one();
     }
 
     @Override
@@ -78,6 +85,21 @@ public class GameOrderServiceImpl extends ServiceImpl<GameOrderMapper, GameOrder
     @Override
     public Boolean remove(Long id) {
             return removeById(id);
+    }
+
+    @Override
+    public DrawerPollDTO preCreateOrder(GameOrderEntityVO vo) {
+        StackPlayerEntity player = playerService.getById(vo.getPlayerId());
+        GameOrderEntity order = JuliaUtils.convertTo(new GameOrderEntity(), vo);
+        order.setOrderNo(JuliaUtils.GeneratorOderNo(vo.getPlayerId()));
+        order.setPlayerName(player.getNickName());
+        order.setStatus(6);
+        if (save(order)) {
+            DrawerPollDTO dto = new DrawerPollDTO();
+            dto.setOrderNo(order.getOrderNo());
+            return dto;
+        }
+        return null;
     }
 }
 

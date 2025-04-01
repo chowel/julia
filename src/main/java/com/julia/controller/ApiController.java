@@ -3,6 +3,7 @@ package com.julia.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.julia.entity.StackPlayerEntity;
+import com.julia.entity.alipaymodel.AlipayResposeVO;
 import com.julia.entity.alipaymodel.PayByAliPay;
 import com.julia.mapper.ObtainMapper;
 import com.julia.model.CaptchaVo;
@@ -27,6 +28,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -57,6 +59,9 @@ public class ApiController {
     @Resource
     AlipayService alipayService;
 
+    @Value("${alipay.alipayCertPath}")
+    private String alipayCertPublicKey;
+
     @ApiOperation("登陆/获取token")
     @PostMapping("/login")
     public Rv<YaoEntityVO> platLogin(@RequestBody LoginDto dto) {
@@ -75,12 +80,18 @@ public class ApiController {
         return new Rv<>(playerService.saveStackPlayerEntity(dto));
     }
 
-//    @ApiOperation("回调函数")
-//    @GetMapping("/callBack")
-//    public String alipayCallBack(CallbackParam param) {
-//        log.info(param.getNotify_id());
-//        return "success";
-//    }
+    @ApiOperation("订单查询")
+    @PostMapping("/queryAlipayOrder")
+    public Rv<AlipayResposeVO> queryAlipayOrder(@RequestBody PayByAliPay vo) {
+        return new Rv<>(alipayService.queryPay(vo));
+    }
+
+
+    @ApiOperation("订单退款")
+    @PostMapping("/refundAlipayOrder")
+    public Rv<Boolean> refundAlipayOrder(@RequestBody PayByAliPay vo) {
+        return new Rv<>(alipayService.refundPay(vo));
+    }
 
     @ApiOperation("test")
     @GetMapping("/test")
@@ -89,8 +100,9 @@ public class ApiController {
 //        if (!ObjectUtils.isEmpty(c)) {
 //            ChannelPond.removeChannel(c);
 //        }
-        StackPlayerEntity entity =  playerService.findPlayerForPay();
-        return new Rv<>(entity.getNickName());
+//        StackPlayerEntity entity =  playerService.findPlayerForPay();
+        playerService.addCoin(23L,1000);
+        return new Rv<>("OK");
     }
 
     @ApiOperation("添加订单")
@@ -118,20 +130,19 @@ public class ApiController {
             log.info("Name: {}  Value:{}", name, valueStr);
             params.put(name, valueStr);
         }
-//    boolean flag = AlipaySignature.rsaCertCheckV1(params, alipayCertPublicKey, "UTF-8", "RSA2");
+    boolean flag = AlipaySignature.rsaCertCheckV1(params, alipayCertPublicKey, "UTF-8", "RSA2");
 
-//    if (flag) {
-//        logger.info("验签通过");
-//        alipayService.handleCallBack(params);
-//        return "success";
-//    }
+    if (flag) {
+        log.info("回调验签通过");
+        alipayService.handleCallBack(params);
+        return "success";
+    }
         return "fail";
     }
-//
-//    @ApiOperation("创建财神")
-//    @PostMapping("/createFortune")
-//    public Rv<CreateFortuneVO> createFortune(@RequestBody NewFortuneDTO dto) {
-//        String panId = (String) StpUtil.getLoginIdByToken(dto.getToken());
-//        return new Rv<>(serviceImpl.addFortune(dto, Integer.parseInt(panId)));
-//    }
+
+    @ApiOperation("创建订单")
+    @PostMapping("/addOrder")
+    public Rv<DrawerPollDTO> addOrder(@RequestBody GameOrderEntityVO vo) {
+        return new Rv<>(alipayService.savePayFormGame(vo.getOrderNo()));
+    }
 }

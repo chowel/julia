@@ -23,7 +23,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
         // 注册Sa-Token的路由拦截器
         registry.addInterceptor(new SaRouteInterceptor((req, res, handler)->{
             SaRouter.match("/kl/profess/**", AdminToken::checkLogin);
-            SaRouter.match("/kl/v1/**", PlayerToken::checkLogin);
+            SaRouter.match("/kl/game/**", PlayerToken::checkLogin);
         })).addPathPatterns("/**").excludePathPatterns("/swagger-resources/**","/swagger-**","/swagger-ui.**",
                 "/kl/api/**");
     }

@@ -22,4 +22,8 @@ public class DrawerPollDTO {
 
     @ApiModelProperty("订单编号")
     private String orderNo;
+    @ApiModelProperty("订单价格")
+    private String price;
+    @ApiModelProperty("订单主题")
+    private String subject;
 }
