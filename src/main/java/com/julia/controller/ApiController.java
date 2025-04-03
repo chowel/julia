@@ -145,4 +145,10 @@ public class ApiController {
     public Rv<DrawerPollDTO> addOrder(@RequestBody GameOrderEntityVO vo) {
         return new Rv<>(alipayService.savePayFormGame(vo.getOrderNo()));
     }
+
+    @ApiOperation("发起回调")
+    @PostMapping("/sendCallback")
+    public Rv<Boolean> sendCallback(@RequestBody PayByAliPay vo) {
+        return new Rv<>(alipayService.reqCallBack(vo));
+    }
 }

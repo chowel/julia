@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
@@ -207,39 +208,30 @@ public class AlipayService {
      */
     @SneakyThrows
     public Boolean refundPay(PayByAliPay dto) {
-        YaoEntity jh = yaoService.getCallBackOrKey("jiahe");
-        if (!jh.getAvatar().equals(dto.getPayKey())) {
-            throw new JuliaException("非法参数");
+        GameOrderEntity order = orderService.getOne(new QueryWrapper<GameOrderEntity>()
+                .eq(StringUtils.hasLength(dto.getOrderNo()),"order_no", dto.getOrderNo())
+                .eq(StringUtils.hasLength(dto.getPayKey()),"merchant_no",dto.getPayKey())
+                .eq(StringUtils.hasLength(dto.getOutOrderNo()),"out_order_no",dto.getOutOrderNo())
+        );
+
+        if(ObjectUtils.isEmpty(order)){
+            throw new JuliaException("订单不存在");
         }
-        GameOrderEntity order = orderService.getOne(new QueryWrapper<GameOrderEntity>().eq("order_no", dto.getOrderNo()));
-        if (ObjectUtils.isEmpty(order)) {
-            throw new JuliaException("非法参数");
-        }
-        // 构造请求参数以调用接口
         AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
         AlipayTradeRefundModel model = new AlipayTradeRefundModel();
-
-
         model.setOutTradeNo(dto.getOrderNo());
-
         Long price = order.getTotal();
-        // 设置退款金额
         model.setRefundAmount(String.format("%.2f", price / 100.0));
-//        request.setNotifyUrl(notifyUrl);
         request.setBizModel(model);
-
         AlipayTradeRefundResponse response = alipayClient.certificateExecute(request);
-
         if (response.isSuccess()) {
             log.info("调用退款成功");
             if ("Y".equals(response.getFundChange())) {
                 order.setStatus(4);
                 order.setTradeStatus("TRADE_CLOSED");
                 orderService.updateById(order);
-
                 return true;
             }
-
         } else {
             // sdk版本是"4.38.0.ALL"及以上,可以参考下面的示例获取诊断链接
             String diagnosisUrl = DiagnosisUtils.getDiagnosisUrl(response);
@@ -284,6 +276,7 @@ public class AlipayService {
                     dto.setPayUrl(payUrl);
                     dto.setPrice(String.format("%.2f", price / 100.0));
                     dto.setSubject(order.getSubject());
+                    dto.setOutOrderNo(order.getOutOrderNo());
                     return dto;
                 }
             }
@@ -355,13 +348,13 @@ public class AlipayService {
                 Long price = order.getTotal();
                 Map<String, Object> callBackParams = new HashMap<>(5);
                 String sign = order.getOrderNo() + jh.getAvatar();
-                params.put("orderNo", order.getOrderNo());
-                params.put("outOrderNo", order.getOutOrderNo());
-                params.put("totalAmount", String.format("%.2f", price / 100.0));
-                params.put("tradeStatus", order.getTradeStatus());
-                params.put("payTime", String.valueOf(order.getGmtPayment()));
-                params.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
-                rocketService.handleCallBack(jh.getCallback(), callBackParams);
+                callBackParams.put("orderNo", order.getOrderNo());
+                callBackParams.put("outOrderNo", order.getOutOrderNo());
+                callBackParams.put("totalAmount", String.format("%.2f", price / 100.0));
+                callBackParams.put("tradeStatus", order.getTradeStatus());
+                callBackParams.put("payTime", String.valueOf(order.getGmtPayment()));
+                callBackParams.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
+                rocketService.handleCallBack(order.getUrl(), callBackParams);
             }
         }
     }
@@ -385,6 +378,32 @@ public class AlipayService {
             return dto;
         }
         return null;
+    }
+
+    public boolean reqCallBack(PayByAliPay vo){
+        GameOrderEntity order = orderService.getOne(new QueryWrapper<GameOrderEntity>()
+                .eq(StringUtils.hasLength(vo.getOrderNo()),"order_no", vo.getOrderNo())
+                .eq(StringUtils.hasLength(vo.getPayKey()),"merchant_no",vo.getPayKey())
+                .eq(StringUtils.hasLength(vo.getOutOrderNo()),"out_order_no",vo.getOutOrderNo())
+        );
+
+        if(ObjectUtils.isEmpty(order)){
+            throw new JuliaException("订单不存在");
+        }
+        if (StringUtils.hasLength(order.getUrl())) {
+            YaoEntity jh = yaoService.getCallBackOrKey("jiahe");
+            Long price = order.getTotal();
+            Map<String, Object> callBackParams = new HashMap<>(5);
+            String sign = order.getOrderNo() + jh.getAvatar();
+            callBackParams.put("orderNo", order.getOrderNo());
+            callBackParams.put("outOrderNo", order.getOutOrderNo());
+            callBackParams.put("totalAmount", String.format("%.2f", price / 100.0));
+            callBackParams.put("tradeStatus", order.getTradeStatus());
+            callBackParams.put("payTime", String.valueOf(order.getGmtPayment()));
+            callBackParams.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
+            rocketService.handleCallBack(order.getUrl(), callBackParams);
+        }
+        return true;
     }
 
 }
