@@ -265,8 +265,8 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
 
         return true;
     }
-
-    protected String handleCallBack(String url, Map<String, Object> params) {
+    @Override
+    public String handleCallBack(String url, Map<String, Object> params) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 

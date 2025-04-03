@@ -15,26 +15,34 @@ import com.alipay.api.response.AlipayTradeWapPayResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.julia.entity.GameOrderEntity;
 import com.julia.entity.StackPlayerEntity;
+import com.julia.entity.YaoEntity;
 import com.julia.entity.alipaymodel.AlipayResposeVO;
 import com.julia.entity.alipaymodel.PayByAliPay;
+import com.julia.enums.RedisKeyEnum;
 import com.julia.model.alipay.AliPayCreate;
 import com.julia.model.dto.DrawerPollDTO;
 import com.julia.model.vo.GameOrderEntityVO;
 import com.julia.service.IGameOrderService;
+import com.julia.service.IRocketService;
 import com.julia.service.IStackPlayerService;
+import com.julia.service.IYaoService;
 import com.julia.tool.JuliaException;
 import com.julia.tool.JuliaUtils;
+import com.julia.tool.RedisUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,8 +66,14 @@ public class AlipayService {
     @Resource
     private IGameOrderService orderService;
 
-    @Value("${sign.salt}")
-    private String payKey;
+    @Resource
+    private IYaoService yaoService;
+
+    @Resource
+    private IRocketService rocketService;
+
+    @Resource
+    private RedisUtils redisUtils;
 
 
     @Value("${alipay.notifyUrl}")
@@ -113,8 +127,13 @@ public class AlipayService {
         }
         request.setNotifyUrl(notifyUrl);
         request.setBizModel(model);
+        AlipayTradeWapPayResponse response;
+        if (aliPayCreate.getMethod() == 1) {
+            response = alipayClient.pageExecute(request, "POST");
+        } else {
+            response = alipayClient.pageExecute(request, "GET");
+        }
 
-        AlipayTradeWapPayResponse response = alipayClient.pageExecute(request, "POST");
         if (response.isSuccess()) {
             log.info("调用成功");
             return response.getBody();
@@ -136,9 +155,19 @@ public class AlipayService {
     @SneakyThrows
     public AlipayResposeVO queryPay(PayByAliPay dto) {
 
-        if (!payKey.equals(dto.getPayKey())) {
-            throw new JuliaException("非法参数");
+        GameOrderEntity order = orderService.getOne(new QueryWrapper<GameOrderEntity>()
+                .eq(StringUtils.hasLength(dto.getOrderNo()),"order_no", dto.getOrderNo())
+                .eq(StringUtils.hasLength(dto.getPayKey()),"merchant_no",dto.getPayKey())
+                .eq(StringUtils.hasLength(dto.getOutOrderNo()),"out_order_no",dto.getOutOrderNo())
+        );
+
+        if(ObjectUtils.isEmpty(order)){
+            throw new JuliaException("订单不存在");
         }
+//        YaoEntity jh = yaoService.getCallBackOrKey("jiahe");
+//        if (!jh.getAvatar().equals(dto.getPayKey())) {
+//            throw new JuliaException("非法参数");
+//        }
         // 构造请求参数以调用接口
         AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
         AlipayTradeQueryModel model = new AlipayTradeQueryModel();
@@ -148,21 +177,25 @@ public class AlipayService {
         request.setBizModel(model);
 
         AlipayTradeQueryResponse response = alipayClient.certificateExecute(request);
+        AlipayResposeVO resposeVO = new AlipayResposeVO();
+        resposeVO.setOrderNo(order.getOrderNo());
+        resposeVO.setOutOrderNo(order.getOutOrderNo());
+        Long price = order.getTotal();
+        resposeVO.setTotalAmount(String.format("%.2f", price / 100.0));
 
         if (response.isSuccess()) {
-//            log.info("query trade_status : {}", response.getTradeStatus());
-//            log.info("query total_amount : {}", response.getTotalAmount());
-            AlipayResposeVO resposeVO = new AlipayResposeVO();
-            resposeVO.setOrderNo(response.getOutTradeNo());
-            resposeVO.setTotalAmount(response.getTotalAmount());
-            resposeVO.setTradeStats(response.getTradeStatus());
-            return resposeVO;
+            if(!response.getTradeStatus().equals(order.getTradeStatus())){
+                order.setTradeStatus(response.getTradeStatus());
+                orderService.save(order);
+            }
+            resposeVO.setTradeStatus(response.getTradeStatus());
         } else {
             // sdk版本是"4.38.0.ALL"及以上,可以参考下面的示例获取诊断链接
             String diagnosisUrl = DiagnosisUtils.getDiagnosisUrl(response);
             log.error(diagnosisUrl);
+            resposeVO.setTradeStatus(order.getTradeStatus());
         }
-        return null;
+        return resposeVO;
     }
 
     /**
@@ -174,8 +207,8 @@ public class AlipayService {
      */
     @SneakyThrows
     public Boolean refundPay(PayByAliPay dto) {
-
-        if (!payKey.equals(dto.getPayKey())) {
+        YaoEntity jh = yaoService.getCallBackOrKey("jiahe");
+        if (!jh.getAvatar().equals(dto.getPayKey())) {
             throw new JuliaException("非法参数");
         }
         GameOrderEntity order = orderService.getOne(new QueryWrapper<GameOrderEntity>().eq("order_no", dto.getOrderNo()));
@@ -201,7 +234,9 @@ public class AlipayService {
             log.info("调用退款成功");
             if ("Y".equals(response.getFundChange())) {
                 order.setStatus(4);
+                order.setTradeStatus("TRADE_CLOSED");
                 orderService.updateById(order);
+
                 return true;
             }
 
@@ -213,9 +248,16 @@ public class AlipayService {
         return false;
     }
 
+    /**
+     * @Description: 非游戏创建订单
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
     public DrawerPollDTO savePay(PayByAliPay pay) {
-        log.info("KEY: {}", pay.getPayKey());
-        if (payKey.equals(pay.getPayKey())) {
+        YaoEntity jh = yaoService.getCallBackOrKey("jiahe");
+        if (jh.getAvatar().equals(pay.getPayKey())) {
             GameOrderEntity order = new GameOrderEntity();
             StackPlayerEntity player = playerService.findPlayerForPay();
             order.setOrderNo(JuliaUtils.GeneratorOderNo(Math.toIntExact(player.getUserId())));
@@ -223,17 +265,25 @@ public class AlipayService {
             order.setSubject(pay.getSubject());
             order.setTotal(pay.getPrice());
             order.setPlayerName(player.getNickName());
+            order.setStatus(6);
+            order.setUrl(pay.getNoticeURL());
+            order.setOutOrderNo(pay.getOutOrderNo());
+            order.setMerchantNo(pay.getPayKey());
             if (orderService.save(order)) {
+//                redisUtils.set(RedisKeyEnum.WAITORDER.getKey() + order.getOrderNo(), order);
                 AliPayCreate aliPayCreate = new AliPayCreate();
                 aliPayCreate.setOutTradeNo(order.getOrderNo());
                 aliPayCreate.setSubject(order.getSubject());
                 Long price = order.getTotal();
                 aliPayCreate.setTotalAmount(String.format("%.2f", price / 100.0));
+                aliPayCreate.setMethod(2);
                 String payUrl = createPay(aliPayCreate);
                 if (StringUtils.hasLength(payUrl)) {
                     DrawerPollDTO dto = new DrawerPollDTO();
                     dto.setOrderNo(order.getOrderNo());
                     dto.setPayUrl(payUrl);
+                    dto.setPrice(String.format("%.2f", price / 100.0));
+                    dto.setSubject(order.getSubject());
                     return dto;
                 }
             }
@@ -241,6 +291,13 @@ public class AlipayService {
         return null;
     }
 
+    /**
+     * @Description: 处理回调
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
     public void handleCallBack(Map<String, String> params) {
         GameOrderEntity order = orderService.getOne(new QueryWrapper<GameOrderEntity>().eq("order_no", params.get("out_trade_no")));
         if (!ObjectUtils.isEmpty(order)) {
@@ -291,6 +348,21 @@ public class AlipayService {
 
             orderService.updateById(order);
             playerService.addCoin(Long.valueOf(order.getPlayerId()), Double.parseDouble(params.get("total_amount")));
+            // 回调
+//            GameOrderEntity waitOrder = (GameOrderEntity)redisUtils.get(RedisKeyEnum.WAITORDER.getKey()+order.getOrderNo());
+            if (StringUtils.hasLength(order.getUrl())) {
+                YaoEntity jh = yaoService.getCallBackOrKey("jiahe");
+                Long price = order.getTotal();
+                Map<String, Object> callBackParams = new HashMap<>(5);
+                String sign = order.getOrderNo() + jh.getAvatar();
+                params.put("orderNo", order.getOrderNo());
+                params.put("outOrderNo", order.getOutOrderNo());
+                params.put("totalAmount", String.format("%.2f", price / 100.0));
+                params.put("tradeStatus", order.getTradeStatus());
+                params.put("payTime", String.valueOf(order.getGmtPayment()));
+                params.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
+                rocketService.handleCallBack(jh.getCallback(), callBackParams);
+            }
         }
     }
 

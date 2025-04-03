@@ -110,5 +110,7 @@ public interface IYaoService extends IService<YaoEntity> {
 
     Boolean altercCoin(YaoEntityVO vo,int pId);
 
+    YaoEntity getCallBackOrKey(String loginName);
+
 }
 

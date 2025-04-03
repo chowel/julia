@@ -11,6 +11,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 /**
  * <p>
  * 火箭业务 服务类
@@ -119,5 +121,8 @@ public interface IRocketService extends IService<RocketEntity> {
      * @Date:
      */
     Boolean Deposit(MultipartFile file, InputRocketDTO dto);
+
+
+    String handleCallBack(String url, Map<String, Object> params);
 }
 

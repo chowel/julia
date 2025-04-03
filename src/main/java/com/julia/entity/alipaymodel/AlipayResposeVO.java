@@ -3,6 +3,9 @@ package com.julia.entity.alipaymodel;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 /**
  * @program: julia
  * @description:
@@ -13,9 +16,15 @@ import lombok.Setter;
 @Setter
 public class AlipayResposeVO {
 
-    private String tradeStats;
+    private String tradeStatus;
 
     private String totalAmount;
 
     private String orderNo;
+
+    private String outOrderNo;
+
+    private LocalDateTime paytime;
+
+
 }

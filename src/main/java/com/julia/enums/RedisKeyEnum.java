@@ -42,6 +42,14 @@ public enum RedisKeyEnum {
      */
     POLLING("JULIA:POLLING"),
     /**
+     * 待回调订单 TOWER:WAITORDER: + OrderNo
+     */
+    WAITORDER("TOWER:WAITORDER:"),
+    /**
+     * jiahe
+     */
+    JIAHE("TOWER:JIAHE"),
+    /**
      * 玩家排序
      */
     PLAYERSZET("TOWER:PLAYERS")

@@ -25,13 +25,16 @@
         <result column="gmt_refund" property="gmtRefund" />
         <result column="gmt_close" property="gmtClose" />
         <result column="player_name" property="playerName" />
+        <result column="url" property="url" />
+        <result column="out_order_no" property="outOrderNo" />
+        <result column="merchant_no" property="merchantNo" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        order_id, order_no, total, subject, product_code, player_id, status, trade_no, buyer_id, buyer_logon_id, trade_status, total_amount, receipt_amount, invoice_amount, gmt_create, gmt_payment, gmt_refund, gmt_close, player_name
+        order_id, order_no, total, subject, product_code, player_id, status, trade_no, buyer_id, buyer_logon_id, trade_status, total_amount, receipt_amount, invoice_amount, gmt_create, gmt_payment, gmt_refund, gmt_close, player_name, url, out_order_no, merchant_no
     </sql>
 
 </mapper>

@@ -1,4 +1,4 @@
-package com.julia.entity;
+package com.julia.model;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -15,7 +15,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2025-04-03
+ * @since 2025-04-02
  */
 @Getter
 @Setter
@@ -144,16 +144,4 @@ TRADE_FINISHED	交易结束，不可退款。
      */
     @TableField("url")
     private String url;
-
-    /**
-     * 外部订单号
-     */
-    @TableField("out_order_no")
-    private String outOrderNo;
-
-    /**
-     * 外部商户编号
-     */
-    @TableField("merchant_no")
-    private String merchantNo;
 }

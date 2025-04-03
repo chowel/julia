@@ -22,4 +22,8 @@ public class PayByAliPay {
 
     private String orderNo;
 
+    private String noticeURL;
+
+    private String outOrderNo;
+
 }

@@ -20,7 +20,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2025-04-01
+ * @since 2025-04-03
  */
 @Getter
 @Setter
@@ -84,6 +84,15 @@ public class GameOrderEntityVO extends BaseEntity {
     @ApiModelProperty("玩家昵称")
     private String playerName;
 
+    @ApiModelProperty("回调地址")
+    private String url;
+
+    @ApiModelProperty("外部订单号")
+    private String outOrderNo;
+
+    @ApiModelProperty("外部商户编号")
+    private String merchantNo;
+
     @Override
     public String toString() {
         return "{" +
@@ -106,6 +115,9 @@ public class GameOrderEntityVO extends BaseEntity {
             ", gmtRefund = " + gmtRefund +
             ", gmtClose = " + gmtClose +
             ", playerName = " + playerName +
+            ", url = " + url +
+            ", outOrderNo = " + outOrderNo +
+            ", merchantNo = " + merchantNo +
         "}";
     }
 }

@@ -46,13 +46,20 @@ public class AliPayCreate {
      */
     private String timeExpire;
     /**
-     * @Description: 选填 商户传入业务信息，具体值要和支付宝约定，应用于安全，营销等参数直传场景，格式为json格式
+     * 选填 商户传入业务信息，具体值要和支付宝约定，应用于安全，营销等参数直传场景，格式为json格式
      */
     private String businessParams;
 
     private String passbackParams;
 
+    /**
+     * 选填 商户订单编号
+     */
     private String MerchantOrderNo;
+    /**
+     * 1 post  2 get
+     */
+    private Integer method = 1;
 
     private List<GoodsDetail> goods;
 

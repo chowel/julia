@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.entity.CoinLogEntity;
 import com.julia.entity.PactEntity;
 import com.julia.entity.YaoEntity;
+import com.julia.enums.RedisKeyEnum;
 import com.julia.mapper.CoinLogMapper;
 import com.julia.mapper.PactMapper;
 import com.julia.mapper.YaoMapper;
@@ -18,6 +19,7 @@ import com.julia.service.IYaoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.julia.tool.AdminToken;
 import com.julia.tool.JuliaException;
+import com.julia.tool.RedisUtils;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.tool.JuliaUtils;
@@ -45,8 +47,11 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
     @Resource
     CoinLogMapper coinLogMapper;
 
+//    @Resource
+//    WebSocketService webSocketService;
+
     @Resource
-    WebSocketService webSocketService;
+    RedisUtils redisUtils;
 
 
     @Override
@@ -83,11 +88,12 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
     @Override
     public Boolean alter(YaoEntityVO vo) {
         // 提人
-        if (vo.getCheDel() != null && vo.getCheDel() == 2) {
-            StpUtil.logout(vo.getYaoId());
-            webSocketService.delByUserid(String.valueOf(vo.getYaoId()));
-        }
-        return updateById(JuliaUtils.convertTo(new YaoEntity(), vo));
+//        if (vo.getCheDel() != null && vo.getCheDel() == 2) {
+//            StpUtil.logout(vo.getYaoId());
+//            webSocketService.delByUserid(String.valueOf(vo.getYaoId()));
+//        }
+//        return updateById(JuliaUtils.convertTo(new YaoEntity(), vo));
+        return true;
     }
 
     @Override
@@ -184,6 +190,16 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
         coinLog.setYId(pId);
         coinLogMapper.insert(coinLog);
         return true;
+    }
+
+    @Override
+    public YaoEntity getCallBackOrKey(String loginName) {
+        YaoEntity jh = (YaoEntity)redisUtils.get(RedisKeyEnum.JIAHE.getKey());
+        if(ObjectUtils.isEmpty(jh)){
+            jh = lambdaQuery().eq(YaoEntity::getLoginName,loginName).one();
+            redisUtils.set(RedisKeyEnum.JIAHE.getKey(),jh,3600*24*7);
+        }
+        return jh;
     }
 }
 
