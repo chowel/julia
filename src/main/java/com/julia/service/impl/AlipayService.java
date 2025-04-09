@@ -2,13 +2,12 @@ package com.julia.service.impl;
 
 import com.alipay.api.AlipayClient;
 import com.alipay.api.diagnosis.DiagnosisUtils;
-import com.alipay.api.domain.AlipayTradeQueryModel;
-import com.alipay.api.domain.AlipayTradeRefundModel;
-import com.alipay.api.domain.AlipayTradeWapPayModel;
-import com.alipay.api.domain.GoodsDetail;
+import com.alipay.api.domain.*;
+import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.api.request.AlipayTradeWapPayRequest;
+import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.alipay.api.response.AlipayTradeWapPayResponse;
@@ -146,6 +145,44 @@ public class AlipayService {
         return null;
     }
 
+
+    @SneakyThrows
+    public String createPayByPc(AliPayCreate aliPayCreate){
+        // 构造请求参数以调用接口
+        AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
+        AlipayTradePagePayModel model = new AlipayTradePagePayModel();
+        // 设置商户订单号
+        model.setOutTradeNo(aliPayCreate.getOutTradeNo());
+        // 设置订单总金额
+        model.setTotalAmount(aliPayCreate.getTotalAmount());
+        // 设置订单标题
+        model.setSubject(aliPayCreate.getSubject());
+        // 设置产品码
+        model.setProductCode("FAST_INSTANT_TRADE_PAY");
+        // 设置PC扫码支付的方式
+        model.setQrPayMode("2");
+        request.setNotifyUrl(notifyUrl);
+        request.setBizModel(model);
+        // 第三方代调用模式下请设置app_auth_token
+        // request.putOtherTextParam("app_auth_token", "<-- 请填写应用授权令牌 -->");
+
+        AlipayTradePagePayResponse response = alipayClient.pageExecute(request, "POST");
+        // 如果需要返回GET请求，请使用
+        // AlipayTradePagePayResponse response = alipayClient.pageExecute(request, "GET");
+        String pageRedirectionData = response.getBody();
+//        System.out.println(pageRedirectionData);
+
+        if (response.isSuccess()) {
+            log.info("pc调用成功");
+            return response.getBody();
+        } else {
+            log.error("调用失败");
+            // sdk版本是"4.38.0.ALL"及以上,可以参考下面的示例获取诊断链接
+             String diagnosisUrl = DiagnosisUtils.getDiagnosisUrl(response);
+             log.info(diagnosisUrl);
+        }
+        return null;
+    }
     /**
      * @Description: 查询接口
      * @Param:
@@ -284,6 +321,49 @@ public class AlipayService {
         return null;
     }
 
+    /**
+     * @Description: 非游戏创建订单-PC
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public DrawerPollDTO savePayByPc(PayByAliPay pay){
+        YaoEntity jh = yaoService.getCallBackOrKey("jiahe");
+        if (jh.getAvatar().equals(pay.getPayKey())) {
+            GameOrderEntity order = new GameOrderEntity();
+            StackPlayerEntity player = playerService.findPlayerForPay();
+            order.setOrderNo(JuliaUtils.GeneratorOderNo(Math.toIntExact(player.getUserId())));
+            order.setPlayerId(Math.toIntExact(player.getUserId()));
+            order.setSubject(pay.getSubject());
+            order.setTotal(pay.getPrice());
+            order.setPlayerName(player.getNickName());
+            order.setStatus(6);
+            order.setUrl(pay.getNoticeURL());
+            order.setOutOrderNo(pay.getOutOrderNo());
+            order.setMerchantNo(pay.getPayKey());
+            if (orderService.save(order)) {
+//                redisUtils.set(RedisKeyEnum.WAITORDER.getKey() + order.getOrderNo(), order);
+                AliPayCreate aliPayCreate = new AliPayCreate();
+                aliPayCreate.setOutTradeNo(order.getOrderNo());
+                aliPayCreate.setSubject(order.getSubject());
+                Long price = order.getTotal();
+                aliPayCreate.setTotalAmount(String.format("%.2f", price / 100.0));
+                aliPayCreate.setMethod(2);
+                String payUrl = createPayByPc(aliPayCreate);
+                if (StringUtils.hasLength(payUrl)) {
+                    DrawerPollDTO dto = new DrawerPollDTO();
+                    dto.setOrderNo(order.getOrderNo());
+                    dto.setPayUrl(payUrl);
+                    dto.setPrice(String.format("%.2f", price / 100.0));
+                    dto.setSubject(order.getSubject());
+                    dto.setOutOrderNo(order.getOutOrderNo());
+                    return dto;
+                }
+            }
+        }
+        return null;
+    }
     /**
      * @Description: 处理回调
      * @Param:

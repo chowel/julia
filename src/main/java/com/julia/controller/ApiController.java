@@ -111,6 +111,12 @@ public class ApiController {
         return new Rv<>(alipayService.savePay(vo));
     }
 
+    @ApiOperation("添加订单Pc")
+    @PostMapping("/pcPay")
+    public Rv<DrawerPollDTO> createPcOrderByPay(@RequestBody PayByAliPay vo) {
+        return new Rv<>(alipayService.savePayByPc(vo));
+    }
+
     @SneakyThrows
     @ApiOperation("支付宝订单支付回调")
     @PostMapping("/callback")
