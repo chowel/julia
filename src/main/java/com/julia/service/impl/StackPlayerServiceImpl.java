@@ -12,7 +12,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.julia.tool.JuliaException;
 import com.julia.tool.PlayerToken;
 import com.julia.tool.RedisUtils;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.StackPlayerEntityVO;
 import com.julia.tool.JuliaUtils;
@@ -33,7 +32,6 @@ import java.util.stream.Collectors;
  * @author chowel
  * @since 2025-03-09
  */
-@Slf4j
 @Service
 public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, StackPlayerEntity> implements IStackPlayerService {
 
