@@ -166,7 +166,7 @@ public class AlipayService {
         // 第三方代调用模式下请设置app_auth_token
         // request.putOtherTextParam("app_auth_token", "<-- 请填写应用授权令牌 -->");
 
-        AlipayTradePagePayResponse response = alipayClient.pageExecute(request, "POST");
+        AlipayTradePagePayResponse response = alipayClient.pageExecute(request, "GET");
         // 如果需要返回GET请求，请使用
         // AlipayTradePagePayResponse response = alipayClient.pageExecute(request, "GET");
         String pageRedirectionData = response.getBody();

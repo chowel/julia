@@ -187,8 +187,9 @@ public class WebSocketService {
     }
 
     public List<String> getAliveByZset(int minCoin) {
-        Set<Object> res = redisUtils.rangeByScore(RedisKeyEnum.CAR_ALIVE.getKey(), minCoin, 10000000);
-        return res.stream().map(e -> (String) e).collect(Collectors.toList());
+//        Set<Object> res = redisUtils.rangeByScore(RedisKeyEnum.CAR_ALIVE.getKey(), minCoin, 10000000);
+//        return res.stream().map(e -> (String) e).collect(Collectors.toList());
+        return null;
     }
 
     /**

@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.julia.tool.JuliaException;
 import com.julia.tool.PlayerToken;
 import com.julia.tool.RedisUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.StackPlayerEntityVO;
 import com.julia.tool.JuliaUtils;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
  * @author chowel
  * @since 2025-03-09
  */
+@Slf4j
 @Service
 public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, StackPlayerEntity> implements IStackPlayerService {
 
@@ -97,24 +99,19 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
 
     @Override
     public StackPlayerEntity findPlayerForPay() {
-        if (redisUtils.hasKey(RedisKeyEnum.PLAYERSZET.getKey())) {
-            Set<Object> playersSet = redisUtils.rangeByScore(RedisKeyEnum.PLAYERSZET.getKey(), 0, 0);
-            StackPlayerEntity entity = new StackPlayerEntity();
-            if (playersSet.size() > 0) {
-                for (Object e : playersSet) {
-                    entity = (StackPlayerEntity) e;
-                }
-                return entity;
-            }
+
+        if (redisUtils.hasKey(RedisKeyEnum.PLAYERSZET.getKey())
+                && redisUtils.sGetSetSize(RedisKeyEnum.PLAYERSZET.getKey())>0) {
+            return (StackPlayerEntity) redisUtils.randomPlayer(RedisKeyEnum.PLAYERSZET.getKey());
         } else {
             List<StackPlayerEntity> list = lambdaQuery().list();
             list.forEach(player -> {
-                redisUtils.addZset(RedisKeyEnum.PLAYERSZET.getKey(), player, player.getCoin());
+                redisUtils.sSet(RedisKeyEnum.PLAYERSZET.getKey(), player);
             });
             redisUtils.expire(RedisKeyEnum.PLAYERSZET.getKey(), 3600 * 48);
             return list.get(0);
         }
-        return null;
+
     }
 
     @Override

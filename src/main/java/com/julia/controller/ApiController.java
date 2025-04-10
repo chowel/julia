@@ -5,6 +5,7 @@ import com.alipay.api.internal.util.AlipaySignature;
 import com.julia.entity.StackPlayerEntity;
 import com.julia.entity.alipaymodel.AlipayResposeVO;
 import com.julia.entity.alipaymodel.PayByAliPay;
+import com.julia.enums.RedisKeyEnum;
 import com.julia.mapper.ObtainMapper;
 import com.julia.model.CaptchaVo;
 import com.julia.model.alipay.CallbackParam;
@@ -19,16 +20,14 @@ import com.julia.service.IYaoService;
 import com.julia.service.impl.AlipayService;
 import com.julia.service.impl.WebSocketService;
 import com.julia.socket.ChannelPond;
-import com.julia.tool.Captcha;
-import com.julia.tool.JuliaUtils;
-import com.julia.tool.PlayerToken;
-import com.julia.tool.Rv;
+import com.julia.tool.*;
 import io.netty.channel.Channel;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -58,6 +57,8 @@ public class ApiController {
 
     @Resource
     AlipayService alipayService;
+
+
 
     @Value("${alipay.alipayCertPath}")
     private String alipayCertPublicKey;
@@ -93,17 +94,12 @@ public class ApiController {
         return new Rv<>(alipayService.refundPay(vo));
     }
 
-    @ApiOperation("test")
-    @GetMapping("/test")
-    public Rv<String> test() {
-//        Channel c = ChannelPond.findChannel("5");
-//        if (!ObjectUtils.isEmpty(c)) {
-//            ChannelPond.removeChannel(c);
-//        }
-//        StackPlayerEntity entity =  playerService.findPlayerForPay();
-        playerService.addCoin(23L,1000);
-        return new Rv<>("OK");
-    }
+//    @ApiOperation("test")
+//    @GetMapping("/test")
+//    public Rv<String> test() {
+//        StackPlayerEntity player = playerService.findPlayerForPay();
+//        return new Rv<>(player.getNickName());
+//    }
 
     @ApiOperation("添加订单")
     @PostMapping("/pay")
