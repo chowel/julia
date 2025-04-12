@@ -56,7 +56,7 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
     }
 
     @Override
-    public Boolean saveStackPlayerEntity(LoginDto dto) {
+    public StackPlayerEntityVO saveStackPlayerEntity(LoginDto dto) {
         StackPlayerEntity player = this.lambdaQuery().eq(StackPlayerEntity::getLoginName, dto.getName()).one();
         if (!ObjectUtils.isEmpty(player)) {
             throw new JuliaException("该用户已存在");
@@ -64,7 +64,14 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
         player = new StackPlayerEntity();
         player.setLoginName(dto.getName());
         player.setPassword(BCrypt.hashpw(dto.getPassword()));
-        return save(player);
+        if (save(player)){
+            PlayerToken.login(player.getUserId());
+            StackPlayerEntityVO vo = JuliaUtils.convertTo(new StackPlayerEntityVO(), player);
+            vo.setToken(PlayerToken.getTokenValue());
+            vo.setPassword("****");
+            return vo;
+        }
+        return null;
     }
 
     @Override

@@ -77,7 +77,7 @@ public class ApiController {
 
     @ApiOperation("玩家注册")
     @PostMapping("/playerSignin")
-    public Rv<Boolean> playerSignin(@RequestBody LoginDto dto) {
+    public Rv<StackPlayerEntityVO> playerSignin(@RequestBody LoginDto dto) {
         return new Rv<>(playerService.saveStackPlayerEntity(dto));
     }
 

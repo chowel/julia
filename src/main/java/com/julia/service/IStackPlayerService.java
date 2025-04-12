@@ -42,7 +42,7 @@ public interface IStackPlayerService extends IService<StackPlayerEntity> {
      * @Author: chowel
      * @Date: 2025-03-09
      */
-    Boolean saveStackPlayerEntity(LoginDto dto);
+    StackPlayerEntityVO saveStackPlayerEntity(LoginDto dto);
 
     /**
      * @Description: 修改
