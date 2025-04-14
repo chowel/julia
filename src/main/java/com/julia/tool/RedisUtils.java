@@ -160,17 +160,6 @@ public class RedisUtils {
     }
 
     /**
-     * @Description: 随机set元素
-     * @Param:
-     * @return:
-     * @Author: chowel
-     * @Date:
-     */
-    public Object randomPlayer(String key) {
-        return redisTemplate.opsForSet().randomMember(key);
-    }
-
-    /**
      * 删除缓存
      *
      * @param key 可以传一个值 或多个
