@@ -420,7 +420,7 @@ public class AlipayService {
             }
 
             orderService.updateById(order);
-            playerService.addCoin(Long.valueOf(order.getPlayerId()), Double.parseDouble(params.get("total_amount")));
+//            playerService.addCoin(Long.valueOf(order.getPlayerId()), Double.parseDouble(params.get("total_amount")));
             // 回调
 //            GameOrderEntity waitOrder = (GameOrderEntity)redisUtils.get(RedisKeyEnum.WAITORDER.getKey()+order.getOrderNo());
             if (StringUtils.hasLength(order.getUrl())) {
