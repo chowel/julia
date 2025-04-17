@@ -59,9 +59,6 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
     @Resource
     private RestTemplate restTemplate;
 
-    @Value("${sign.salt}")
-    private String SIGNSALT;
-
     @Value("${file.uploadurl}")
     private String uploadPath;
 
@@ -144,7 +141,7 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
 
         //  回调逻辑
         Map<String, Object> params = new HashMap<>(5);
-        String sign = SIGNSALT + entity.getOrderId() + entity.getDoneTime();
+        String sign = "" + entity.getOrderId() + entity.getDoneTime();
         params.put("orderNo", entity.getOrderId());
         params.put("amount", entity.getAmount());
         params.put("realPay", entity.getRealPay());
@@ -201,7 +198,7 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
         YaoEntity yao = yaoMapper.selectById(entity.getPId());
 
         Map<String, Object> params = new HashMap<>(5);
-        String sign = SIGNSALT + entity.getOrderId() + entity.getDoneTime();
+        String sign = "" + entity.getOrderId() + entity.getDoneTime();
         params.put("orderNo", entity.getOrderId());
         params.put("amount", entity.getAmount());
         params.put("orderStatus", entity.getStatus());

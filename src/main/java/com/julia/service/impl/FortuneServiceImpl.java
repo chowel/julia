@@ -68,9 +68,6 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     @Resource
     CoinLogMapper coinLogMapper;
 
-    @Value("${sign.salt}")
-    private String SIGNSALT;
-
     @Value("${deposit.url}")
     private String PAYURL;
 
