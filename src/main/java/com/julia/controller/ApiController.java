@@ -94,12 +94,12 @@ public class ApiController {
         return new Rv<>(alipayService.refundPay(vo));
     }
 
-//    @ApiOperation("test")
-//    @GetMapping("/test")
-//    public Rv<String> test() {
-//        StackPlayerEntity player = playerService.findPlayerForPay();
-//        return new Rv<>(player.getNickName());
-//    }
+    @ApiOperation("testCallback")
+    @PostMapping("/testCallback")
+    public Rv<String> testCallBack(@RequestBody CallbackBody  body) {
+        log.info("回调测试 OrderNo:{}",body.getOrderNo());
+        return new Rv<>("Success");
+    }
 
     @ApiOperation("添加订单")
     @PostMapping("/pay")
