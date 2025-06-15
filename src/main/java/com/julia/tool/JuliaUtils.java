@@ -235,4 +235,18 @@ public class JuliaUtils {
         }
         return "GE" + ct + playerId + randomLetters;
     }
+
+    /**
+     * @Description: 回调函数是否合法
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public static boolean startsWithHttpOrHttps(String url) {
+        if (!StringUtils.hasLength(url)) {
+            return false;
+        }
+        return url.startsWith("http://") || url.startsWith("https://");
+    }
 }

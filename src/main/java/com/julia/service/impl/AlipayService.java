@@ -80,6 +80,9 @@ public class AlipayService {
     private String notifyUrl;
 
 
+    @Value("${alipay.appId}")
+    private String appID;
+
     /**
      * @Description: 创建支付接口
      * @Param:
@@ -247,7 +250,6 @@ public class AlipayService {
     public Boolean refundPay(PayByAliPay dto) {
         GameOrderEntity order = orderService.getOne(new QueryWrapper<GameOrderEntity>()
                 .eq(StringUtils.hasLength(dto.getOrderNo()),"order_no", dto.getOrderNo())
-                .eq(StringUtils.hasLength(dto.getPayKey()),"merchant_no",dto.getPayKey())
                 .eq(StringUtils.hasLength(dto.getOutOrderNo()),"out_order_no",dto.getOutOrderNo())
         );
 
@@ -374,8 +376,8 @@ public class AlipayService {
     public void handleCallBack(Map<String, String> params) {
         GameOrderEntity order = orderService.getOne(new QueryWrapper<GameOrderEntity>().eq("order_no", params.get("out_trade_no")));
         if (!ObjectUtils.isEmpty(order)) {
-            if (StringUtils.hasLength(params.get("buyer_open_id"))) {
-                order.setBuyerId(params.get("buyer_open_id"));
+            if (StringUtils.hasLength(params.get("buyer_id"))) {
+                order.setBuyerId(params.get("buyer_id"));
             }
 
             if (StringUtils.hasLength(params.get("buyer_logon_id"))) {
@@ -420,10 +422,7 @@ public class AlipayService {
             }
 
             orderService.updateById(order);
-//            playerService.addCoin(Long.valueOf(order.getPlayerId()), Double.parseDouble(params.get("total_amount")));
-            // 回调
-//            GameOrderEntity waitOrder = (GameOrderEntity)redisUtils.get(RedisKeyEnum.WAITORDER.getKey()+order.getOrderNo());
-            if (StringUtils.hasLength(order.getUrl())) {
+            if (JuliaUtils.startsWithHttpOrHttps(order.getUrl())) {
                 YaoEntity jh = yaoService.getCallBackOrKey("jiahe");
                 Long price = order.getTotal();
                 Map<String, Object> callBackParams = new HashMap<>(5);
@@ -434,6 +433,9 @@ public class AlipayService {
                 callBackParams.put("tradeStatus", order.getTradeStatus());
                 callBackParams.put("payTime", String.valueOf(order.getGmtPayment()));
                 callBackParams.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
+                callBackParams.put("userOpenId",order.getBuyerId());
+                callBackParams.put("userLoginId",order.getBuyerLogonId());
+                callBackParams.put("appId",appID);
                 rocketService.handleCallBack(order.getUrl(), callBackParams);
             }
         }
