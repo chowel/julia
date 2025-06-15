@@ -376,8 +376,8 @@ public class AlipayService {
     public void handleCallBack(Map<String, String> params) {
         GameOrderEntity order = orderService.getOne(new QueryWrapper<GameOrderEntity>().eq("order_no", params.get("out_trade_no")));
         if (!ObjectUtils.isEmpty(order)) {
-            if (StringUtils.hasLength(params.get("buyer_id"))) {
-                order.setBuyerId(params.get("buyer_id"));
+            if (StringUtils.hasLength(params.get("buyer_open_id"))) {
+                order.setBuyerId(params.get("buyer_open_id"));
             }
 
             if (StringUtils.hasLength(params.get("buyer_logon_id"))) {
