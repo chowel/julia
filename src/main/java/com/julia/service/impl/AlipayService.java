@@ -213,7 +213,7 @@ public class AlipayService {
         AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
         AlipayTradeQueryModel model = new AlipayTradeQueryModel();
 
-        model.setOutTradeNo(dto.getOrderNo());
+        model.setOutTradeNo(order.getOrderNo());
 
         request.setBizModel(model);
 
@@ -258,7 +258,7 @@ public class AlipayService {
         }
         AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
         AlipayTradeRefundModel model = new AlipayTradeRefundModel();
-        model.setOutTradeNo(dto.getOrderNo());
+        model.setOutTradeNo(order.getOrderNo());
         Long price = order.getTotal();
         model.setRefundAmount(String.format("%.2f", price / 100.0));
         request.setBizModel(model);

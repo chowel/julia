@@ -59,7 +59,6 @@ public class ApiController {
     AlipayService alipayService;
 
 
-
     @Value("${alipay.alipayCertPath}")
     private String alipayCertPublicKey;
 
@@ -90,8 +89,8 @@ public class ApiController {
 
     @ApiOperation("订单退款")
     @PostMapping("/refundAlipayOrder")
-    public Rv<Boolean> refundAlipayOrder(@RequestBody PayByAliPay vo) {
-        return new Rv<>(alipayService.refundPay(vo));
+    public Rv<Integer> refundAlipayOrder(@RequestBody PayByAliPay vo) {
+        return new Rv<>(alipayService.refundPay(vo) ? 1 : 0);
     }
 
 //    @ApiOperation("test")
@@ -132,13 +131,13 @@ public class ApiController {
             log.info("Name: {}  Value:{}", name, valueStr);
             params.put(name, valueStr);
         }
-    boolean flag = AlipaySignature.rsaCertCheckV1(params, alipayCertPublicKey, "UTF-8", "RSA2");
+        boolean flag = AlipaySignature.rsaCertCheckV1(params, alipayCertPublicKey, "UTF-8", "RSA2");
 
-    if (flag) {
-        log.info("回调验签通过");
-        alipayService.handleCallBack(params);
-        return "success";
-    }
+        if (flag) {
+            log.info("回调验签通过");
+            alipayService.handleCallBack(params);
+            return "success";
+        }
         return "fail";
     }
 
