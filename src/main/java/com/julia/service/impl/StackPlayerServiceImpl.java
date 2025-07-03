@@ -63,6 +63,7 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
         }
         player = new StackPlayerEntity();
         player.setLoginName(dto.getName());
+        player.setNickName(dto.getName());
         player.setPassword(BCrypt.hashpw(dto.getPassword()));
         if (save(player)){
             PlayerToken.login(player.getUserId());
