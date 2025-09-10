@@ -12,13 +12,14 @@
         <result column="ore" property="ore" />
         <result column="price" property="price" />
         <result column="status" property="status" />
+        <result column="code" property="code" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        id, title, gold, ore, price, status
+        id, title, gold, ore, price, status,code
     </sql>
 
 </mapper>
