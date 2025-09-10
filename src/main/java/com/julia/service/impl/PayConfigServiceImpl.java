@@ -46,6 +46,11 @@ public class PayConfigServiceImpl extends ServiceImpl<PayConfigMapper, PayConfig
     }
 
     @Override
+    public PayConfigEntity findOneByPrice(Long price) {
+        return lambdaQuery().eq(PayConfigEntity::getPrice,price).one();
+    }
+
+    @Override
     public Boolean savePayConfigEntity(PayConfigEntityVO vo) {
             return save(JuliaUtils.convertTo(new PayConfigEntity(), vo));
     }

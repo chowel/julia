@@ -39,6 +39,9 @@ public interface IPayConfigService extends IService<PayConfigEntity> {
     */
     PayConfigEntityVO findOneById(Long id);
 
+
+    PayConfigEntity findOneByPrice(Long price);
+
     /**
     * @Description: 添加
     * @Param:
