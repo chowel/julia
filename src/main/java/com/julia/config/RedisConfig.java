@@ -37,28 +37,26 @@ public class RedisConfig extends CachingConfigurerSupport {
     @Bean
     public static RedisTemplate<String, Object> redisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
         lettuceConnectionFactory.setShareNativeConnection(false);
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(lettuceConnectionFactory);
-
-        // 使用 Jackson JSON 序列化器
-        Jackson2JsonRedisSerializer<Object> jacksonSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
-
-        ObjectMapper om = new ObjectMapper();
-        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        om.activateDefaultTyping(LaissezFaireSubTypeValidator.instance,
-                ObjectMapper.DefaultTyping.NON_FINAL,
-                JsonTypeInfo.As.WRAPPER_ARRAY);
-
-        jacksonSerializer.setObjectMapper(om);
-
-        // key 和 value 序列化设置
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(jacksonSerializer);
-        template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(jacksonSerializer);
-
-        template.afterPropertiesSet();
-        return template;
+        RedisTemplate<String, Object> rt = new RedisTemplate<>();
+        // 设置连接工厂
+        rt.setConnectionFactory(lettuceConnectionFactory);
+        // 设置 key 的序列化
+        StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
+        rt.setKeySerializer(stringRedisSerializer);
+        rt.setHashKeySerializer(stringRedisSerializer);
+        // 创建 JSON 序列化工具
+        Jackson2JsonRedisSerializer<Object> jsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        mapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+        jsonRedisSerializer.setObjectMapper(mapper);
+        // 设置 value 的序列化
+        rt.setValueSerializer(jsonRedisSerializer);
+        rt.setHashValueSerializer(jsonRedisSerializer);
+        rt.afterPropertiesSet();
+        return rt;
     }
 
     @Bean

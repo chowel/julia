@@ -15,7 +15,8 @@
         <result column="login_name" property="loginName" />
         <result column="password" property="password" />
         <result column="coin" property="coin" />
-        <result column="house_type" property="houseType" />
+        <result column="pass" property="pass" />
+        <result column="mason" property="mason" />
         <result column="status" property="status" />
         <result column="wechat" property="wechat" />
         <result column="qq" property="qq" />
@@ -27,7 +28,7 @@
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        user_id, union_id, open_id, nick_name, avatar_url, phone_number, login_name, password, coin, house_type, status, wechat, qq, email, note
+        user_id, union_id, open_id, nick_name, avatar_url, phone_number, login_name, password, coin, pass, mason, status, wechat, qq, email, note
     </sql>
 
 </mapper>

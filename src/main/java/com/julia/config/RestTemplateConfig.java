@@ -22,7 +22,12 @@ public class RestTemplateConfig {
 
     @Bean
     public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
+
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(15000);
+        factory.setReadTimeout(5000);
+
+        RestTemplate restTemplate = new RestTemplate(factory);
         // 获取现有的消息转换器列表
         List<HttpMessageConverter<?>> messageConverters = restTemplate.getMessageConverters();
         // 添加 XML 消息转换器
@@ -32,13 +37,4 @@ public class RestTemplateConfig {
         return restTemplate;
 
     }
-
-//    @Bean
-//    public ClientHttpRequestFactory simpleClientHttpRequestFactory() {
-//        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-//        factory.setConnectTimeout(15000);
-//        factory.setReadTimeout(5000);
-//        return factory;
-//    }
-
 }
