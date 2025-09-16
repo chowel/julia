@@ -2,6 +2,7 @@ package com.julia.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.alipay.api.internal.util.AlipaySignature;
+import com.julia.entity.PlayerRes;
 import com.julia.entity.StackPlayerEntity;
 import com.julia.entity.alipaymodel.AlipayResposeVO;
 import com.julia.entity.alipaymodel.PayByAliPay;
@@ -106,11 +107,21 @@ public class ApiController {
         return new Rv<>(alipayService.savePay(vo));
     }
 
-    @ApiOperation("添加订单Pc")
-    @PostMapping("/pcPay")
-    public Rv<DrawerPollDTO> createPcOrderByPay(@RequestBody PayByAliPay vo) {
-        return new Rv<>(alipayService.savePayByPc(vo));
+//    @ApiOperation("添加订单Pc")
+//    @PostMapping("/pcPay")
+//    public Rv<DrawerPollDTO> createPcOrderByPay(@RequestBody PayByAliPay vo) {
+//        return new Rv<>(alipayService.savePayByPc(vo));
+//    }
+
+    @ApiOperation("获取随机玩家用户名")
+    @GetMapping("/getPlayer")
+    public Rv<PlayerRes> getPlayer() {
+        StackPlayerEntity player = playerService.findPlayerForPay();
+        PlayerRes res = new PlayerRes();
+        res.setPlayerName(player.getLoginName());
+        return new Rv<>(res);
     }
+
 
     @SneakyThrows
     @ApiOperation("支付宝订单支付回调")
