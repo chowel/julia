@@ -49,3 +49,9 @@ alipay:
   appCertPath: /home/cert/appCertPublicKey_2021005150647655.crt
   alipayCertPath: /home/cert/alipayCertPublicKey_RSA2.crt
   alipayRootCertPath: /home/cert/alipayRootCert.crt
+
+huiyuan:
+  agentId: 2416250
+  dealUser: lizhikuang
+  md5Key: 07D56E7EC485
+  domain: http://Service.800j.com/ManualCharge/

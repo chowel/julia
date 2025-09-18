@@ -1,13 +1,7 @@
 package com.julia.model.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.julia.tool.BaseEntity;
 
-import org.springframework.beans.BeanUtils;
-import com.julia.entity.StackPlayerEntity;
+import com.julia.tool.BaseEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -19,7 +13,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2025-03-09
+ * @since 2025-09-16
  */
 @Getter
 @Setter
@@ -50,11 +44,14 @@ public class StackPlayerEntityVO extends BaseEntity {
     @ApiModelProperty("密码")
     private String password;
 
-    @ApiModelProperty("用户金币")
+    @ApiModelProperty("金币")
     private Integer coin;
 
-    @ApiModelProperty("1 租客 2 房东")
-    private Integer houseType;
+    @ApiModelProperty("关卡")
+    private Integer pass;
+
+    @ApiModelProperty("钻石")
+    private Integer mason;
 
     @ApiModelProperty("1 正常 0 停用(删除)")
     private Integer status;
@@ -86,7 +83,8 @@ public class StackPlayerEntityVO extends BaseEntity {
             ", loginName = " + loginName +
             ", password = " + password +
             ", coin = " + coin +
-            ", houseType = " + houseType +
+            ", pass = " + pass +
+            ", mason = " + mason +
             ", status = " + status +
             ", wechat = " + wechat +
             ", qq = " + qq +

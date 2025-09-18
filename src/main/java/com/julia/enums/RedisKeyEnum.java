@@ -32,6 +32,10 @@ public enum RedisKeyEnum {
     /**
      * 车队池
      */
+    DOWNTIME("JULIA:GAME:DOWNTIME"),
+    /**
+     * 车队池
+     */
     CAR_POND("JULIA:CAR_POND:"),
     /**
      * 成功进入收银台

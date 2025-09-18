@@ -19,6 +19,7 @@ import com.julia.service.IFortuneService;
 import com.julia.service.IStackPlayerService;
 import com.julia.service.IYaoService;
 import com.julia.service.impl.AlipayService;
+import com.julia.service.impl.HuiYuanService;
 import com.julia.service.impl.WebSocketService;
 import com.julia.socket.ChannelPond;
 import com.julia.tool.*;
@@ -59,6 +60,9 @@ public class ApiController {
     @Resource
     AlipayService alipayService;
 
+    @Resource
+    HuiYuanService huiYuanService;
+
 
     @Value("${alipay.alipayCertPath}")
     private String alipayCertPublicKey;
@@ -94,12 +98,14 @@ public class ApiController {
         return new Rv<>(alipayService.refundPay(vo) ? 1 : 0);
     }
 
-//    @ApiOperation("test")
-//    @GetMapping("/test")
-//    public Rv<String> test() {
-//        StackPlayerEntity player = playerService.findPlayerForPay();
-//        return new Rv<>(player.getNickName());
-//    }
+    @ApiOperation("test")
+    @GetMapping("/test")
+    public Rv<String> test() {
+        huiYuanService.setBillStatus("C250916238577613",1,"成功处理");
+        huiYuanService.getDetailOrder("C250916238577613");
+//        huiYuanService.getHuiYuanOrders();
+        return new Rv<>("OK");
+    }
 
     @ApiOperation("添加订单")
     @PostMapping("/pay")
@@ -107,11 +113,12 @@ public class ApiController {
         return new Rv<>(alipayService.savePay(vo));
     }
 
-//    @ApiOperation("添加订单Pc")
-//    @PostMapping("/pcPay")
-//    public Rv<DrawerPollDTO> createPcOrderByPay(@RequestBody PayByAliPay vo) {
-//        return new Rv<>(alipayService.savePayByPc(vo));
-//    }
+    @ApiOperation("HuiYUAN回调")
+    @GetMapping("/callbackForJw")
+    public Rv<String> createPcOrderByPay(@RequestBody String body) {
+        log.info("BODY, {}",body);
+        return new Rv<>("OK");
+    }
 
     @ApiOperation("获取随机玩家用户名")
     @GetMapping("/getPlayer")

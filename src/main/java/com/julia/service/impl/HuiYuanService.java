@@ -15,12 +15,18 @@ import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.alipay.api.response.AlipayTradeWapPayResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.julia.config.XmlApiHelper;
 import com.julia.entity.GameOrderEntity;
 import com.julia.entity.PayConfigEntity;
 import com.julia.entity.StackPlayerEntity;
 import com.julia.entity.YaoEntity;
 import com.julia.entity.alipaymodel.AlipayResposeVO;
 import com.julia.entity.alipaymodel.PayByAliPay;
+import com.julia.enums.RedisKeyEnum;
+import com.julia.model.HuiYuan.BillDetailsResponse;
+import com.julia.model.HuiYuan.BillTable;
+import com.julia.model.HuiYuan.NewDataSet;
+import com.julia.model.HuiYuan.ReturnData;
 import com.julia.model.alipay.AliPayCreate;
 import com.julia.model.dto.DrawerPollDTO;
 import com.julia.service.*;
@@ -31,6 +37,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
@@ -38,6 +45,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -89,33 +97,198 @@ public class HuiYuanService {
     @Value("${huiyuan.domain}")
     private String domain;
 
+    @Value("${huiyuan.callbackUrl}")
+    private String callbackUrl;
+
     @Resource
     private RestTemplate restTemplate;
 
+    @Resource
+    private XmlApiHelper xmlApiHelper;
 
+    /**
+     * @Description: 查询骏网未处理订单
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    @SneakyThrows
     public void getHuiYuanOrders() {
-        String sign = genSign();
-        String url = domain + "agent_id=" + agentId + "&down_time=" + getDownTime() + "&deal_urser=" + dealUser + "&sign=" + sign;
+//        String downTime = getDownTime();
+        String downTime = (String) redisUtils.get(RedisKeyEnum.DOWNTIME.getKey());
+        String sign = genDownBillSign(downTime);
+        String url =
+                domain + "DownLoad.aspx?agent_id=" + agentId + "&down_time=" + downTime + "&deal_user=" + dealUser + "&sign=" + sign;
+        log.info("URL: {}", url);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(List.of(MediaType.APPLICATION_XML));
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        ReturnData res = xmlApiHelper.postForXml(url, request, ReturnData.class);
+
+        assert res != null;
+        log.info("RetCode: {}", res.getRetCode());
+        log.info("DT: {}", res.getDownLoadTime());
+        if (StringUtils.hasLength(res.getDownLoadTime())) {
+            DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            LocalDateTime dateTime = LocalDateTime.parse(res.getDownLoadTime(), inputFormatter);
+            String result = dateTime.format(outputFormatter);
+            redisUtils.set(RedisKeyEnum.DOWNTIME.getKey(), result, 3600 * 48);
+        }
+
+        if (!ObjectUtils.isEmpty(res.getNewDataSet())) {
+            NewDataSet newDataSet = res.getNewDataSet();
+            if (!ObjectUtils.isEmpty(newDataSet.getTable())) {
+                List<BillTable> tables = newDataSet.getTable();
+                if (tables.size() > 0) {
+                    tables.forEach(b -> {
+                        handleBill(b);
+                    });
+                }
+            }
+        }
+    }
+
+    @Async("handleNotificationExecutor")
+    public void handleBill(BillTable bill){
+        log.info("BillNo: {}", bill.getBillNo());
+        log.info("ProductCode: {}", bill.getProductCode());
+        log.info("ParPrice: {}", bill.getParPrice());
+        log.info("Account: {}", bill.getChargeAccount());
+        log.info("BillStatus: {}", bill.getBillStatus());
+        log.info("ProductName: {}", bill.getProductName());
+        StackPlayerEntity player = playerService.findPlayerByLoginName(bill.getChargeAccount());
+        if(!ObjectUtils.isEmpty(player)){
+            setBillStatus(bill.getBillNo(),0,"签出准备处理");
+            setBillStatus(bill.getBillNo(),1,"成功处理");
+            GameOrderEntity order = new GameOrderEntity();
+            order.setOrderNo(JuliaUtils.GeneratorOderNo(Math.toIntExact(player.getUserId())));
+            order.setPlayerId(Math.toIntExact(player.getUserId()));
+            order.setStatus(2);
+            order.setSubject(bill.getProductName());
+            order.setProductCode(bill.getProductCode());
+            Long price = Long.parseLong(bill.getParPrice().replace(".",""));
+            order.setTotal(price);
+            order.setTotalAmount(price);
+            order.setTradeStatus("TRADE_SUCCESS");
+            order.setOutOrderNo(bill.getBillNo());
+            if(orderService.save(order)){
+                // 玩家上分
+                Map<String, Object> callBackParams = new HashMap<>(5);
+                String sign = order.getOrderNo() + order.getOutOrderNo();
+                callBackParams.put("orderNo", order.getOrderNo());
+                callBackParams.put("outOrderNo", order.getOrderNo());
+                callBackParams.put("totalAmount", String.format("%.2f", price / 100.0));
+                callBackParams.put("tradeStatus", order.getTradeStatus());
+                callBackParams.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
+                rocketService.handleCallBack(callbackUrl, callBackParams);
+            }
+        }
+    }
+
+    /**
+     * @Description: 设置订单状态
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    @SneakyThrows
+    public void setBillStatus(String billNo, int status, String dealMsg) {
+
+        String sign = genSetBillSign(billNo, status);
+
+        String url = domain + "Notify.aspx?agent_id=" + agentId +
+                "&bill_no=" + billNo +
+                "&status=" + status +
+                "&deal_user=" + dealUser +
+                "&deal_msg=" + dealMsg +
+                "&esale_account=" +
+                "&sign=" + sign;
+
+        log.info("Set Bill URL: {}", url);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_XML));
-        HttpEntity<String> requestEntity = new HttpEntity<>( headers);
+        HttpEntity<String> request = new HttpEntity<>(headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 url,
-                HttpMethod.POST,
-                requestEntity,
+                HttpMethod.GET,
+                request,
                 String.class
         );
 
         String xmlString = response.getBody();
-        System.out.println(xmlString);
+        Map<String, String> params = parse(xmlString);
+
+        BillDetailsResponse resp = new BillDetailsResponse();
+        resp.setRetCode(Integer.valueOf(params.get("ret_code")));
+        resp.setRetMsg(params.get("ret_msg"));
+        resp.setAgentId(params.get("agent_id"));
+        resp.setBillNo(params.get("bill_no"));
+        resp.setProductCode(params.get("product_code"));
+        resp.setProductName(params.get("product_name"));
+        resp.setParPrice(new BigDecimal(params.get("par_price")));
+        resp.setPurchaseAmt(new BigDecimal(params.get("purchase_amt")));
+        resp.setBillStatus(Integer.valueOf(params.get("bill_status")));
+        resp.setSign(params.get("sign"));
+
+        log.info("SetStatus:BillNo: {} - Status: {}", resp.getBillNo(), resp.getBillStatus());
+    }
+
+    /**
+     * @Description: 查询订单详情
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public void getDetailOrder(String billNo) {
+        String sign = genDetailBill(billNo);
+        String url = domain + "Query.aspx?agent_id=" + agentId +
+                "&bill_no=" + billNo +
+                "&sign=" + sign;
+
+        log.info("getDetails URL: {}", url);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(List.of(MediaType.APPLICATION_XML));
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                request,
+                String.class
+        );
+
+        String xmlString = response.getBody();
+
+
+        Map<String, String> params = parse(xmlString);
+
+        BillDetailsResponse resp = new BillDetailsResponse();
+        resp.setRetCode(Integer.valueOf(params.get("ret_code")));
+        resp.setRetMsg(params.get("ret_msg"));
+        resp.setAgentId(params.get("agent_id"));
+        resp.setBillNo(params.get("bill_no"));
+        resp.setProductCode(params.get("product_code"));
+        resp.setProductName(params.get("product_name"));
+        resp.setParPrice(new BigDecimal(params.get("par_price")));
+        resp.setPurchaseAmt(new BigDecimal(params.get("purchase_amt")));
+        resp.setBillStatus(Integer.valueOf(params.get("bill_status")));
+        resp.setSign(params.get("sign"));
+
+        log.info("Details:BillNo: {} - Status: {}", resp.getBillNo(), resp.getBillStatus());
 
     }
 
 
     private String getDownTime() {
-        // 获取当前时间
+        // 获取当前时间  20250916000000
         LocalDateTime now = LocalDateTime.now();
         // 定义格式：4位年+2位月+2位日+2位时+2位分+2位秒
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
@@ -124,28 +297,86 @@ public class HuiYuanService {
 
     }
 
-    // md5加密
-    private String genMd5(String str) {
-        StringBuilder result = new StringBuilder();
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] digest = md.digest(str.getBytes(StandardCharsets.UTF_8));
-            for (byte b : digest) {
-                result.append(String.format("%02x", b & 0xff));
-            }
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+    private Map<String, String> parse(String query) {
+        Map<String, String> result = new HashMap<>();
+        if (query == null || query.isEmpty()) {
+            return result;
         }
-        return result.toString();
+
+        for (String param : query.split("&")) {
+            String[] entry = param.split("=", 2);
+            if (entry.length == 2) {
+                result.put(entry[0], decode(entry[1]));
+            } else {
+                result.put(entry[0], "");
+            }
+        }
+        return result;
     }
 
 
-    // 生成签名
-    private String genSign() {
+    private String decode(String s) {
+        try {
+            return java.net.URLDecoder.decode(s, "UTF-8");
+        } catch (Exception e) {
+            return s; // 解码失败保留原样
+        }
+    }
+
+    // md5加密
+    private String genMd5(String str) {
+        try {
+            // 获取 MD5 加密算法实例
+            MessageDigest md = MessageDigest.getInstance("MD5");
+
+            // 将输入字符串转换为字节数组
+            byte[] inputBytes = str.getBytes();
+
+            // 计算 MD5 哈希值
+            byte[] hashBytes = md.digest(inputBytes);
+
+            // 将哈希值转换为十六进制字符串
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b)); // 使用 %02x 将每个字节表示为两位十六进制数
+            }
+
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            // 当算法不可用时，处理异常
+            log.info("MD5 算法不可用：" + e.getMessage());
+            return null;
+        }
+    }
+
+
+    // 下载单据生成签名
+    private String genDownBillSign(String dt) {
         // 拼接字符串
-        String data = "agent_id=" + agentId + "&down_time=" + getDownTime() + "&deal_user=" + dealUser + "|||" + md5Key;
+        String data =
+                "agent_id=" + agentId + "&down_time=" + dt + "&deal_user=" + dealUser + "|||" + md5Key;
+        log.info("orgSian: {}", data);
         // 生成签名
-        return genMd5(data).toLowerCase();
+        return genMd5(data);
+    }
+
+    // 修改单据生成签名
+    private String genSetBillSign(String billNo, int status) {
+        // 拼接字符串
+        String data =
+                "agent_id=" + agentId + "&bill_no=" + billNo + "&status=" + status + "|||" + md5Key;
+        log.info("orgSian: {}", data);
+        // 生成签名
+        return genMd5(data);
+    }
+
+    private String genDetailBill(String billNo) {
+        // 拼接字符串
+        String data =
+                "agent_id=" + agentId + "&bill_no=" + billNo + "|||" + md5Key;
+        log.info("orgSian: {}", data);
+        // 生成签名
+        return genMd5(data);
     }
 
 }

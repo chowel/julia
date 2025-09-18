@@ -75,6 +75,8 @@ public interface IStackPlayerService extends IService<StackPlayerEntity> {
     StackPlayerEntity findPlayerForPay();
 
 
+    StackPlayerEntity findPlayerByLoginName(String loginName);
+
     Boolean addCoin(Long userId, double coin);
 }
 

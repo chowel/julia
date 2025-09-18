@@ -123,6 +123,11 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
     }
 
     @Override
+    public StackPlayerEntity findPlayerFByLoginName(String loginName) {
+        return lambdaQuery().eq(StackPlayerEntity::getLoginName,loginName).one();
+    }
+
+    @Override
     public Boolean addCoin(Long userId, double coin) {
         StackPlayerEntity player = getById(userId);
         redisUtils.addScore(RedisKeyEnum.PLAYERSZET.getKey(), player, coin);
