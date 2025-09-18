@@ -55,3 +55,4 @@ huiyuan:
   dealUser: lizhikuang
   md5Key: 07D56E7EC485
   domain: http://Service.800j.com/ManualCharge/
+  callbackUrl: http://47.83.29.34/thirdPay/getCardNotify

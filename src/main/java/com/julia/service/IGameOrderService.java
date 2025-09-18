@@ -72,5 +72,7 @@ public interface IGameOrderService extends IService<GameOrderEntity> {
     Boolean remove(Long id);
 
     DrawerPollDTO preCreateOrder(GameOrderEntityVO vo);
+
+    Boolean initOrder(String orderNo);
 }
 

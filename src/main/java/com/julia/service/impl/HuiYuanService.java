@@ -117,10 +117,11 @@ public class HuiYuanService {
     public void getHuiYuanOrders() {
 //        String downTime = getDownTime();
         String downTime = (String) redisUtils.get(RedisKeyEnum.DOWNTIME.getKey());
+        log.info("downTime: {}", downTime);
         String sign = genDownBillSign(downTime);
         String url =
                 domain + "DownLoad.aspx?agent_id=" + agentId + "&down_time=" + downTime + "&deal_user=" + dealUser + "&sign=" + sign;
-        log.info("URL: {}", url);
+//        log.info("URL: {}", url);
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_XML));
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -152,7 +153,7 @@ public class HuiYuanService {
     }
 
     @Async("handleNotificationExecutor")
-    public void handleBill(BillTable bill){
+    public void handleBill(BillTable bill) {
         log.info("BillNo: {}", bill.getBillNo());
         log.info("ProductCode: {}", bill.getProductCode());
         log.info("ParPrice: {}", bill.getParPrice());
@@ -160,31 +161,86 @@ public class HuiYuanService {
         log.info("BillStatus: {}", bill.getBillStatus());
         log.info("ProductName: {}", bill.getProductName());
         StackPlayerEntity player = playerService.findPlayerByLoginName(bill.getChargeAccount());
-        if(!ObjectUtils.isEmpty(player)){
-            setBillStatus(bill.getBillNo(),0,"签出准备处理");
-            setBillStatus(bill.getBillNo(),1,"成功处理");
-            GameOrderEntity order = new GameOrderEntity();
-            order.setOrderNo(JuliaUtils.GeneratorOderNo(Math.toIntExact(player.getUserId())));
-            order.setPlayerId(Math.toIntExact(player.getUserId()));
-            order.setStatus(2);
-            order.setSubject(bill.getProductName());
-            order.setProductCode(bill.getProductCode());
-            Long price = Long.parseLong(bill.getParPrice().replace(".",""));
-            order.setTotal(price);
-            order.setTotalAmount(price);
-            order.setTradeStatus("TRADE_SUCCESS");
-            order.setOutOrderNo(bill.getBillNo());
-            if(orderService.save(order)){
-                // 玩家上分
-                Map<String, Object> callBackParams = new HashMap<>(5);
-                String sign = order.getOrderNo() + order.getOutOrderNo();
-                callBackParams.put("orderNo", order.getOrderNo());
-                callBackParams.put("outOrderNo", order.getOrderNo());
-                callBackParams.put("totalAmount", String.format("%.2f", price / 100.0));
-                callBackParams.put("tradeStatus", order.getTradeStatus());
-                callBackParams.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
-                rocketService.handleCallBack(callbackUrl, callBackParams);
+        if (!ObjectUtils.isEmpty(player)) {
+            log.info("处理骏网业务");
+            setBillStatus(bill.getBillNo(), 0, "签出准备处理");
+            setBillStatus(bill.getBillNo(), 1, "成功处理");
+            String account = bill.getChargeAccount();
+            if (account.length() > 8) {
+                String orderNo = account.substring(8);
+                String playerName = account.substring(0, account.length() - 8);
+                log.info("ORG: {}  orderNo: {}  name: {}", account, orderNo, playerName);
+                GameOrderEntity order = orderService.findOneByOrderNo(orderNo);
+                if (!ObjectUtils.isEmpty(order)) {
+                    order.setOrderNo(JuliaUtils.GeneratorOderNo(Math.toIntExact(player.getUserId())));
+                    order.setPlayerId(Math.toIntExact(player.getUserId()));
+                    order.setStatus(2);
+                    order.setSubject(bill.getProductName());
+                    order.setProductCode(bill.getProductCode());
+                    Long price = JuliaUtils.stringYuanToCents(bill.getParPrice());
+                    order.setTotal(price);
+                    order.setTotalAmount(price);
+                    order.setTradeStatus("TRADE_SUCCESS");
+                    order.setOutOrderNo(bill.getBillNo());
+                    if (orderService.updateById(order)) {
+                        // 玩家上分
+                        PayConfigEntity config = payConfigService.findOneByCode(bill.getProductCode());
+                        if (!ObjectUtils.isEmpty(config)) {
+                            playerService.addCoin(order.getPlayerId(), config.getGold(), config.getOre());
+                        }
+                        log.info("回调");
+                        Map<String, Object> callBackParams = new HashMap<>(5);
+                        String sign = order.getOrderNo() + order.getOutOrderNo();
+                        callBackParams.put("orderNo", order.getOrderNo());
+                        callBackParams.put("outOrderNo", order.getOutOrderNo());
+                        callBackParams.put("totalAmount", String.format("%.2f", price / 100.0));
+                        callBackParams.put("tradeStatus", order.getTradeStatus());
+                        callBackParams.put("account", playerName);
+                        callBackParams.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
+                        rocketService.handleCallBack(callbackUrl, callBackParams);
+                    }
+                } else {
+                    order = new GameOrderEntity();
+                    order.setOrderNo(JuliaUtils.GeneratorOderNo(Math.toIntExact(player.getUserId())));
+                    order.setPlayerId(Math.toIntExact(player.getUserId()));
+                    order.setStatus(2);
+                    order.setSubject(bill.getProductName());
+                    order.setProductCode(bill.getProductCode());
+                    Long price = JuliaUtils.stringYuanToCents(bill.getParPrice());
+                    order.setTotal(price);
+                    order.setTotalAmount(price);
+                    order.setTradeStatus("TRADE_SUCCESS");
+                    order.setOutOrderNo(bill.getBillNo());
+                    if (orderService.save(order)) {
+                        // 玩家上分
+                        PayConfigEntity config = payConfigService.findOneByCode(bill.getProductCode());
+                        if (!ObjectUtils.isEmpty(config)) {
+                            playerService.addCoin(order.getPlayerId(), config.getGold(), config.getOre());
+                        }
+                    }
+                }
+            } else {
+                GameOrderEntity order = new GameOrderEntity();
+                order.setOrderNo(JuliaUtils.GeneratorOderNo(Math.toIntExact(player.getUserId())));
+                order.setPlayerId(Math.toIntExact(player.getUserId()));
+                order.setStatus(2);
+                order.setSubject(bill.getProductName());
+                order.setProductCode(bill.getProductCode());
+                Long price = JuliaUtils.stringYuanToCents(bill.getParPrice());
+                order.setTotal(price);
+                order.setTotalAmount(price);
+                order.setTradeStatus("TRADE_SUCCESS");
+                order.setOutOrderNo(bill.getBillNo());
+                if (orderService.save(order)) {
+                    // 玩家上分
+                    PayConfigEntity config = payConfigService.findOneByCode(bill.getProductCode());
+                    if (!ObjectUtils.isEmpty(config)) {
+                        playerService.addCoin(order.getPlayerId(), config.getGold(), config.getOre());
+                    }
+                }
             }
+
+
         }
     }
 
@@ -352,11 +408,9 @@ public class HuiYuanService {
 
     // 下载单据生成签名
     private String genDownBillSign(String dt) {
-        // 拼接字符串
         String data =
                 "agent_id=" + agentId + "&down_time=" + dt + "&deal_user=" + dealUser + "|||" + md5Key;
-        log.info("orgSian: {}", data);
-        // 生成签名
+//        log.info("orgSian: {}", data);
         return genMd5(data);
     }
 

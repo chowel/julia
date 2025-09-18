@@ -11,4 +11,6 @@ import lombok.Data;
 @Data
 public class PlayerRes {
     private String playerName;
+
+    private String orderNo;
 }

@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @program: julia
@@ -23,6 +24,9 @@ import java.util.Random;
  **/
 @Slf4j
 public class JuliaUtils {
+
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
     /**
      * @Description: bean属性拷贝
      * @Param:
@@ -180,6 +184,22 @@ public class JuliaUtils {
         return bigDecimal1.setScale(2, RoundingMode.HALF_UP);
     }
 
+    public static Long stringYuanToCents(String yuan) {
+        BigDecimal bigDecimal = new BigDecimal(yuan.trim());
+        BigDecimal cents = bigDecimal.multiply(BigDecimal.valueOf(100));
+        return cents.longValue();
+    }
+
+
+    public static String generateRandomForOrderNo() {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        StringBuilder sb = new StringBuilder(8);
+        for (int i = 0; i < 8; i++) {
+            sb.append(CHARACTERS.charAt(random.nextInt(0, CHARACTERS.length())));
+        }
+        return sb.toString();
+    }
+
     /**
      * @Description: 生成随机订单号
      * @Param:
@@ -248,5 +268,24 @@ public class JuliaUtils {
             return false;
         }
         return url.startsWith("http://") || url.startsWith("https://");
+    }
+
+    /**
+     * @Description: 最后8个字符串
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public static String getLast8(String input) {
+        if (input == null) {
+            return "";
+        }
+        int len = input.length();
+        if (len <= 8) {
+            return input; // 不足8位，返回原字符串
+        } else {
+            return input.substring(len - 8); // 从倒数第8个开始截取
+        }
     }
 }
