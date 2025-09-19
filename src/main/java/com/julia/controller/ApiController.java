@@ -10,6 +10,7 @@ import com.julia.entity.alipaymodel.PayByAliPay;
 import com.julia.enums.RedisKeyEnum;
 import com.julia.mapper.ObtainMapper;
 import com.julia.model.CaptchaVo;
+import com.julia.model.HuiYuan.BillTable;
 import com.julia.model.alipay.CallbackParam;
 import com.julia.model.dto.DrawerPollDTO;
 import com.julia.model.dto.FortuneDTO;
@@ -103,9 +104,14 @@ public class ApiController {
     @ApiOperation("test")
     @GetMapping("/test")
     public Rv<String> test() {
-        huiYuanService.setBillStatus("C250916238577613", 1, "成功处理");
-        huiYuanService.getDetailOrder("C250916238577613");
+//        huiYuanService.setBillStatus("C250916238577613", 1, "成功处理");
+//        huiYuanService.getDetailOrder("C250916238577613");
 //        huiYuanService.getHuiYuanOrders();
+
+//        String account = "wwbbinB6bGLIy1";
+//        String orderNo = account.substring(account.length() - 8);
+//        String paylerLoginName = account.substring(0, account.length() - 8);
+//        log.info("ORG: {}  orderNo: {}  name: {}", account, orderNo, paylerLoginName);
         return new Rv<>("OK");
     }
 
@@ -122,6 +128,15 @@ public class ApiController {
         params.forEach((key,value)->{
             log.info("KEY: {} - VALUE: {}",key,value);
         });
+
+        BillTable bill = new BillTable();
+        bill.setBillNo(params.get("bill_no"));
+        bill.setProductName(params.get("product_code"));
+        bill.setProductCode(params.get("product_code"));
+        bill.setParPrice(params.get("par_price"));
+        bill.setBillStatus(params.get("bill_status"));
+        bill.setChargeAccount(params.get("charge_account"));
+        huiYuanService.handleBill(bill);
         return "OK";
     }
 
@@ -140,51 +155,9 @@ public class ApiController {
                 repeti = false;
             }
         }
-        orderService.initOrder(orderNo);
+        orderService.initOrder(orderNo,player.getLoginName());
         res.setPlayerName(player.getLoginName());
         res.setOrderNo(orderNo);
         return new Rv<>(res);
     }
-
-
-//    @SneakyThrows
-//    @ApiOperation("支付宝订单支付回调")
-//    @PostMapping("/callback")
-//    public String callback(HttpServletRequest request) {
-//        log.info("支付宝订单支付回调");
-//        Map<String, String> params = new HashMap<String, String>();
-//        Map requestParams = request.getParameterMap();
-//        for (Iterator iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
-//            String name = (String) iter.next();
-//            String[] values = (String[]) requestParams.get(name);
-//            String valueStr = "";
-//            for (int i = 0; i < values.length; i++) {
-//                valueStr = (i == values.length - 1) ? valueStr + values[i] : valueStr + values[i] + ",";
-//            }
-//            //乱码解决，这段代码在出现乱码时使用。
-//            //valueStr = new String(valueStr.getBytes("ISO-8859-1"), "utf-8");
-//            log.info("Name: {}  Value:{}", name, valueStr);
-//            params.put(name, valueStr);
-//        }
-//        boolean flag = AlipaySignature.rsaCertCheckV1(params, alipayCertPublicKey, "UTF-8", "RSA2");
-//
-//        if (flag) {
-//            log.info("回调验签通过");
-//            alipayService.handleCallBack(params);
-//            return "success";
-//        }
-//        return "fail";
-//    }
-
-//    @ApiOperation("创建订单")
-//    @PostMapping("/addOrder")
-//    public Rv<DrawerPollDTO> addOrder(@RequestBody GameOrderEntityVO vo) {
-//        return new Rv<>(alipayService.savePayFormGame(vo.getOrderNo()));
-//    }
-//
-//    @ApiOperation("发起回调")
-//    @PostMapping("/sendCallback")
-//    public Rv<Boolean> sendCallback(@RequestBody PayByAliPay vo) {
-//        return new Rv<>(alipayService.reqCallBack(vo));
-//    }
 }

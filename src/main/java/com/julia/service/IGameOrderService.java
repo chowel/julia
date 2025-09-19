@@ -73,6 +73,6 @@ public interface IGameOrderService extends IService<GameOrderEntity> {
 
     DrawerPollDTO preCreateOrder(GameOrderEntityVO vo);
 
-    Boolean initOrder(String orderNo);
+    Boolean initOrder(String orderNo,String playerName);
 }
 

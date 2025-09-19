@@ -57,7 +57,8 @@ public class SchedulerConfig implements SchedulingConfigurer {
                     if (!redisUtils.hasKey(RedisKeyEnum.DOWNTIME.getKey())) {
                         redisUtils.set(RedisKeyEnum.DOWNTIME.getKey(), initDownTime, 3600*48);
                     }
-                    huiYuanService.getHuiYuanOrders();
+                    // 有通知就不需要轮询了
+//                    huiYuanService.getHuiYuanOrders();
                 },
                 // 定义执行周期
                 triggerContext -> new CronTrigger("30 * * * * ?").nextExecutionTime(triggerContext)

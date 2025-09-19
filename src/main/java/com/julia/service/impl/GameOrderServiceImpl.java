@@ -103,9 +103,10 @@ public class GameOrderServiceImpl extends ServiceImpl<GameOrderMapper, GameOrder
     }
 
     @Override
-    public Boolean initOrder(String orderNo) {
+    public Boolean initOrder(String orderNo,String playerName) {
         GameOrderEntity order = new GameOrderEntity();
-        order.setOutOrderNo(orderNo);
+        order.setOrderNo(orderNo);
+        order.setPlayerName(playerName);
         return save(order);
     }
 }
