@@ -34,6 +34,8 @@ public interface IGameOrderService extends IService<GameOrderEntity> {
     */
     GameOrderEntityVO findOneById(Long id);
 
+    GameOrderEntity findOneByOutOrderNo(String outOrderNo);
+
 
     /**
      * @Description: 根据订单Id

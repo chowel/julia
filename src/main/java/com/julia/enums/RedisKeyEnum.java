@@ -16,7 +16,7 @@ public enum RedisKeyEnum {
     /**
      * 车队
      */
-    CAR_ALIVE("JULIA:CAR_ALIVE_ZSET"),
+    CAR_ALIVE("TOWER:ALIVE"),
     /**
      * 有车队公共池
      */
@@ -30,7 +30,7 @@ public enum RedisKeyEnum {
      */
     FORTUNE_POOL("JULIA:FORTUNE_POOL:"),
     /**
-     * 车队池
+     * 列表下载时间
      */
     DOWNTIME("JULIA:GAME:DOWNTIME"),
     /**

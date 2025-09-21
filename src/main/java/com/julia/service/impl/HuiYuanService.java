@@ -29,6 +29,7 @@ import com.julia.model.HuiYuan.NewDataSet;
 import com.julia.model.HuiYuan.ReturnData;
 import com.julia.model.alipay.AliPayCreate;
 import com.julia.model.dto.DrawerPollDTO;
+import com.julia.model.vo.GameOrderEntityVO;
 import com.julia.service.*;
 import com.julia.tool.JuliaException;
 import com.julia.tool.JuliaUtils;
@@ -203,7 +204,7 @@ public class HuiYuanService {
                                 playerService.addCoin(order.getPlayerId(), config.getGold(), config.getOre());
                             }
                             log.info("回调");
-                            Map<String, Object> callBackParams = new HashMap<>(5);
+                            Map<String, Object> callBackParams = new HashMap<>(6);
                             String sign = order.getOrderNo() + order.getOutOrderNo();
                             callBackParams.put("orderNo", order.getOrderNo());
                             callBackParams.put("outOrderNo", order.getOutOrderNo());
@@ -335,7 +336,7 @@ public class HuiYuanService {
      * @Author: chowel
      * @Date:
      */
-    public void getDetailOrder(String billNo) {
+    public Boolean getDetailOrder(String billNo,String orderNo,String playerName) {
         String sign = genDetailBill(billNo);
         String url = domain + "Query.aspx?agent_id=" + agentId +
                 "&bill_no=" + billNo +
@@ -359,19 +360,67 @@ public class HuiYuanService {
 
         Map<String, String> params = parse(xmlString);
 
-        BillDetailsResponse resp = new BillDetailsResponse();
-        resp.setRetCode(Integer.valueOf(params.get("ret_code")));
-        resp.setRetMsg(params.get("ret_msg"));
-        resp.setAgentId(params.get("agent_id"));
-        resp.setBillNo(params.get("bill_no"));
-        resp.setProductCode(params.get("product_code"));
-        resp.setProductName(params.get("product_name"));
-        resp.setParPrice(new BigDecimal(params.get("par_price")));
-        resp.setPurchaseAmt(new BigDecimal(params.get("purchase_amt")));
-        resp.setBillStatus(Integer.valueOf(params.get("bill_status")));
-        resp.setSign(params.get("sign"));
+        params.forEach((key,value)->{
+            log.info("KEY: {} - VALUE: {}",key,value);
+        });
 
-        log.info("Details:BillNo: {} - Status: {}", resp.getBillNo(), resp.getBillStatus());
+        if (StringUtils.hasLength(params.get("bill_no"))) {
+            GameOrderEntity orderDetail = orderService.findOneByOutOrderNo(params.get("bill_no"));
+            if (ObjectUtils.isEmpty(orderDetail)) {
+                orderDetail = new GameOrderEntity();
+                orderDetail.setOrderNo(orderNo);
+                orderDetail.setPlayerName(playerName);
+                orderDetail.setOutOrderNo(params.get("bill_no"));
+                orderDetail.setProductCode(params.get("product_code"));
+                orderDetail.setSubject(params.get("product_name"));
+                Long price = JuliaUtils.stringYuanToCents(params.get("par_price"));
+                orderDetail.setTotalAmount(price);
+                orderDetail.setTradeStatus("TRADE_SUCCESS");
+                orderDetail.setTotal(price);
+                orderDetail.setStatus(2);
+                //
+                if( Integer.parseInt(params.get("bill_status"))  == 0){
+                    setBillStatus(params.get("bill_no"), 0, "签出准备处理");
+                    setBillStatus(params.get("bill_no"), 1, "成功处理");
+                }
+
+//                if (orderService.save(orderDetail)) {
+                    // 玩家上分
+//                    PayConfigEntity config = payConfigService.findOneByCode(orderDetail.getProductCode());
+//                    if (!ObjectUtils.isEmpty(config)) {
+//                        playerService.addCoin(orderDetail.getPlayerId(), config.getGold(), config.getOre());
+//                    }
+                //}
+
+                Map<String, Object> callBackParams = new HashMap<>(6);
+                String callBackSign = orderDetail.getOrderNo() + orderDetail.getOutOrderNo();
+                callBackParams.put("orderNo", orderDetail.getOrderNo());
+                callBackParams.put("outOrderNo", orderDetail.getOutOrderNo());
+                callBackParams.put("totalAmount", String.format("%.2f", price / 100.0));
+                callBackParams.put("tradeStatus", orderDetail.getTradeStatus());
+                callBackParams.put("account", orderDetail.getPlayerName());
+                callBackParams.put("sign", DigestUtils.md5DigestAsHex(callBackSign.getBytes(StandardCharsets.UTF_8)));
+                // 发送回调
+                HttpHeaders callBackHeaders = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(callBackParams, callBackHeaders);
+                ResponseEntity<String> callBackresponse = restTemplate.postForEntity(callbackUrl, requestEntity,
+                        String.class);
+                if (callBackresponse.getStatusCode() == HttpStatus.OK) {
+                    log.info(callBackresponse.getBody());
+                    if (Objects.requireNonNull(callBackresponse.getBody()).contains("ok")) {
+                        orderService.lambdaUpdate()
+                                .eq(GameOrderEntity::getOrderId, orderDetail.getOrderId())
+                                .set(GameOrderEntity::getUrl, "Yes")
+                                .update();
+                    }
+                    return true;
+                }
+            }
+        }
+
+        return false;
 
     }
 

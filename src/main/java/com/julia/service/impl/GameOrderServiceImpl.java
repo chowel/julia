@@ -10,6 +10,7 @@ import com.julia.model.dto.DrawerPollDTO;
 import com.julia.service.IGameOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.julia.service.IStackPlayerService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import com.julia.model.vo.GameOrderEntityVO;
 import com.julia.tool.JuliaUtils;
@@ -17,6 +18,7 @@ import com.julia.model.QueryPagement;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.Map;
 import java.util.stream.Collectors;
 /**
 * <p>
@@ -26,6 +28,8 @@ import java.util.stream.Collectors;
 * @author chowel
 * @since 2025-03-19
 */
+
+@Slf4j
 @Service
 public class GameOrderServiceImpl extends ServiceImpl<GameOrderMapper, GameOrderEntity> implements IGameOrderService {
 
@@ -34,8 +38,15 @@ public class GameOrderServiceImpl extends ServiceImpl<GameOrderMapper, GameOrder
 
     @Override
     public Page<GameOrderEntityVO> findForPage(QueryPagement queryPagement) {
-        Page<GameOrderEntity> p = new LambdaQueryChainWrapper<GameOrderEntity>(getBaseMapper()).page(new Page<GameOrderEntity>(queryPagement.getStartPage(),
-        queryPagement.getPageSize()));
+
+        Map<String,Object> sf = queryPagement.getSearchFields();
+        Page<GameOrderEntity> p = new LambdaQueryChainWrapper<GameOrderEntity>(getBaseMapper())
+                .eq(StringUtils.hasLength((String)sf.get("outOrderNo")),GameOrderEntity::getOutOrderNo,sf.get("outOrderNo"))
+                .eq(StringUtils.hasLength((String)sf.get("orderNo")),GameOrderEntity::getOrderNo,sf.get(
+                        "orderNo"))
+                .eq(StringUtils.hasLength((String)sf.get("playerName")),GameOrderEntity::getPlayerName,sf.get(
+                        "playerName"))
+                .page(new Page<GameOrderEntity>(queryPagement.getStartPage(), queryPagement.getPageSize()));
         Page<GameOrderEntityVO> page = JuliaUtils.convertTo(new Page<GameOrderEntityVO>(), p);
                 page.setRecords(p.getRecords().stream().map(e -> JuliaUtils.convertTo(new GameOrderEntityVO(), e)).collect(Collectors.toList()));
                 return page;
@@ -45,6 +56,11 @@ public class GameOrderServiceImpl extends ServiceImpl<GameOrderMapper, GameOrder
     public GameOrderEntityVO findOneById(Long id) {
             GameOrderEntity entity = getById(id);
             return JuliaUtils.convertTo(new GameOrderEntityVO(), entity);
+    }
+
+    @Override
+    public GameOrderEntity findOneByOutOrderNo(String outOrderNo) {
+        return lambdaQuery().eq(GameOrderEntity::getOutOrderNo,outOrderNo).one();
     }
 
     @Override

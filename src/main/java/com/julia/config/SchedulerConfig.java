@@ -54,8 +54,8 @@ public class SchedulerConfig implements SchedulingConfigurer {
                 // 定义执行任务内容
                 () -> {
                     log.info("30秒执行一次");
-                    if (!redisUtils.hasKey(RedisKeyEnum.DOWNTIME.getKey())) {
-                        redisUtils.set(RedisKeyEnum.DOWNTIME.getKey(), initDownTime, 3600*48);
+                    if (!redisUtils.hasKey(RedisKeyEnum.CAR_ALIVE.getKey())) {
+                        redisUtils.set(RedisKeyEnum.CAR_ALIVE.getKey(), 1, 300);
                     }
                     // 有通知就不需要轮询了
 //                    huiYuanService.getHuiYuanOrders();
