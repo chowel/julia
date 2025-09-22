@@ -1,10 +1,13 @@
 package com.julia.controller;
 
+import com.julia.entity.StackPlayerEntity;
 import com.julia.model.dto.DrawerPollDTO;
 import com.julia.model.vo.GameOrderEntityVO;
 import com.julia.model.vo.PayConfigEntityVO;
+import com.julia.model.vo.StackPlayerEntityVO;
 import com.julia.service.IGameOrderService;
 import com.julia.service.IPayConfigService;
+import com.julia.service.IStackPlayerService;
 import com.julia.service.impl.AlipayService;
 import com.julia.tool.PlayerToken;
 import com.julia.tool.Rv;
@@ -32,7 +35,7 @@ public class GameController {
     IPayConfigService payConfigService;
 
     @Resource
-    AlipayService alipayService;
+    IStackPlayerService playerService;
 
     @Resource
     IGameOrderService gameOrderService;
@@ -50,6 +53,14 @@ public class GameController {
         vo.setPlayerId(PlayerToken.getLoginIdAsInt());
         return new Rv<>(gameOrderService.preCreateOrder(vo));
     }
+
+    @ApiOperation("同步玩家数据")
+    @PostMapping("/upPlayerData")
+    public Rv<Boolean> upPlayerData(@RequestBody StackPlayerEntityVO vo) {
+        return new Rv<>(playerService.gameUpData(PlayerToken.getLoginIdAsInt(),vo.getCoin(),vo.getMason()));
+    }
+
+
 
 
 

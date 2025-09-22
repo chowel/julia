@@ -139,5 +139,18 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
         }
         return false;
     }
+
+    @Override
+    public Boolean gameUpData(Integer userId, int coin, int mason) {
+        StackPlayerEntity player = getById(userId);
+        if(!ObjectUtils.isEmpty(player)){
+            return lambdaUpdate()
+                    .eq(StackPlayerEntity::getUnionId,userId)
+                    .set(StackPlayerEntity::getCoin,coin)
+                    .set(StackPlayerEntity::getMason,mason)
+                    .update();
+        }
+        return false;
+    }
 }
 
