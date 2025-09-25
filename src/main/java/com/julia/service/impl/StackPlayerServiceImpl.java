@@ -132,7 +132,7 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
         StackPlayerEntity player = getById(userId);
         if(!ObjectUtils.isEmpty(player)){
             return lambdaUpdate()
-                    .eq(StackPlayerEntity::getUnionId,userId)
+                    .eq(StackPlayerEntity::getUserId,userId)
                     .set(StackPlayerEntity::getCoin,player.getCoin()+coin)
                     .set(StackPlayerEntity::getMason,player.getMason()+mason)
                     .update();
@@ -145,7 +145,7 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
         StackPlayerEntity player = getById(userId);
         if(!ObjectUtils.isEmpty(player)){
             return lambdaUpdate()
-                    .eq(StackPlayerEntity::getUnionId,userId)
+                    .eq(StackPlayerEntity::getUserId,userId)
                     .set(StackPlayerEntity::getCoin,coin)
                     .set(StackPlayerEntity::getMason,mason)
                     .update();

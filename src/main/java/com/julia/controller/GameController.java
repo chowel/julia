@@ -57,7 +57,7 @@ public class GameController {
     @ApiOperation("同步玩家数据")
     @PostMapping("/upPlayerData")
     public Rv<Boolean> upPlayerData(@RequestBody StackPlayerEntityVO vo) {
-        return new Rv<>(playerService.gameUpData(PlayerToken.getLoginIdAsInt(),vo.getCoin(),vo.getMason()));
+        return new Rv<>(playerService.addCoin(PlayerToken.getLoginIdAsInt(),vo.getCoin(),vo.getMason()));
     }
 
 
