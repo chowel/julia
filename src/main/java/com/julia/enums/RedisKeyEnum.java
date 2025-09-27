@@ -14,9 +14,9 @@ public enum RedisKeyEnum {
 
 
     /**
-     * 车队
+     * redis保活
      */
-    CAR_ALIVE("JULIA:CAR_ALIVE_ZSET"),
+    ALIVE("JULIA:ALIVE"),
     /**
      * 有车队公共池
      */

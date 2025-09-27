@@ -121,20 +121,39 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
             return;
         }
 
+        WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
+                "websocket", null, false);
+        handshaker = wsFactory.newHandshaker(req);
+
 
         log.info(req.uri());
         String[] uriArr = req.uri().split("/");
-        if (uriArr.length > 2) {
+        if (uriArr.length > 3) {
+            // 后台
+            if ("ADMIN".equals(uriArr[2])) {
+                String id = (String) StpUtil.getLoginIdByToken(uriArr[3]);
+                if (StringUtils.hasLength(id)) {
+                    ChannelPond.addChannel(ctx.channel(), id);
+//                    // 加入
+//                    nioWebSocketHandler.service.joinZset(id);
 
-            WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-                    "websocket", null, false);
-            handshaker = wsFactory.newHandshaker(req);
+                    if (handshaker == null) {
+                        WebSocketServerHandshakerFactory
+                                .sendUnsupportedVersionResponse(ctx.channel());
+                    } else {
+                        handshaker.handshake(ctx.channel(), req);
+                    }
+                }
+            }
+            // 网页用户
+            else if ("CLIENT".equals(uriArr[2])) {
+                String secure = uriArr[3];
+                log.info(secure);
+                if (StringUtils.hasLength(secure)) {
+//                    nioWebSocketHandler.service.clientConnect(ctx.channel(), secure);
+                    ChannelPond.addClientChannel(ctx.channel(), secure);
+                }
 
-            String id = (String) StpUtil.getLoginIdByToken(uriArr[2]);
-            if (StringUtils.hasLength(id)) {
-                ChannelPond.addChannel(ctx.channel(), id);
-                // 加入
-                nioWebSocketHandler.service.joinZset(id);
 
                 if (handshaker == null) {
                     WebSocketServerHandshakerFactory
@@ -142,8 +161,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                 } else {
                     handshaker.handshake(ctx.channel(), req);
                 }
-
-            }else{
+            } else {
                 sendHttpResponse(ctx, req, new DefaultFullHttpResponse(
                         HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST));
             }

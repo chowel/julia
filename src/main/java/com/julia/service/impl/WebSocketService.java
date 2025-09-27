@@ -52,23 +52,40 @@ public class WebSocketService {
     @SneakyThrows
     public void handleMsgWhitChannel(String requestMsg, Channel channel) {
         WebSocketMsgBO bo = mapper.readValue(requestMsg, WebSocketMsgBO.class);
-        if ("GETROCKET".equals(bo.getSub())) {
-            handleConnect(channel);
+        if ("CLIENTCONNECT".equals(bo.getSub())) {
+            clientConnect(channel,(String)bo.getData());
         }
-        if ("GETFORTUNE".equals(bo.getSub())) {
-            fortuneToCar(channel);
-        }
-        // 心跳
-        if ("PING".equals(bo.getSub())) {
-            String userId = ChannelPond.findUserIdByChannel(channel);
-            if (StringUtils.hasLength(userId)) {
-                log.info("Heart->userId: " + userId);
-                handleHeart(userId);
-            } else {
-                channel.close();
+//        if ("GETFORTUNE".equals(bo.getSub())) {
+//            fortuneToCar(channel);
+//        }
+        // 客户端心跳
+        if ("CLIENTPING".equals(bo.getSub())) {
+
+            String clientSecure = (String) bo.getData();
+            if (StringUtils.hasLength(clientSecure)) {
+                log.info("client-ping: 客户端 {} 心跳", clientSecure);
+                Channel clientChannel = ChannelPond.findClientChannel(clientSecure);
+                if (clientChannel != null) {
+                    WebSocketMsgBO resBo = new WebSocketMsgBO();
+                    resBo.setSub("CLIENTPONG");
+                    resBo.setData(clientSecure);
+                    clientChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(resBo)));
+                }
             }
 
         }
+
+//        // 心跳
+//        if ("PING".equals(bo.getSub())) {
+//            String userId = ChannelPond.findUserIdByChannel(channel);
+//            if (StringUtils.hasLength(userId)) {
+//                log.info("Heart->userId: " + userId);
+//                handleHeart(userId);
+//            } else {
+//                channel.close();
+//            }
+//
+//        }
     }
 
     /**
@@ -104,19 +121,20 @@ public class WebSocketService {
      * @Date:
      */
     @SneakyThrows
-    public void handleConnect(Channel c) {
-        String userId = ChannelPond.findUserIdByChannel(c);
-        log.info("userId: " + userId);
-        Channel userChannel = ChannelPond.findChannel(userId);
-        if (ObjectUtils.isEmpty(userChannel)) {
-            log.info("userChannel: false");
-        } else {
-            WebSocketMsgBO bo = new WebSocketMsgBO();
-            bo.setSub("CURARR");
-            bo.setData(getRocketsByUserId(userId));
-            userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
+    public void clientConnect(Channel c, String clientSecure) {
 
+        Channel clientChannel = ChannelPond.findClientChannel(clientSecure);
+        if(ObjectUtils.isEmpty(clientChannel)){
+            ChannelPond.addClientChannel(c, clientSecure);
         }
+
+        //  客户端连接返回
+        WebSocketMsgBO clientbo = new WebSocketMsgBO();
+        clientbo.setSub("CLIENTCONNECTED");
+        clientbo.setData("OK");
+        c.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(clientbo)));
+        // 通知后台 有客户端连接
+
     }
 
     @SneakyThrows
@@ -143,7 +161,7 @@ public class WebSocketService {
      */
     @SneakyThrows
     public void depositsInput(String fortuneNo) {
-        redisUtils.lSet(RedisKeyEnum.DEPOSIT.getKey(), fortuneNo,24*3600);
+        redisUtils.lSet(RedisKeyEnum.DEPOSIT.getKey(), fortuneNo, 24 * 3600);
     }
 
 
@@ -161,8 +179,8 @@ public class WebSocketService {
     }
 
     public void joinZset(String userId) {
-        YaoEntity yao = yaoMapper.selectById(Long.valueOf(userId));
-        Boolean res = redisUtils.addZset(RedisKeyEnum.CAR_ALIVE.getKey(), userId, yao.getCoin());
+//        YaoEntity yao = yaoMapper.selectById(Long.valueOf(userId));
+//        Boolean res = redisUtils.addZset(RedisKeyEnum.CAR_ALIVE.getKey(), userId, yao.getCoin());
 //        long exTime = redisUtils.getExpire(RedisKeyEnum.CAR_ALIVE.getKey());
 //        log.info("过期时间 :{}", exTime);
 //        // 设置缓存时间
@@ -183,12 +201,13 @@ public class WebSocketService {
      * @Date:
      */
     public void incrementScore(String userId, int count) {
-        redisUtils.addScore(RedisKeyEnum.CAR_ALIVE.getKey(), userId, count);
+//        redisUtils.addScore(RedisKeyEnum.CAR_ALIVE.getKey(), userId, count);
     }
 
     public List<String> getAliveByZset(int minCoin) {
-        Set<Object> res = redisUtils.rangeByScore(RedisKeyEnum.CAR_ALIVE.getKey(), minCoin, 10000000);
-        return res.stream().map(e -> (String) e).collect(Collectors.toList());
+//        Set<Object> res = redisUtils.rangeByScore(RedisKeyEnum.CAR_ALIVE.getKey(), minCoin, 10000000);
+//        return res.stream().map(e -> (String) e).collect(Collectors.toList());
+        return null;
     }
 
     /**
@@ -199,7 +218,7 @@ public class WebSocketService {
      * @Date:
      */
     public void delByUserid(String userId) {
-        redisUtils.removeByValue(RedisKeyEnum.CAR_ALIVE.getKey(), userId);
+
     }
 
     /**
@@ -339,17 +358,7 @@ public class WebSocketService {
      * @Date:
      */
     public void handleCarOpera(YaoEntity yao, RocketEntity rocket) {
-        // 车队个人池中删除
-        redisUtils.hdel(RedisKeyEnum.CAR_POND.getKey() + yao.getYaoId(), rocket.getOrderId());
-        // 公共池中删除
-        redisUtils.del(RedisKeyEnum.COMMON_POND.getKey() + yao.getYaoId() + rocket.getOrderId());
 
-        String yaoId = String.valueOf(yao.getYaoId());
-
-        redisUtils.addZset(RedisKeyEnum.CAR_ALIVE.getKey(), yaoId, yao.getCoin());
-
-        Channel userChannel = ChannelPond.findChannel(String.valueOf(yao.getYaoId()));
-        handleConnect(userChannel);
     }
 
     private List<RocketEntity> getRocketsByUserId(String userId) {
