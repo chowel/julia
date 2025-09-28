@@ -16,11 +16,11 @@ public enum RedisKeyEnum {
     /**
      * redis保活
      */
-    ALIVE("JULIA:ALIVE"),
+    ALIVE("YOKI:ALIVE"),
     /**
-     * 有车队公共池
+     * web客户
      */
-    CLIENTSUBMIT("JULIA:CLIENTSUBMIT:"),
+    CLIENTSUBMIT("YOKI:CLIENTSUBMIT:"),
     /**
      * 有车队公共池
      */

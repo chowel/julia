@@ -1,4 +1,4 @@
-package com.julia.config;
+package com.yoki.config;
 
 import cn.dev33.satoken.interceptor.SaRouteInterceptor;
 import cn.dev33.satoken.router.SaRouter;
@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * @program: julia
+ * @program: yoki
  * @description: SaTokenConfigure
  * @Auther: brody
  * @create: 2021-11-09
@@ -20,8 +20,8 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册Sa-Token的路由拦截器
         registry.addInterceptor(new SaRouteInterceptor((req, res, handler)->{
-            SaRouter.match("/julia/profess/**", StpUtil::checkLogin);
+            SaRouter.match("/yoki/profess/**", StpUtil::checkLogin);
         })).addPathPatterns("/**").excludePathPatterns("/swagger-resources/**","/swagger-**","/swagger-ui.**",
-                "/julia/api/**");
+                "/yoki/api/**");
     }
 }

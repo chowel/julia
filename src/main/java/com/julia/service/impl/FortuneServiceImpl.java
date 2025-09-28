@@ -414,13 +414,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     }
 
     protected void addCoinLog(FortuneEntity fortune) {
-        CoinLogEntity coin = new CoinLogEntity();
-        coin.setType(1);
-        coin.setCoin(fortune.getAmount());
-        coin.setFortuneNo(fortune.getFortuneNo());
-        coin.setCId(fortune.getCId());
-        coin.setPId(fortune.getPId());
-        coinLogMapper.insert(coin);
+
     }
 }
 

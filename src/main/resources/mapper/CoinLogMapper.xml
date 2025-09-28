@@ -7,19 +7,16 @@
         <id column="id" property="id" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
-        <result column="y_id" property="yId" />
-        <result column="c_id" property="cId" />
-        <result column="p_id" property="pId" />
-        <result column="type" property="type" />
         <result column="coin" property="coin" />
-        <result column="fortune_no" property="fortuneNo" />
+        <result column="coin_date" property="coinDate" />
+        <result column="coin_url" property="coinUrl" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        id, y_id, c_id, p_id, type, coin, fortune_no
+        id, coin, coin_date, coin_url
     </sql>
 
 </mapper>

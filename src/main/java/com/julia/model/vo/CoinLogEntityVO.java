@@ -15,48 +15,36 @@ import lombok.Setter;
 
 /**
  * <p>
- * 上货记录
+ * 记录
  * </p>
  *
  * @author chowel
- * @since 2024-03-04
+ * @since 2025-09-28
  */
 @Getter
 @Setter
-@ApiModel(value = "CoinLogEntityVO", description = "上货记录VO")
+@ApiModel(value = "CoinLogEntityVO", description = "记录VO")
 public class CoinLogEntityVO extends BaseEntity {
 
     @ApiModelProperty("主键ID")
     private Long id;
 
-    @ApiModelProperty("操作者id")
-    private Integer yId;
-
-    @ApiModelProperty("上押id")
-    private Integer cId;
-
-    @ApiModelProperty("盘方id")
-    private Integer pId;
-
-    @ApiModelProperty("1 收单 2 上米")
-    private Integer type;
-
-    @ApiModelProperty("coin")
+    @ApiModelProperty("访问人数")
     private Integer coin;
 
-    @ApiModelProperty("订单号")
-    private String fortuneNo;
+    @ApiModelProperty("时间 年月日")
+    private String coinDate;
+
+    @ApiModelProperty("访问地址")
+    private String coinUrl;
 
     @Override
     public String toString() {
         return "{" +
             "id = " + id +
-            ", yId = " + yId +
-            ", cId = " + cId +
-            ", pId = " + pId +
-            ", type = " + type +
             ", coin = " + coin +
-            ", fortuneNo = " + fortuneNo +
+            ", coinDate = " + coinDate +
+            ", coinUrl = " + coinUrl +
         "}";
     }
 }

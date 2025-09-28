@@ -38,7 +38,7 @@ import java.util.Set;
 @Log4j2
 @Api(tags = "通用接口不要token")
 @RestController
-@RequestMapping("/julia/api")
+@RequestMapping("/yoki/api")
 public class ApiController {
 
     @Resource

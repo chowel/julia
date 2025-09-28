@@ -23,7 +23,7 @@ import javax.annotation.Resource;
  */
 @Api(tags = "上货记录")
 @RestController
-@RequestMapping("/julia/profess/coinLogEntity")
+@RequestMapping("/yoki/profess/coinLog")
 public class CoinLogController {
     @Resource
     ICoinLogService serviceImpl;

@@ -176,12 +176,6 @@ public class YaoServiceImpl extends ServiceImpl<YaoMapper, YaoEntity> implements
         }
         entity.setCoin(coin);
         updateById(entity);
-
-        CoinLogEntity coinLog = new CoinLogEntity();
-        coinLog.setCId(vo.getYaoId());
-        coinLog.setCoin(vo.getCoin());
-        coinLog.setYId(pId);
-        coinLogMapper.insert(coinLog);
         return true;
     }
 }

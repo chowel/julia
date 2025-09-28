@@ -1,20 +1,20 @@
 package com.julia.service;
 
-import com.julia.entity.CoinLogEntity;
-import com.julia.model.vo.CoinLogEntityVO;
+import com.julia.entity.PlayersEntity;
+import com.julia.model.vo.PlayersEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
 /**
  * <p>
- * 记录 服务类
+ * 用户表 服务类
  * </p>
  *
  * @author chowel
  * @since 2025-09-28
  */
 
-public interface ICoinLogService extends IService<CoinLogEntity> {
+public interface IPlayersService extends IService<PlayersEntity> {
     /**
     * @Description: 分页查找
     * @Param:
@@ -22,7 +22,7 @@ public interface ICoinLogService extends IService<CoinLogEntity> {
     * @Author: chowel
     * @Date: 2025-09-28
     */
-    Page<CoinLogEntityVO> findForPage(QueryPagement queryPagement);
+    Page<PlayersEntityVO> findForPage(QueryPagement queryPagement);
 
     /**
     * @Description: 根据id查找
@@ -31,7 +31,7 @@ public interface ICoinLogService extends IService<CoinLogEntity> {
     * @Author: chowel
     * @Date: 2025-09-28
     */
-    CoinLogEntityVO findOneById(Long id);
+    PlayersEntityVO findOneById(Long id);
 
     /**
     * @Description: 添加
@@ -40,7 +40,7 @@ public interface ICoinLogService extends IService<CoinLogEntity> {
     * @Author: chowel
     * @Date: 2025-09-28
     */
-    Boolean saveCoinLogEntity(CoinLogEntityVO vo);
+    Boolean savePlayersEntity(PlayersEntityVO vo);
 
     /**
     * @Description: 修改
@@ -49,7 +49,7 @@ public interface ICoinLogService extends IService<CoinLogEntity> {
     * @Author: chowel
     * @Date: 2025-09-28
     */
-    Boolean alter(CoinLogEntityVO vo);
+    Boolean alter(PlayersEntityVO vo);
 
     /**
     * @Description: 删除

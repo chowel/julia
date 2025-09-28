@@ -27,7 +27,7 @@ import java.util.List;
  */
 @Api(tags = "账号")
 @RestController
-@RequestMapping("/julia/profess/yaoEntity")
+@RequestMapping("/yoki/profess/yao")
 public class YaoController {
     @Resource
     IYaoService serviceImpl;

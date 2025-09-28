@@ -10,11 +10,11 @@ import lombok.Setter;
 
 /**
  * <p>
- * 上货记录
+ * 记录
  * </p>
  *
  * @author chowel
- * @since 2024-03-04
+ * @since 2025-09-28
  */
 @Getter
 @Setter
@@ -28,38 +28,20 @@ public class CoinLogEntity extends BaseEntity {
     private Long id;
 
     /**
-     * 操作者id
-     */
-    @TableField("y_id")
-    private Integer yId;
-
-    /**
-     * 上押id
-     */
-    @TableField("c_id")
-    private Integer cId;
-
-    /**
-     * 盘方id
-     */
-    @TableField("p_id")
-    private Integer pId;
-
-    /**
-     * 1 收单 2 上米
-     */
-    @TableField("type")
-    private Integer type;
-
-    /**
-     * coin
+     * 访问人数
      */
     @TableField("coin")
     private Integer coin;
 
     /**
-     * 订单号
+     * 时间 年月日
      */
-    @TableField("fortune_no")
-    private String fortuneNo;
+    @TableField("coin_date")
+    private String coinDate;
+
+    /**
+     * 访问地址
+     */
+    @TableField("coin_url")
+    private String coinUrl;
 }

@@ -1,12 +1,12 @@
 package com.julia.mapper;
 
-import com.julia.entity.CoinLogEntity;
+import com.julia.entity.PlayersEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 记录 Mapper 接口
+ * 用户表 Mapper 接口
  * </p>
  *
  * @author chowel
@@ -14,6 +14,6 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 
-public interface CoinLogMapper extends BaseMapper<CoinLogEntity> {
+public interface PlayersMapper extends BaseMapper<PlayersEntity> {
 
 }
