@@ -66,24 +66,48 @@ public class ChannelPond {
     }
 
     public static String removeChannel(Channel channel) {
-        String userId = "";
-        Iterator<ConcurrentMap.Entry<String, ChannelId>> iterator = ADMINPOND.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, ChannelId> next = iterator.next();
+        String result = "";
+        boolean adminRemove = true;
+        Iterator<ConcurrentMap.Entry<String, ChannelId>> adminIterator = ADMINPOND.entrySet().iterator();
+        while (adminIterator.hasNext()) {
+            Map.Entry<String, ChannelId> next = adminIterator.next();
             ChannelId value = next.getValue();
             if (channel.id().equals(value)) {
-                userId = next.getKey();
-                iterator.remove();
+                result = next.getKey();
+                adminIterator.remove();
+                adminRemove = false;
             }
         }
-        return userId;
+
+        if(adminRemove){
+            Iterator<ConcurrentMap.Entry<String, ChannelId>> clientIterator = CLIENTPOND.entrySet().iterator();
+            while (clientIterator.hasNext()) {
+                Map.Entry<String, ChannelId> next = clientIterator.next();
+                ChannelId value = next.getValue();
+                if (channel.id().equals(value)) {
+                    result = next.getKey();
+                    clientIterator.remove();
+                }
+            }
+        }
+
+        return result;
     }
 
-    public static String findUserIdByChannel(Channel c){
+    public static String findClientByChannel(Channel c){
+        String secure = "";
+        for (Map.Entry<String, ChannelId> next : CLIENTPOND.entrySet()) {
+            ChannelId value = next.getValue();
+            if (c.id() == value) {
+                secure = next.getKey();
+            }
+        }
+        return secure;
+    }
+
+    public static String findAdminByChannel(Channel c){
         String userId = "";
-        Iterator<ConcurrentMap.Entry<String, ChannelId>> iterator = ADMINPOND.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, ChannelId> next = iterator.next();
+        for (Map.Entry<String, ChannelId> next : ADMINPOND.entrySet()) {
             ChannelId value = next.getValue();
             if (c.id() == value) {
                 userId = next.getKey();
@@ -100,6 +124,10 @@ public class ChannelPond {
         return GLOBAL_GROUP.find(channelId);
     }
 
+    public static Channel findAdminChannelByChannelId(ChannelId channelId) {
+        return GLOBAL_GROUP.find(channelId);
+    }
+
     public static Channel findClientChannel(String secure){
         ChannelId channelId = CLIENTPOND.get(secure);
         if(ObjectUtils.isEmpty(channelId)){
@@ -112,5 +140,7 @@ public class ChannelPond {
         return new ArrayList<>(ADMINPOND.keySet());
     }
 
-
+    public static ConcurrentHashMap<String, ChannelId> getAllAdmin(){
+        return ADMINPOND;
+    }
 }

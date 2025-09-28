@@ -1,5 +1,6 @@
 package com.julia.tool;
 
+import com.julia.model.ClientInputRo;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.ReturnType;
@@ -194,6 +195,23 @@ public class RedisUtils {
     public boolean set(String key, Object value) {
         try {
             redisTemplate.opsForValue().set(key, value);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Client提交的数据
+     *
+     * @param key   键
+     * @param ro 值
+     * @return true成功 false失败
+     */
+    public boolean pushClient(String key, ClientInputRo ro) {
+        try {
+            redisTemplate.opsForValue().set(key, ro);
             return true;
         } catch (Exception e) {
             e.printStackTrace();

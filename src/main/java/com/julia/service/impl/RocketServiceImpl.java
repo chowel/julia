@@ -118,50 +118,7 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
     @Transactional
     public Boolean carOpera(CarOperaDTO dto) {
 
-        YaoEntity cYao = yaoMapper.selectById(dto.getCId());
-        int cyaoCoin = cYao.getCoin();
-        if (cyaoCoin < dto.getRealPay()) {
-            throw new JuliaException("车队押金不足");
-        }
-        cYao.setCoin(cyaoCoin - dto.getRealPay());
-        yaoMapper.updateById(cYao);
-
-        RocketEntity entity = getById(dto.getRocketId());
-        if (ObjectUtils.isEmpty(entity)) {
-            throw new JuliaException("操作异常");
-        }
-        entity.setRealPay(dto.getRealPay());
-        entity.setCId(dto.getCId());
-        entity.setStatus(dto.getFlag());
-        if (StringUtils.hasLength(dto.getMsg())) {
-            entity.setMsg(dto.getMsg());
-        }
-        entity.setDoneTime(System.currentTimeMillis());
-
-        webSocketService.handleCarOpera(cYao,entity);
-
-        YaoEntity pYao = yaoMapper.selectById(entity.getPId());
-
-        //  回调逻辑
-        Map<String, Object> params = new HashMap<>(5);
-        String sign = SIGNSALT + entity.getOrderId() + entity.getDoneTime();
-        params.put("orderNo", entity.getOrderId());
-        params.put("amount", entity.getAmount());
-        params.put("realPay", entity.getRealPay());
-        params.put("orderStatus", entity.getStatus());
-        params.put("msg", dto.getMsg());
-        params.put("payTime", entity.getDoneTime());
-        params.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
-
-
-        String callbackReturn = handleCallBack(pYao.getCallback(), params);
-        logger.info("回调返回: " + callbackReturn);
-        if ("success".equals(callbackReturn)) {
-            entity.setCheckCallback(1);
-        } else {
-            entity.setCheckCallback(2);
-        }
-        return updateById(entity);
+        return false;
     }
 
     @Override

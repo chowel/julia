@@ -62,11 +62,11 @@ public class ApiController {
     @ApiOperation("test")
     @GetMapping("/test")
     public Rv<String> test() {
-        Channel c  = ChannelPond.findChannel("5");
-        if(!ObjectUtils.isEmpty(c)){
-            ChannelPond.removeChannel(c);
-        }
-
+//        Channel c  = ChannelPond.findChannel("5");
+//        if(!ObjectUtils.isEmpty(c)){
+//            ChannelPond.removeChannel(c);
+//        }
+//
         return new Rv<>("OK: ");
     }
 

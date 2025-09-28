@@ -20,6 +20,10 @@ public enum RedisKeyEnum {
     /**
      * 有车队公共池
      */
+    CLIENTSUBMIT("JULIA:CLIENTSUBMIT:"),
+    /**
+     * 有车队公共池
+     */
     COMMON_POND("JULIA:COMMON_POND:"),
     /**
      * 无车队公共池

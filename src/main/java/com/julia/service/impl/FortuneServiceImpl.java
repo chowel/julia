@@ -34,10 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -167,54 +164,6 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
     @Override
     public Boolean dispenseCar(DrawerPollDTO dto) {
-        FortuneEntity fortune = getOneByFortuneNo(dto.getFortuneNo());
-
-        if (!ObjectUtils.isEmpty(fortune)) {
-            if (fortune.getStatus() != 0) {
-                return false;
-            }
-            // todo 判断超时
-
-            LocalDateTime localDateTime = fortune.getCreateTime();
-            ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.systemDefault());
-            logger.info("ZonedDateTime: " + zonedDateTime);
-            long timestamp = zonedDateTime.toInstant().toEpochMilli();
-            logger.info("Timestamp (milliseconds): " + timestamp);
-            long ct = System.currentTimeMillis();
-            if ((ct - timestamp) > 6000000) {
-                fortune.setStatus(1);
-                fortune.setHandoutTime(ct);
-                String callbackReturn = handleCallBack(fortune);
-                if (StringUtils.hasLength(callbackReturn)) {
-
-                    fortune.setCheckCallback(1);
-
-                } else {
-                    fortune.setCheckCallback(2);
-                }
-                updateById(fortune);
-                throw new JuliaException("订单过期");
-            }
-            fortune.setDrawer(dto.getDrawer());
-            FortuneRedis fortuneRedis = JuliaUtils.convertTo(new FortuneRedis(), fortune);
-            if (webSocketService.hanldeFortune(fortuneRedis)) {
-//                分发车队
-                fortune.setStatus(2);
-                updateById(fortune);
-                return true;
-            } else {
-                fortune.setStatus(3);
-                fortune.setMsg("");
-                String callbackReturn = handleCallBack(fortune);
-
-                if (StringUtils.hasLength(callbackReturn)) {
-                    fortune.setCheckCallback(1);
-                } else {
-                    fortune.setCheckCallback(2);
-                }
-                updateById(fortune);
-            }
-        }
         return false;
     }
 
@@ -232,7 +181,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
         // 回调地址
 
 //        FortuneRedis fortuneRedis = JuliaUtils.convertTo(new FortuneRedis(), entity);
-        List<String> alives = webSocketService.getAliveByZset(dto.getAmount());
+        List<String> alives = new ArrayList<>();
         if (alives.size() > 0) {
 //            创建订单
             entity.setStatus(0);
@@ -250,32 +199,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
 
     @Override
     public Boolean handOut(HandOutDTO dto, int cid) {
-        FortuneEntity entity = getOneByFortuneNo(dto.getFortuneNo());
-        if (!ObjectUtils.isEmpty(entity)) {
-            //
-            if (entity.getStatus() != 2) {
-                entity.setCId(cid);
-                webSocketService.handOutRedis(entity);
-                webSocketService.dispatcherFortune(String.valueOf(cid));
-                if (entity.getStatus() == 1) {
-                    throw new JuliaException("该单已超时");
-                }
-                throw new JuliaException("该单已处理");
-            }
-            //
-            long ct = System.currentTimeMillis();
 
-            entity.setCId(cid);
-            entity.setPayId(dto.getPid());
-            entity.setStatus(5);
-            entity.setHandoutTime(ct);
-            updateById(entity);
-            // 处理redis中数据
-            webSocketService.handOutRedis(entity);
-            // 推送redis数据
-            webSocketService.dispatcherFortune(String.valueOf(cid));
-            return true;
-        }
         return false;
     }
 
@@ -313,7 +237,7 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
             if (dto.getStatus() == 1) {
                 car.setCoin(car.getCoin() - entity.getAmount());
                 int coinLose = -entity.getAmount();
-                webSocketService.incrementScore(String.valueOf(car.getYaoId()), coinLose);
+//                webSocketService.incrementScore(String.valueOf(car.getYaoId()), coinLose);
                 entity.setStatus(4);
                 if (StringUtils.hasLength(dto.getTransactNo())) {
                     entity.setTransactNo(dto.getTransactNo());
@@ -381,36 +305,13 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     @Override
     public Boolean refuse(FortuneDTO dto, int carId) {
         logger.info("分配给其他人: ");
-        boolean refuseRes = webSocketService.removeFortune(dto.getFortuneNo(), carId);
-        if (!refuseRes) {
-            FortuneEntity fortune = getOneByFortuneNo(dto.getFortuneNo());
-            if (ObjectUtils.isEmpty(fortune)) {
-                throw new JuliaException("该单异常");
-            }
-//            YaoEntity pan = yaoMapper.selectById(fortune.getPId());
-            fortune.setStatus(3);
-            fortune.setDoneTime(System.currentTimeMillis());
-            fortune.setCId(carId);
-            String callbackReturn = handleCallBack(fortune);
-//            if ("success".equals(callbackReturn)) {
-//                fortune.setCheckCallback(1);
-//                updateById(fortune);
-//            }
-            if (StringUtils.hasLength(callbackReturn)) {
-                fortune.setCheckCallback(1);
-            } else {
-                fortune.setCheckCallback(2);
-            }
-            updateById(fortune);
 
-        }
-        webSocketService.dispatcherFortune(String.valueOf(carId));
-        return refuseRes;
+        return false;
     }
 
     @Override
     public Boolean handClose(String carId) {
-        webSocketService.removeByCarId(carId);
+
         return true;
     }
 
@@ -424,24 +325,11 @@ public class FortuneServiceImpl extends ServiceImpl<FortuneMapper, FortuneEntity
     @Override
     public List<String> alives() {
 
-        return webSocketService.getAliveByZset(0);
+        return null;
     }
 
     @Override
     public Boolean expiredCallback(FortuneEntity fortuneEntity) {
-
-//        if (fortuneEntity.getStatus() == 0 || fortuneEntity.getStatus() == 1) {
-//            return false;
-//        }
-        webSocketService.dispatcherFortune(String.valueOf(fortuneEntity.getCId()));
-        String callbackReturn = handleCallBack(fortuneEntity);
-
-        if (StringUtils.hasLength(callbackReturn)) {
-            fortuneEntity.setCheckCallback(1);
-            return updateById(fortuneEntity);
-        }
-        fortuneEntity.setCheckCallback(2);
-        updateById(fortuneEntity);
         return false;
     }
 
