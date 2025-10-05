@@ -55,7 +55,7 @@ dependencies {
 }
 
 bootJar {
-    archiveBaseName = 'Julia'
+    archiveBaseName = 'YoShiKi'
     archiveVersion = '1.0.0'
 }
 jar {

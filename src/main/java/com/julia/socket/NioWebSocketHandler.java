@@ -62,13 +62,10 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         //添加连接
         log.info("客户端加入连接：" + ctx.channel());
-//        ChannelSupervise.addChannel(ctx.channel());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        //断开连接
-//        String removeId = ChannelPond.removeChannel(ctx.channel());
         log.info("断开连接：");
         nioWebSocketHandler.service.disconnect(ctx.channel());
     }
@@ -134,9 +131,6 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                 String id = (String) StpUtil.getLoginIdByToken(uriArr[3]);
                 if (StringUtils.hasLength(id)) {
                     ChannelPond.addChannel(ctx.channel(), id);
-//                    // 加入
-//                    nioWebSocketHandler.service.joinZset(id);
-
                     if (handshaker == null) {
                         WebSocketServerHandshakerFactory
                                 .sendUnsupportedVersionResponse(ctx.channel());
@@ -150,7 +144,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                 String secure = uriArr[3];
                 log.info(secure);
                 if (StringUtils.hasLength(secure)) {
-//                    nioWebSocketHandler.service.clientConnect(ctx.channel(), secure);
+                    nioWebSocketHandler.service.countVisit();
                     ChannelPond.addClientChannel(ctx.channel(), secure);
                 }
 

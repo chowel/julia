@@ -28,7 +28,7 @@ import java.util.Map;
 
 @Api(tags = "车队接口")
 @RestController
-@RequestMapping("/julia/profess/car")
+@RequestMapping("/yoki/profess/car")
 public class PowerCarController {
 
     @Resource

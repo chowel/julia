@@ -30,7 +30,7 @@ import java.util.Map;
 
 @Api(tags = "盘方接口")
 @RestController
-@RequestMapping("/julia/profess/rich")
+@RequestMapping("/yoki/profess/rich")
 public class PowerRichController {
 
     @Resource

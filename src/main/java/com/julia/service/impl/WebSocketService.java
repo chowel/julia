@@ -11,6 +11,7 @@ import com.julia.model.ClientInputRo;
 import com.julia.model.WebSocketMsgBO;
 import com.julia.model.WsFortunneBO;
 import com.julia.model.dto.FortuneRedis;
+import com.julia.service.IYaoClientService;
 import com.julia.socket.ChannelPond;
 import com.julia.tool.JuliaUtils;
 import com.julia.tool.RedisUtils;
@@ -43,7 +44,7 @@ public class WebSocketService {
     RedisUtils redisUtils;
 
     @Resource
-    YaoMapper yaoMapper;
+    IYaoClientService yaoClientService;
 
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -56,15 +57,34 @@ public class WebSocketService {
     @SneakyThrows
     public void handleMsgWhitChannel(String requestMsg, Channel channel) {
         WebSocketMsgBO bo = mapper.readValue(requestMsg, WebSocketMsgBO.class);
+        // log.info("SUB: {}",bo.getSub());
+        // 客户端连接
         if ("CLIENTCONNECT".equals(bo.getSub())) {
-            clientConnect(channel, (String) bo.getData());
+            clientConnect(channel, bo);
         }
+        if ("ADMINCONNECT".equals(bo.getSub())) {
+            adminConnect(channel);
+        }
+        // 后台发往客户端
+        if ("TOCLIENT".equals(bo.getSub())) {
+            adminToClient(bo);
+        }
+        // 客户端页面提交
+        if ("CLIENTPAGENEXT".equals(bo.getSub())) {
+            clentPageNext(channel, bo);
+        }
+        // 客户端输入
         if ("CLIENTINPUT".equals(bo.getSub())) {
             clentInput(bo);
         }
-        if ("CLIENTSUBMIT".equals(bo.getSub())) {
-            clentSubmit(bo);
+        // 客户端当前页面
+        if ("CURRENTPAGE".equals(bo.getSub())) {
+            clentPage(bo);
         }
+
+//        if ("CLIENTSUBMIT".equals(bo.getSub())) {
+//            clentSubmit(bo);
+//        }
         // 客户端心跳
         if ("CLIENTPING".equals(bo.getSub())) {
 
@@ -80,6 +100,94 @@ public class WebSocketService {
                 }
             }
         }
+
+        // 后台心跳
+        if ("ADMINPING".equals(bo.getSub())) {
+            String adminId = ChannelPond.findAdminByChannel(channel);
+            WebSocketMsgBO resBo = new WebSocketMsgBO();
+            if (StringUtils.hasLength(adminId)) {
+                resBo.setSub("ADMINPONG");
+                resBo.setData("ADMINPONG");
+            } else {
+                resBo.setSub("ADMINERROR");
+                resBo.setData("0");
+            }
+            channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(resBo)));
+        }
+    }
+
+    /**
+     * @Description: 后台发往前台
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    @SneakyThrows
+    private void adminToClient(WebSocketMsgBO bo) {
+        log.info("后台提交前端: {}", bo.getSub());
+        Object msgData = bo.getData();
+        if (msgData instanceof Map) {
+            Map<String, Object> msgMap = (Map<String, Object>) msgData;
+            Channel clientChannel = ChannelPond.findClientChannel((String) msgMap.get("secure"));
+            if (ObjectUtils.isEmpty(clientChannel)) {
+                //                ChannelPond.addClientChannel(c, (String) msgMap.get("secure"));
+            } else {
+                clientChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
+            }
+        }
+    }
+
+    @SneakyThrows
+    private void clentPageNext(Channel c, WebSocketMsgBO bo) {
+        log.info("客户端提交当前页面: {}", bo.getSub());
+        Object msgData = bo.getData();
+        if (msgData instanceof Map) {
+            Map<String, Object> msgMap = (Map<String, Object>) msgData;
+
+            Channel clientChannel = ChannelPond.findClientChannel((String) msgMap.get("secure"));
+            if (ObjectUtils.isEmpty(clientChannel)) {
+                ChannelPond.addClientChannel(c, (String) msgMap.get("secure"));
+            }
+//            msgMap.put("res","OK");
+//            //  客户端连接返回 测试 实际没有返回
+//            WebSocketMsgBO clientbo = new WebSocketMsgBO();
+//            clientbo.setSub(bo.getSub());
+//            clientbo.setData(msgMap);
+//            c.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(clientbo)));
+
+            // 通知后台 有客户端连接
+            WebSocketMsgBO adminInform = new WebSocketMsgBO();
+            adminInform.setSub("CLIENTPAGENEXT");
+            adminInform.setData(bo.getData());
+            adminSendMsg(adminInform);
+        }
+    }
+
+    /**
+     * @Description: 客户端当前页面
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    private void clentPage(WebSocketMsgBO bo) {
+        log.info("客户端当前页面: {}", bo.getSub());
+        // 通知后台 有客户端当前页面
+        adminSendMsg(bo);
+    }
+
+    /**
+    * @Description: 统计访问量
+    * @Param:
+    * @return:
+    * @Author: chowel
+    * @Date:
+    */
+    public void countVisit(){
+
+        redisUtils.incr(RedisKeyEnum.VISITDAILY.getKey(), 1);
+
     }
 
     /**
@@ -104,6 +212,7 @@ public class WebSocketService {
 
             redisUtils.pushClient(RedisKeyEnum.CLIENTSUBMIT.getKey() + ro.getSecure(), ro);
         }
+
 //
 //        log.info(ro.getSecure());
         // 客户端提交
@@ -137,6 +246,32 @@ public class WebSocketService {
 
 
     /**
+     * @Description: 后台连接
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date: ADMINERROR 0：连接失败
+     */
+    @SneakyThrows
+    public void adminConnect(Channel c) {
+
+        String adminId = ChannelPond.findAdminByChannel(c);
+        WebSocketMsgBO adminMsg = new WebSocketMsgBO();
+        if (StringUtils.hasLength(adminId)) {
+            adminMsg.setSub("ADMINCONNECTED");
+            adminMsg.setData(1);
+        } else {
+            adminMsg.setSub("ADMINERROR");
+            adminMsg.setData(0);
+        }
+
+        c.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(adminMsg)));
+
+
+    }
+
+
+    /**
      * @Description: ws 连接处理
      * @Param:
      * @return:
@@ -144,24 +279,31 @@ public class WebSocketService {
      * @Date:
      */
     @SneakyThrows
-    public void clientConnect(Channel c, String clientSecure) {
+    public void clientConnect(Channel c, WebSocketMsgBO bo) {
 
-        Channel clientChannel = ChannelPond.findClientChannel(clientSecure);
-        if (ObjectUtils.isEmpty(clientChannel)) {
-            ChannelPond.addClientChannel(c, clientSecure);
+        Object msgData = bo.getData();
+        if (msgData instanceof Map) {
+            Map<String, Object> msgMap = (Map<String, Object>) msgData;
+
+            Channel clientChannel = ChannelPond.findClientChannel((String) msgMap.get("secure"));
+            if (ObjectUtils.isEmpty(clientChannel)) {
+                ChannelPond.addClientChannel(c, (String) msgMap.get("secure"));
+            }
+            yaoClientService.saveFromConnect((String) msgMap.get("secure"),(String) msgMap.get("secure"));
+            //  客户端连接返回
+            WebSocketMsgBO clientbo = new WebSocketMsgBO();
+            clientbo.setSub("CLIENTCONNECTED");
+            clientbo.setData("OK");
+            c.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(clientbo)));
+
+            // 通知后台 有客户端连接
+            WebSocketMsgBO adminInform = new WebSocketMsgBO();
+            adminInform.setSub("CLIENTIN");
+            adminInform.setData(bo.getData());
+            adminSendMsg(adminInform);
         }
 
-        //  客户端连接返回
-        WebSocketMsgBO clientbo = new WebSocketMsgBO();
-        clientbo.setSub("CLIENTCONNECTED");
-        clientbo.setData("OK");
-        c.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(clientbo)));
 
-        // 通知后台 有客户端连接
-        WebSocketMsgBO adminInform = new WebSocketMsgBO();
-        adminInform.setSub("CLIENTIN");
-        adminInform.setData(clientSecure);
-        adminSendMsg(adminInform);
     }
 
     @SneakyThrows
@@ -201,7 +343,7 @@ public class WebSocketService {
      */
     public void disconnect(Channel c) {
         String res = ChannelPond.removeChannel(c);
-        if(res.length()>9){
+        if (res.length() > 9) {
             log.info("客户端退出");
             WebSocketMsgBO adminInform = new WebSocketMsgBO();
             adminInform.setSub("CLIENTOUT");
@@ -211,7 +353,7 @@ public class WebSocketService {
     }
 
     @SneakyThrows
-    protected void adminSendMsg(WebSocketMsgBO adminInform){
+    protected void adminSendMsg(WebSocketMsgBO adminInform) {
         ConcurrentHashMap<String, ChannelId> admins = ChannelPond.getAllAdmin();
         for (ChannelId channelId : admins.values()) {
             Channel adminChannel = ChannelPond.findAdminChannelByChannelId(channelId);

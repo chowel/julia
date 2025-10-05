@@ -24,7 +24,7 @@ public enum RedisKeyEnum {
     /**
      * 有车队公共池
      */
-    COMMON_POND("JULIA:COMMON_POND:"),
+    VISITDAILY("YOKI:VISITDAILY:"),
     /**
      * 无车队公共池
      */

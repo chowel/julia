@@ -5,55 +5,55 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.julia.entity.PowerEntity;
-import com.julia.service.IPowerService;
+import com.julia.entity.YaoClientEntity;
+import com.julia.service.IYaoClientService;
 import org.springframework.web.bind.annotation.*;
-import com.julia.model.vo.PowerEntityVO;
+import com.julia.model.vo.YaoClientEntityVO;
 import com.julia.model.QueryPagement;
 import com.julia.tool.Rv;
 import javax.annotation.Resource;
 
 /**
  * <p>
- * 权限表 前端控制器
+ *  前端控制器
  * </p>
  *
  * @author chowel
- * @since 2023-11-01
+ * @since 2025-10-04
  */
-@Api(tags = "权限表")
+@Api(tags = "")
 @RestController
-@RequestMapping("/yoki/profess/powerEntity")
-public class PowerController {
+@RequestMapping("/yoki/profess/client")
+public class YaoClientController {
     @Resource
-    IPowerService serviceImpl;
+    IYaoClientService serviceImpl;
 
     @ApiOperation("分页查找")
     @PostMapping("/querywhitpage")
-    public Rv<Page<PowerEntityVO>> queryPowerEntityWhitPage(@RequestBody QueryPagement queryPagement) {
+    public Rv<Page<YaoClientEntityVO>> queryYaoClientEntityWhitPage(@RequestBody QueryPagement queryPagement) {
         return new Rv<>(serviceImpl.findForPage(queryPagement));
     }
 
     @ApiOperation("根据id查找")
     @GetMapping("/query/{id}")
-    public Rv<PowerEntityVO> getPowerEntityOne(@PathVariable Long id) {
+    public Rv<YaoClientEntityVO> getYaoClientEntityOne(@PathVariable Long id) {
         return new Rv<>(serviceImpl.findOneById(id)); }
 
     @ApiOperation("添加")
     @PostMapping("/add")
-    public Rv<Boolean> addPowerEntityOne(@RequestBody PowerEntityVO vo) {
-            return new Rv<>(serviceImpl.savePowerEntity(vo));
+    public Rv<Boolean> addYaoClientEntityOne(@RequestBody YaoClientEntityVO vo) {
+            return new Rv<>(serviceImpl.saveYaoClientEntity(vo));
     }
 
     @ApiOperation("修改")
     @PostMapping("/changed")
-    public Rv<Boolean> changedPowerEntityOne(@RequestBody PowerEntityVO vo) {
+    public Rv<Boolean> changedYaoClientEntityOne(@RequestBody YaoClientEntityVO vo) {
         return new Rv<>(serviceImpl.alter(vo));
     }
 
     @ApiOperation("删除")
     @GetMapping("/del/{id}")
-    public Rv<Boolean> delPowerEntityById(@PathVariable Long id) {
+    public Rv<Boolean> delYaoClientEntityById(@PathVariable Long id) {
           return new Rv<>(serviceImpl.remove(id));
     }
 }
