@@ -2,7 +2,7 @@ server:
   port: 9022
 spring:
   datasource:
-    url: jdbc:mysql://8.130.171.197:3306/tower?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://8.130.152.244:3306/tower?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
     password: PgFrPRbs5uY
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,7 +16,7 @@ spring:
       max-lifetime: 60000
   redis:
     database: 0
-    host: 8.130.171.197
+    host: 8.130.152.244
     password: PDY1k6wFxN
     port: 6379
     lettuce:
@@ -48,7 +48,12 @@ alipay:
   alipayCertPath: /Users/chenchengwei/project/chowel_master/cert/jiasuo/alipayCertPublicKey_RSA2.crt
   alipayRootCertPath: /Users/chenchengwei/project/chowel_master/cert/jiasuo/alipayRootCert.crt
   privateKey: MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQD7Lb0hl/lJOSL4UNIgs/oD698P0IKFb0x+doEiHv4KmeCtukzCe8STFBPTC5bBA7Ni5a40eTJgTA9xtNGRuPu9dTbM1/WDX20NlzD+1jUrAiEVQIxPpKNDMjkDTyPiuvWWJZVHN/NojgPY1pMsSzUaRUtynINYf0HmP3MBOKjp+ihWPjHpFzVmWzOcregvPmk669qc+F4BSyr9rJ20roKK66TZ14yh3yDqVwbZ0D0C4ahCkg7wyLf6z0FvLpjlh29Z3sTxknlB2dGyabxesqD/jb/h/49zZuEEKZGTFn24lLjVvEi7m7cRFdeIK4JxgHFsbuXNBbkwi4EjUvAnxvM9AgMBAAECggEBAN39SZdkGkTVw4tU2rFefwtyLl1qucA2YpOuJmjCnWE/KCxCZ87G1i/q4a53IpCJtcQlG/ZyWsxyzH+BAGra41pJOtqFzw2Bi/8j7YB8Ttco9ZYzyw4kgspDm9HJ4vxioeRGaQ1dbLmuMcY1tjLCcTc7oPe1Tfwr1FErKHge3GKUHVHfeDkSjRsQF4c6s5LUHU4oXo1eN+8ihnyM61/lBTVAj0sPP/kdNmCZkOCKbP0vainzzbBm5SVVDFzdEomTo3e76MasMBvsnbm2r2qF119w9dn0aUIfG5KQwqS9GsiQebA50js/NvVLyi7sK/vBr9ava+et9XKB3diWXqPWuaECgYEA/kQJ20BkvE8apDUHMjaO4gXaNILekEkMTfvukXO93XR69gm9tHj6XroPtrTAY5l9sbVtayiuPA1M9kEIIwTVliahSkL9fGOPcf1KTPqipDKbqzKqRhndeNVMj4bPowyzJSF5TB4XolkfyUaxIkAbOSkSSiG/1ZBv7HJS4VohyckCgYEA/ORPXqJkHiaEcQRqozmDLv7W2nSvldakm+y6kd6vkk6Bq5Mpn3p7hmlUa40zQQkyJVVcXcngrMiLknxKZWye7VFHq0eXdr1gnIpVMDVuqi8l4lbUY/xRHPfW7ysxyXv13OAfI9vHwZankQfNZL3C4uEpQ9IEh0V4IDAC7gDBF9UCgYBa9dIk2ltvNklMlx/U6cmhuABAqtSd/1PkjgzhgetZTvMyE3gHGQRQYPWAIhd1ShK6QTI8lJgIKaXvroIPrQoPphArNd3i4ucNG1S6Rytp3CTuULizTUt6j6vM6KhdJwzrapcvENDZplKFucFihFZ402WUmZA8AWjYyGk37vuJaQKBgQDOUQl7wGqDupLUjXDeZ35h6eCpawcQ7INw/kob1ZxRdaEOtEoB5PA/8VDBSfoltfXmRWTM03VsIVTVFnevlVV3cZdR4l9srQXT0Hu9j+oQB9UVehde1yvpwTzl9Mxyf6JPJ73gCF9Izbs5dC8aYEJNzLpYrU+qeH+PavwI5i6iXQKBgCVzSroSCm3Mp18/9ntC1MDokCpgjDv6T3bU+Jx/u7yoKbE9rQ0sCbimkgRMq0fwOvCnlCGVp3u5sUyxsIiiOXNffWB8bf1sd5lHKWs5cS6a+UzV5jtZxnZo8l673O0nsJ8pRQavjvh7ff2RMAO31iWalbzF9EkFo2nTQJamPn+C
-  notifyUrl: https://game.jiasuo.top/kl/api/callback
-#  appCertPath: /home/cert/appCertPublicKey_2021005134605312.crt
-#  alipayCertPath: /home/cert/alipayCertPublicKey_RSA2.crt
-#  alipayRootCertPath: /home/cert/alipayRootCert.crt
+  notifyUrl: https://hfyltwl.cn/kl/api/callback
+
+
+huiyuan:
+  agentId: 2416250
+  dealUser: lizhikuang
+  md5Key: 07D56E7EC485
+  domain: http://Service.800j.com/ManualCharge/
+  callbackUrl: http://47.83.29.34/thirdPay/getCardNotify

@@ -123,11 +123,34 @@ public class StackPlayerServiceImpl extends ServiceImpl<StackPlayerMapper, Stack
     }
 
     @Override
-    public Boolean addCoin(Long userId, double coin) {
+    public StackPlayerEntity findPlayerByLoginName(String loginName) {
+        return lambdaQuery().eq(StackPlayerEntity::getLoginName,loginName).one();
+    }
+
+    @Override
+    public Boolean addCoin(Integer userId, int coin,int mason) {
         StackPlayerEntity player = getById(userId);
-        redisUtils.addScore(RedisKeyEnum.PLAYERSZET.getKey(), player, coin);
-        player.setCoin((int) (player.getCoin() + coin));
-        return updateById(player);
+        if(!ObjectUtils.isEmpty(player)){
+            return lambdaUpdate()
+                    .eq(StackPlayerEntity::getUserId,userId)
+                    .set(StackPlayerEntity::getCoin,player.getCoin()+coin)
+                    .set(StackPlayerEntity::getMason,player.getMason()+mason)
+                    .update();
+        }
+        return false;
+    }
+
+    @Override
+    public Boolean gameUpData(Integer userId, int coin, int mason) {
+        StackPlayerEntity player = getById(userId);
+        if(!ObjectUtils.isEmpty(player)){
+            return lambdaUpdate()
+                    .eq(StackPlayerEntity::getUserId,userId)
+                    .set(StackPlayerEntity::getCoin,coin)
+                    .set(StackPlayerEntity::getMason,mason)
+                    .update();
+        }
+        return false;
     }
 }
 

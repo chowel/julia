@@ -34,6 +34,8 @@ public interface IGameOrderService extends IService<GameOrderEntity> {
     */
     GameOrderEntityVO findOneById(Long id);
 
+    GameOrderEntity findOneByOutOrderNo(String outOrderNo);
+
 
     /**
      * @Description: 根据订单Id
@@ -72,5 +74,7 @@ public interface IGameOrderService extends IService<GameOrderEntity> {
     Boolean remove(Long id);
 
     DrawerPollDTO preCreateOrder(GameOrderEntityVO vo);
+
+    Boolean initOrder(String orderNo,String playerName);
 }
 

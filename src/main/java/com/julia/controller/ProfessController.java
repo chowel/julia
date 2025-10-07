@@ -1,6 +1,7 @@
 package com.julia.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+
 import com.julia.model.QueryPagement;
 import com.julia.model.vo.GameOrderEntityVO;
 import com.julia.model.vo.PayConfigEntityVO;
@@ -8,6 +9,7 @@ import com.julia.model.vo.StackPlayerEntityVO;
 import com.julia.service.IGameOrderService;
 import com.julia.service.IPayConfigService;
 import com.julia.service.IStackPlayerService;
+import com.julia.service.impl.HuiYuanService;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -36,6 +38,9 @@ public class ProfessController {
 
     @Resource
     IGameOrderService gameOrderService;
+
+    @Resource
+    HuiYuanService huiYuanService;
 
     @ApiOperation("获取支付配置")
     @GetMapping("/professPayments")
@@ -72,5 +77,12 @@ public class ProfessController {
     @PostMapping("/queryOrder")
     public Rv<Page<GameOrderEntityVO>> queryOrder(@RequestBody QueryPagement queryPagement) {
         return new Rv<>(gameOrderService.findForPage(queryPagement));
+    }
+
+
+    @ApiOperation("订单详情")
+    @PostMapping("/queryOrderOne")
+    public Rv<Boolean> queryOrderOne(@RequestBody GameOrderEntityVO vo) {
+        return new Rv<>(huiYuanService.getDetailOrder(vo.getOutOrderNo(),vo.getOrderNo(),vo.getPlayerName()));
     }
 }

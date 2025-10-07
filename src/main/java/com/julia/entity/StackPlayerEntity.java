@@ -14,7 +14,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2025-03-09
+ * @since 2025-09-16
  */
 @Getter
 @Setter
@@ -70,16 +70,22 @@ public class StackPlayerEntity extends BaseEntity {
     private String password;
 
     /**
-     * 用户金币
+     * 金币
      */
     @TableField("coin")
     private Integer coin;
 
     /**
-     * 1 租客 2 房东
+     * 关卡
      */
-    @TableField("house_type")
-    private Integer houseType;
+    @TableField("pass")
+    private Integer pass;
+
+    /**
+     * 钻石
+     */
+    @TableField("mason")
+    private Integer mason;
 
     /**
      * 1 正常 0 停用(删除)

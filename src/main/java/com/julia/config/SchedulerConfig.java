@@ -1,6 +1,8 @@
 package com.julia.config;
 
 
+import com.julia.enums.RedisKeyEnum;
+import com.julia.service.impl.HuiYuanService;
 import com.julia.tool.RedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +29,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class SchedulerConfig implements SchedulingConfigurer {
     @Resource
     RedisUtils redisUtils;
+
+    @Resource
+    HuiYuanService huiYuanService;
+
+    final String initDownTime = "20250916000000";
     // 创建一个定制的线程池
     @Bean
     public TaskScheduler taskScheduler() {
@@ -46,11 +53,12 @@ public class SchedulerConfig implements SchedulingConfigurer {
         taskRegistrar.addTriggerTask(
                 // 定义执行任务内容
                 () -> {
-//                    log.info("reddis 保活定时");
-                    String alive= (String) redisUtils.get("KL:alive:");
-                    if(StringUtils.hasLength(alive)){
-                        redisUtils.set("KL:alive:","1",300);
+                    log.info("30秒执行一次");
+                    if (!redisUtils.hasKey(RedisKeyEnum.CAR_ALIVE.getKey())) {
+                        redisUtils.set(RedisKeyEnum.CAR_ALIVE.getKey(), 1, 300);
                     }
+                    // 有通知就不需要轮询了
+//                    huiYuanService.getHuiYuanOrders();
                 },
                 // 定义执行周期
                 triggerContext -> new CronTrigger("30 * * * * ?").nextExecutionTime(triggerContext)

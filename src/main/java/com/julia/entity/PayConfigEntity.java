@@ -34,6 +34,12 @@ public class PayConfigEntity extends BaseEntity {
     private String title;
 
     /**
+     * 编码
+     */
+    @TableField("code")
+    private String code;
+
+    /**
      * 赠送金币
      */
     @TableField("gold")

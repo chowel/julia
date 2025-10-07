@@ -13,6 +13,7 @@ import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.alipay.api.response.AlipayTradeWapPayResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.julia.entity.GameOrderEntity;
+import com.julia.entity.PayConfigEntity;
 import com.julia.entity.StackPlayerEntity;
 import com.julia.entity.YaoEntity;
 import com.julia.entity.alipaymodel.AlipayResposeVO;
@@ -21,10 +22,7 @@ import com.julia.enums.RedisKeyEnum;
 import com.julia.model.alipay.AliPayCreate;
 import com.julia.model.dto.DrawerPollDTO;
 import com.julia.model.vo.GameOrderEntityVO;
-import com.julia.service.IGameOrderService;
-import com.julia.service.IRocketService;
-import com.julia.service.IStackPlayerService;
-import com.julia.service.IYaoService;
+import com.julia.service.*;
 import com.julia.tool.JuliaException;
 import com.julia.tool.JuliaUtils;
 import com.julia.tool.RedisUtils;
@@ -68,6 +66,9 @@ public class AlipayService {
 
     @Resource
     private IYaoService yaoService;
+
+    @Resource
+    private IPayConfigService payConfigService;
 
     @Resource
     private IRocketService rocketService;
@@ -289,6 +290,10 @@ public class AlipayService {
     public DrawerPollDTO savePay(PayByAliPay pay) {
         YaoEntity jh = yaoService.getCallBackOrKey("jiahe");
         if (jh.getAvatar().equals(pay.getPayKey())) {
+            PayConfigEntity payConfig  = payConfigService.findOneByPrice(pay.getPrice());
+            if(ObjectUtils.isEmpty(payConfig)){
+                throw new JuliaException("订单金额异常");
+            }
             GameOrderEntity order = new GameOrderEntity();
             StackPlayerEntity player = playerService.findPlayerForPay();
             order.setOrderNo(JuliaUtils.GeneratorOderNo(Math.toIntExact(player.getUserId())));
@@ -297,9 +302,10 @@ public class AlipayService {
             order.setTotal(pay.getPrice());
             order.setPlayerName(player.getNickName());
             order.setStatus(6);
-            order.setUrl(pay.getNoticeURL());
+            order.setUrl(pay.getNoticeUrl());
             order.setOutOrderNo(pay.getOutOrderNo());
             order.setMerchantNo(pay.getPayKey());
+            order.setProductCode(payConfig.getCode());
             if (orderService.save(order)) {
 //                redisUtils.set(RedisKeyEnum.WAITORDER.getKey() + order.getOrderNo(), order);
                 AliPayCreate aliPayCreate = new AliPayCreate();
@@ -341,7 +347,7 @@ public class AlipayService {
             order.setTotal(pay.getPrice());
             order.setPlayerName(player.getNickName());
             order.setStatus(6);
-            order.setUrl(pay.getNoticeURL());
+            order.setUrl(pay.getNoticeUrl());
             order.setOutOrderNo(pay.getOutOrderNo());
             order.setMerchantNo(pay.getPayKey());
             if (orderService.save(order)) {
