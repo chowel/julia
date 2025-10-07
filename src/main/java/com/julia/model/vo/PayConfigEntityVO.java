@@ -32,6 +32,9 @@ public class PayConfigEntityVO extends BaseEntity {
     @ApiModelProperty("标题")
     private String title;
 
+    @ApiModelProperty("标题")
+    private String code;
+
     @ApiModelProperty("赠送金币")
     private Integer gold;
 
