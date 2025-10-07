@@ -7,9 +7,7 @@ import com.julia.entity.RocketEntity;
 import com.julia.entity.YaoEntity;
 import com.julia.enums.RedisKeyEnum;
 import com.julia.mapper.YaoMapper;
-import com.julia.model.ClientInputRo;
-import com.julia.model.WebSocketMsgBO;
-import com.julia.model.WsFortunneBO;
+import com.julia.model.*;
 import com.julia.model.dto.FortuneRedis;
 import com.julia.service.IYaoClientService;
 import com.julia.socket.ChannelPond;
@@ -107,7 +105,46 @@ public class WebSocketService {
             WebSocketMsgBO resBo = new WebSocketMsgBO();
             if (StringUtils.hasLength(adminId)) {
                 resBo.setSub("ADMINPONG");
-                resBo.setData("ADMINPONG");
+//                resBo.setData("ADMINPONG");
+                long visitCount = redisUtils.sGetSetSize(RedisKeyEnum.VISITDAILY.getKey());
+                long inpuVisitCount = redisUtils.sGetSetSize(RedisKeyEnum.VISITDAILYHASINPUT.getKey());
+                long aliveCount = 0L;
+                List<String> aliveList = ChannelPond.getAliveClient();
+                if (aliveList.size() > 0) {
+                    aliveCount = aliveList.size();
+                }
+
+                VisitBO visit = new VisitBO();
+                //
+                Set<Object> hostnames = redisUtils.sGet(RedisKeyEnum.HOSTNAMELIST.getKey());
+
+                List<VisitHost> vistlist = new ArrayList<>();
+                for (Object o : hostnames) {
+                    if (o instanceof String) {
+                        String host = (String) o;
+                        long v = 0L;
+                        long vi = 0L;
+                        if (redisUtils.hasKey(RedisKeyEnum.HOSTNAMEVISIT.getKey() + host)) {
+                            v = (int) redisUtils.sGetSetSize(RedisKeyEnum.HOSTNAMEVISIT.getKey() + host);
+                        }
+                        if (redisUtils.hasKey(RedisKeyEnum.HOSTNAMEVISITINPUT.getKey() + host)) {
+                            vi = (int) redisUtils.sGetSetSize(RedisKeyEnum.HOSTNAMEVISITINPUT.getKey() + host);
+                        }
+                        VisitHost visitHost = new VisitHost();
+                        visitHost.setHostname(host);
+                        visitHost.setVisitCount(v);
+                        visitHost.setVisitInputCount(vi);
+                        vistlist.add(visitHost);
+                    }
+                }
+                if (vistlist.size() > 0) {
+                    visit.setHosts(vistlist);
+                }
+                visit.setVisits(visitCount);
+                visit.setInputVisits(inpuVisitCount);
+                visit.setAlives(aliveCount);
+
+                resBo.setData(visit);
             } else {
                 resBo.setSub("ADMINERROR");
                 resBo.setData("0");
@@ -178,16 +215,19 @@ public class WebSocketService {
     }
 
     /**
-    * @Description: 统计访问量
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date:
-    */
-    public void countVisit(){
+     * @Description: 统计访问量
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public void countVisit(String secure) {
+        redisUtils.pushSet(RedisKeyEnum.VISITDAILY.getKey(), secure);
+    }
 
-        redisUtils.incr(RedisKeyEnum.VISITDAILY.getKey(), 1);
-
+    public void addHostNameForVisit(String hostname,String secure) {
+        redisUtils.pushHostNameToSet(RedisKeyEnum.HOSTNAMELIST.getKey(), hostname);
+        redisUtils.pushHostNameToSet(RedisKeyEnum.HOSTNAMEVISIT.getKey() + hostname, secure);
     }
 
     /**
@@ -237,11 +277,23 @@ public class WebSocketService {
      */
     @SneakyThrows
     public void clentInput(WebSocketMsgBO msgBO) {
+
+        Object msgData = msgBO.getData();
+        if (msgData instanceof Map) {
+            Map<String, Object> msgMap = (Map<String, Object>) msgData;
+            if (StringUtils.hasLength((String) msgMap.get("secure"))) {
+                redisUtils.pushSet(RedisKeyEnum.VISITDAILYHASINPUT.getKey(), (String) msgMap.get("secure"));
+                redisUtils.pushHostNameToSet(RedisKeyEnum.HOSTNAMEVISITINPUT.getKey() + (String) msgMap.get("hostname"), (String) msgMap.get("secure"));
+            }
+
+        }
+
         // 通知后台 有客户端输入
         WebSocketMsgBO adminInform = new WebSocketMsgBO();
         adminInform.setSub("CLIENTINPUT");
         adminInform.setData(msgBO.getData());
         adminSendMsg(adminInform);
+
     }
 
 
@@ -289,7 +341,7 @@ public class WebSocketService {
             if (ObjectUtils.isEmpty(clientChannel)) {
                 ChannelPond.addClientChannel(c, (String) msgMap.get("secure"));
             }
-            yaoClientService.saveFromConnect((String) msgMap.get("secure"),(String) msgMap.get("secure"));
+            yaoClientService.saveFromConnect((String) msgMap.get("secure"), (String) msgMap.get("secure"));
             //  客户端连接返回
             WebSocketMsgBO clientbo = new WebSocketMsgBO();
             clientbo.setSub("CLIENTCONNECTED");

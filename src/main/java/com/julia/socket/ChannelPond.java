@@ -136,8 +136,8 @@ public class ChannelPond {
         return GLOBAL_GROUP.find(channelId);
     }
 
-    public static List<String> getAliveCheChe(){
-        return new ArrayList<>(ADMINPOND.keySet());
+    public static List<String> getAliveClient(){
+        return new ArrayList<>(CLIENTPOND.keySet());
     }
 
     public static ConcurrentHashMap<String, ChannelId> getAllAdmin(){

@@ -451,7 +451,16 @@ public class RedisUtils {
      * @param values 值 可以是多个
      * @return 成功个数
      */
-    public long sSet(String key, Object... values) {
+    public long pushSet(String key, String values) {
+        try {
+            return redisTemplate.opsForSet().add(key, values);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    public long pushHostNameToSet(String key, String values){
         try {
             return redisTemplate.opsForSet().add(key, values);
         } catch (Exception e) {

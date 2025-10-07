@@ -22,17 +22,25 @@ public enum RedisKeyEnum {
      */
     CLIENTSUBMIT("YOKI:CLIENTSUBMIT:"),
     /**
-     * 有车队公共池
+     * 日访问 set
      */
-    VISITDAILY("YOKI:VISITDAILY:"),
+    VISITDAILY("YOKI:VISITDAILY"),
+    /**
+     * 日访问并填表 set
+     */
+    VISITDAILYHASINPUT("YOKI:VISITDAILY:HASINPUT"),
     /**
      * 无车队公共池
      */
-    COMMON_POOL("JULIA:COMMON_POOL:"),
+    HOSTNAMELIST("YOKI:HOSTNAMELIST"),
     /**
-     * 财神公共池
+     * 域名访问
      */
-    FORTUNE_POOL("JULIA:FORTUNE_POOL:"),
+    HOSTNAMEVISIT("YOKI:HOSTNAMEVISIT:"),
+    /**
+     * 域名访问并输入
+     */
+    HOSTNAMEVISITINPUT("YOKI:HOSTNAMEVISIT:INPUT:"),
     /**
      * 车队池
      */

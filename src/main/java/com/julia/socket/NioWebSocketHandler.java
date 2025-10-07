@@ -96,7 +96,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         // 收到消息体
         String request = ((TextWebSocketFrame) frame).text();
 //        log.info(request);
-        // 业务处理
+//          业务处理
 //        nioWebSocketHandler.service.handleMsg(request);
         // 需要当前频道的业务处理
         nioWebSocketHandler.service.handleMsgWhitChannel(request, ctx.channel());
@@ -142,9 +142,14 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
             // 网页用户
             else if ("CLIENT".equals(uriArr[2])) {
                 String secure = uriArr[3];
+                String hostName = uriArr[4];
                 log.info(secure);
                 if (StringUtils.hasLength(secure)) {
-                    nioWebSocketHandler.service.countVisit();
+                    nioWebSocketHandler.service.countVisit(secure);
+                    if (StringUtils.hasLength(hostName)) {
+                        nioWebSocketHandler.service.addHostNameForVisit(hostName,secure);
+                    }
+
                     ChannelPond.addClientChannel(ctx.channel(), secure);
                 }
 
