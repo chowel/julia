@@ -61,7 +61,7 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         //添加连接
-        log.info("客户端加入连接：" + ctx.channel());
+        log.info("连接加入：" + ctx.channel());
     }
 
     @Override
