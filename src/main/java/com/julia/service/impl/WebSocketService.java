@@ -4,7 +4,6 @@ package com.julia.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.julia.enums.RedisKeyEnum;
 import com.julia.model.*;
-import com.julia.service.IYaoClientService;
 import com.julia.socket.ChannelPond;
 import com.julia.tool.RedisUtils;
 import io.netty.channel.Channel;
@@ -32,10 +31,7 @@ public class WebSocketService {
     @Resource
     RedisUtils redisUtils;
 
-    @Resource
-    IYaoClientService yaoClientService;
-
-
+    
     private final ObjectMapper mapper = new ObjectMapper();
 
     @SneakyThrows
@@ -332,7 +328,7 @@ public class WebSocketService {
             if (ObjectUtils.isEmpty(clientChannel)) {
                 ChannelPond.addClientChannel(c, (String) msgMap.get("secure"));
             }
-            yaoClientService.saveFromConnect((String) msgMap.get("secure"), (String) msgMap.get("secure"));
+//            yaoClientService.saveFromConnect((String) msgMap.get("secure"), (String) msgMap.get("secure"));
             //  客户端连接返回
             WebSocketMsgBO clientbo = new WebSocketMsgBO();
             clientbo.setSub("CLIENTCONNECTED");

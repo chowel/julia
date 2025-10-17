@@ -23,7 +23,7 @@ import javax.annotation.Resource;
 @RequestMapping("/kitano/api")
 public class ApiController {
 
-    
+
     @Resource
     IMinaSysAdminService sysAdminService;
 
@@ -51,37 +51,6 @@ public class ApiController {
     }
 
 
-    //   收银台接口
-//    @ApiOperation("find")
-//    @GetMapping("/getOne/{fortuneNo}")
-//    public Rv<FortuneApiVO> getOne(@PathVariable String fortuneNo) {
-//        return new Rv<>(serviceImpl.getOneByNo(fortuneNo));
-//    }
-//
-//    //   收银台接口
-//    @ApiOperation("Poll")
-//    @PostMapping("/poll")
-//    public Rv<Boolean> drawerPoll(@RequestBody DrawerPollDTO dto) {
-//        return new Rv<>(serviceImpl.dispenseCar(dto));
-//    }
-//
-//
-//    @ApiOperation("获取收单")
-//    @PostMapping("/getFortune")
-//    public Rv<FortuneApiVO> getFortune(@RequestBody FortuneDTO dto) {
-//        return new Rv<>(serviceImpl.findOneByNo(dto.getFortuneNo()));
-//    }
-//
-//    @ApiOperation("发起回调")
-//    @PostMapping("/handCallBack")
-//    public Rv<Boolean> handCallBack(@RequestBody FortuneDTO dto) {
-//        return new Rv<>(serviceImpl.callBack(dto));
-//    }
-//
-//    @ApiOperation("创建财神")
-//    @PostMapping("/createFortune")
-//    public Rv<CreateFortuneVO> createFortune(@RequestBody NewFortuneDTO dto) {
-//        String panId = (String) StpUtil.getLoginIdByToken(dto.getToken());
-//        return new Rv<>(serviceImpl.addFortune(dto, Integer.parseInt(panId)));
-//    }
+
+
 }

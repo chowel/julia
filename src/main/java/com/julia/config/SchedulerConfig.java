@@ -1,8 +1,6 @@
 package com.julia.config;
 
-import com.julia.entity.CoinLogEntity;
 import com.julia.enums.RedisKeyEnum;
-import com.julia.service.ICoinLogService;
 import com.julia.tool.RedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -12,15 +10,12 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.stream.Collectors;
 
 
 /**
@@ -34,9 +29,6 @@ import java.util.stream.Collectors;
 public class SchedulerConfig implements SchedulingConfigurer {
     @Resource
     RedisUtils redisUtils;
-
-    @Resource
-    ICoinLogService coinLogService;
 
     private LocalTime now = LocalTime.now();
 
@@ -73,10 +65,6 @@ public class SchedulerConfig implements SchedulingConfigurer {
                         // 转为字符串
                         String yesterdayStr = yesterday.format(formatter);
 
-                        CoinLogEntity coinLog = new CoinLogEntity();
-                        coinLog.setCoin(count);
-                        coinLog.setCoinDate(yesterdayStr);
-                        coinLogService.save(coinLog);
                     }
 //                    log.info("每30秒执行一次 redis 保活");
                     if (!redisUtils.hasKey(RedisKeyEnum.ALIVE.getKey())) {
