@@ -9,8 +9,10 @@ import com.julia.model.dto.LoginDto;
 import com.julia.model.dto.NewFortuneDTO;
 import com.julia.model.vo.CreateFortuneVO;
 import com.julia.model.vo.FortuneApiVO;
+import com.julia.model.vo.MinaSysAdminEntityVO;
 import com.julia.model.vo.YaoEntityVO;
 import com.julia.service.IFortuneService;
+import com.julia.service.IMinaSysAdminService;
 import com.julia.service.IYaoService;
 import com.julia.service.impl.WebSocketService;
 import com.julia.socket.ChannelPond;
@@ -42,22 +44,22 @@ import java.util.Set;
 public class ApiController {
 
     @Resource
-    IYaoService yaoService;
+    IFortuneService serviceImpl;
 
     @Resource
-    IFortuneService serviceImpl;
+    IMinaSysAdminService sysAdminService;
 
     @ApiOperation("登陆/获取token")
     @PostMapping("/login")
-    public Rv<YaoEntityVO> platLogin(@RequestBody LoginDto dto) {
-        return new Rv<>(yaoService.login(dto));
+    public Rv<MinaSysAdminEntityVO> platLogin(@RequestBody LoginDto dto) {
+        return new Rv<>(sysAdminService.login(dto));
     }
 
-    @ApiOperation("盘方获取token")
-    @PostMapping("/getToken")
-    public Rv<String> getToken(@RequestBody LoginDto dto) {
-        return new Rv<>(yaoService.getTokenByPan(dto));
-    }
+//    @ApiOperation("盘方获取token")
+//    @PostMapping("/getToken")
+//    public Rv<String> getToken(@RequestBody LoginDto dto) {
+//        return new Rv<>(yaoService.getTokenByPan(dto));
+//    }
 
     @ApiOperation("test")
     @GetMapping("/test")
@@ -72,36 +74,36 @@ public class ApiController {
 
 
     //   收银台接口
-    @ApiOperation("find")
-    @GetMapping("/getOne/{fortuneNo}")
-    public Rv<FortuneApiVO> getOne(@PathVariable String fortuneNo) {
-        return new Rv<>(serviceImpl.getOneByNo(fortuneNo));
-    }
-
-    //   收银台接口
-    @ApiOperation("Poll")
-    @PostMapping("/poll")
-    public Rv<Boolean> drawerPoll(@RequestBody DrawerPollDTO dto) {
-        return new Rv<>(serviceImpl.dispenseCar(dto));
-    }
-
-
-    @ApiOperation("获取收单")
-    @PostMapping("/getFortune")
-    public Rv<FortuneApiVO> getFortune(@RequestBody FortuneDTO dto) {
-        return new Rv<>(serviceImpl.findOneByNo(dto.getFortuneNo()));
-    }
-
-    @ApiOperation("发起回调")
-    @PostMapping("/handCallBack")
-    public Rv<Boolean> handCallBack(@RequestBody FortuneDTO dto) {
-        return new Rv<>(serviceImpl.callBack(dto));
-    }
-
-    @ApiOperation("创建财神")
-    @PostMapping("/createFortune")
-    public Rv<CreateFortuneVO> createFortune(@RequestBody NewFortuneDTO dto) {
-        String panId = (String) StpUtil.getLoginIdByToken(dto.getToken());
-        return new Rv<>(serviceImpl.addFortune(dto, Integer.parseInt(panId)));
-    }
+//    @ApiOperation("find")
+//    @GetMapping("/getOne/{fortuneNo}")
+//    public Rv<FortuneApiVO> getOne(@PathVariable String fortuneNo) {
+//        return new Rv<>(serviceImpl.getOneByNo(fortuneNo));
+//    }
+//
+//    //   收银台接口
+//    @ApiOperation("Poll")
+//    @PostMapping("/poll")
+//    public Rv<Boolean> drawerPoll(@RequestBody DrawerPollDTO dto) {
+//        return new Rv<>(serviceImpl.dispenseCar(dto));
+//    }
+//
+//
+//    @ApiOperation("获取收单")
+//    @PostMapping("/getFortune")
+//    public Rv<FortuneApiVO> getFortune(@RequestBody FortuneDTO dto) {
+//        return new Rv<>(serviceImpl.findOneByNo(dto.getFortuneNo()));
+//    }
+//
+//    @ApiOperation("发起回调")
+//    @PostMapping("/handCallBack")
+//    public Rv<Boolean> handCallBack(@RequestBody FortuneDTO dto) {
+//        return new Rv<>(serviceImpl.callBack(dto));
+//    }
+//
+//    @ApiOperation("创建财神")
+//    @PostMapping("/createFortune")
+//    public Rv<CreateFortuneVO> createFortune(@RequestBody NewFortuneDTO dto) {
+//        String panId = (String) StpUtil.getLoginIdByToken(dto.getToken());
+//        return new Rv<>(serviceImpl.addFortune(dto, Integer.parseInt(panId)));
+//    }
 }

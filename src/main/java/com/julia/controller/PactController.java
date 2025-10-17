@@ -68,18 +68,18 @@ public class PactController {
         return new Rv<>(serviceImpl.remove(id));
     }
 
-    @ApiOperation("获取用户菜单")
-    @GetMapping("getMenus")
-    public Rv<List<PactEntityVO>> getMenusByYaoId() {
-        YaoEntity yao = yaoService.getById(StpUtil.getLoginIdAsInt());
-        return new Rv<>(serviceImpl.findPactById(yao.getRoleId()));
-    }
-
-    @ApiOperation("根据powerId获取用菜单/接口数组")
-    @GetMapping("getPacts")
-    public Rv<List<PactEntityVO>> getPactsByPowerId(@PathVariable int powerId) {
-        return new Rv<>(serviceImpl.findPactById(powerId));
-    }
+//    @ApiOperation("获取用户菜单")
+//    @GetMapping("getMenus")
+//    public Rv<List<PactEntityVO>> getMenusByYaoId() {
+//        YaoEntity yao = yaoService.getById(StpUtil.getLoginIdAsInt());
+//        return new Rv<>(serviceImpl.findPactById(yao.getRoleId()));
+//    }
+//
+//    @ApiOperation("根据powerId获取用菜单/接口数组")
+//    @GetMapping("getPacts")
+//    public Rv<List<PactEntityVO>> getPactsByPowerId(@PathVariable int powerId) {
+//        return new Rv<>(serviceImpl.findPactById(powerId));
+//    }
 
     @ApiOperation("获取全部用菜单/接口数组")
     @GetMapping("getAllPacts")

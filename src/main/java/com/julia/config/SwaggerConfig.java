@@ -41,8 +41,11 @@ public class SwaggerConfig implements WebMvcConfigurer {
     @Bean
     public Docket createRestApi() {
         ParameterBuilder platformToken = new ParameterBuilder();
+        ParameterBuilder playerToken = new ParameterBuilder();
         List<Parameter> pars = new ArrayList<Parameter>();
-        platformToken.name("julia").description("瑶瑶领先").modelRef(new ModelRef("string")).parameterType("header")
+        platformToken.name("mina-admin").description("后台").modelRef(new ModelRef("string")).parameterType("header")
+                .required(false).build();
+        playerToken.name("mina-player").description("客户端").modelRef(new ModelRef("string")).parameterType("header")
                 .required(false).build();
         pars.add(platformToken.build());
         ResponseMessage message500 = new ResponseMessageBuilder()
