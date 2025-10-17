@@ -1,6 +1,5 @@
 package com.julia.model;
 
-import com.julia.entity.FortuneEntity;
 import com.julia.model.dto.FortuneRedis;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

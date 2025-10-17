@@ -4,9 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.entity.RocketEntity;
-import com.julia.entity.YaoEntity;
 import com.julia.mapper.RocketMapper;
-import com.julia.mapper.YaoMapper;
 import com.julia.model.dto.CarOperaDTO;
 import com.julia.model.dto.InputRocketDTO;
 import com.julia.model.dto.InputRocketListDTO;
@@ -29,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -50,8 +47,6 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Resource
-    YaoMapper yaoMapper;
 
     @Resource
     WebSocketService webSocketService;
@@ -155,24 +150,7 @@ public class RocketServiceImpl extends ServiceImpl<RocketMapper, RocketEntity> i
         if (ObjectUtils.isEmpty(entity)) {
             throw new JuliaException("订单不存在");
         }
-        YaoEntity yao = yaoMapper.selectById(entity.getPId());
 
-        Map<String, Object> params = new HashMap<>(5);
-        String sign = SIGNSALT + entity.getOrderId() + entity.getDoneTime();
-        params.put("orderNo", entity.getOrderId());
-        params.put("amount", entity.getAmount());
-        params.put("orderStatus", entity.getStatus());
-        params.put("payTime", entity.getDoneTime());
-        params.put("sign", DigestUtils.md5DigestAsHex(sign.getBytes(StandardCharsets.UTF_8)));
-
-        String callbackReturn = handleCallBack(yao.getCallback(), params);
-        if ("success".equals(callbackReturn)) {
-            if (entity.getCheckCallback() != 1) {
-                entity.setCheckCallback(1);
-                entity.setDoneTime(System.currentTimeMillis());
-                this.updateById(entity);
-            }
-        }
         return true;
     }
 

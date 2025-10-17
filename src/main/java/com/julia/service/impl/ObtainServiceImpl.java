@@ -2,7 +2,6 @@ package com.julia.service.impl;
 
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.julia.entity.FortuneEntity;
 import com.julia.entity.ObtainEntity;
 import com.julia.mapper.ObtainMapper;
 import com.julia.service.IObtainService;

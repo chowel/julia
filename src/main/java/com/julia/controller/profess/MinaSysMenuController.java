@@ -1,17 +1,13 @@
 package com.julia.controller.profess;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.julia.config.AdminToken;
 import com.julia.entity.MinaSysAdminEntity;
-import com.julia.entity.YaoEntity;
-import com.julia.model.vo.PactEntityVO;
 import com.julia.service.IMinaSysAdminService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.julia.entity.MinaSysMenuEntity;
 import com.julia.service.IMinaSysMenuService;
 import org.springframework.web.bind.annotation.*;
 import com.julia.model.vo.MinaSysMenuEntityVO;
