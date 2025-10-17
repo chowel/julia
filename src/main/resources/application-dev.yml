@@ -27,7 +27,7 @@ spring:
         min-idle: 0
       shutdown-timeout: 20000ms
   application:
-    name: yoshiki-dev
+    name: kitano-dev
 # 日志配置
 #logging:
 #  config: classpath:logback-spring-dev.xml

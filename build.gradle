@@ -55,7 +55,7 @@ dependencies {
 }
 
 bootJar {
-    archiveBaseName = 'YoShiKi'
+    archiveBaseName = 'kitano'
     archiveVersion = '1.0.0'
 }
 jar {
