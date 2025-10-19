@@ -1,7 +1,9 @@
 package com.julia.controller;
 
 import com.julia.model.dto.LoginDto;
+import com.julia.model.vo.MinaPlayerEntityVO;
 import com.julia.model.vo.MinaSysAdminEntityVO;
+import com.julia.service.IMinaPlayerService;
 import com.julia.service.IMinaSysAdminService;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
@@ -27,17 +29,20 @@ public class ApiController {
     @Resource
     IMinaSysAdminService sysAdminService;
 
+    @Resource
+    IMinaPlayerService playerService;
+
     @ApiOperation("登陆/获取token")
     @PostMapping("/login")
     public Rv<MinaSysAdminEntityVO> platLogin(@RequestBody LoginDto dto) {
         return new Rv<>(sysAdminService.login(dto));
     }
 
-//    @ApiOperation("盘方获取token")
-//    @PostMapping("/getToken")
-//    public Rv<String> getToken(@RequestBody LoginDto dto) {
-//        return new Rv<>(yaoService.getTokenByPan(dto));
-//    }
+    @ApiOperation("游戏登陆")
+    @PostMapping("/gameLogin")
+    public Rv<MinaPlayerEntityVO> gameLogin(@RequestBody LoginDto dto) {
+        return new Rv<>(playerService.login(dto));
+    }
 
     @ApiOperation("test")
     @GetMapping("/test")

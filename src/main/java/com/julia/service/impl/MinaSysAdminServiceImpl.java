@@ -58,12 +58,7 @@ public class MinaSysAdminServiceImpl extends ServiceImpl<MinaSysAdminMapper, Min
         if (!BCrypt.checkpw(dto.getPassword(), admin.getPassword())) {
             throw new JuliaException("密码错误");
         }
-
-//        List<PactEntity> pactList  =  pactMapper.getPackByPowerId(yao.getRoleId());
-
         MinaSysAdminEntityVO vo = JuliaUtils.convertTo(new MinaSysAdminEntityVO(), admin);
-
-//        vo.setMenus();
         AdminToken.login(admin.getYaoId());
         vo.setToken(AdminToken.getTokenValue());
         vo.setPassword("******");
