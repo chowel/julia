@@ -31,7 +31,7 @@ public class WebSocketService {
     @Resource
     RedisUtils redisUtils;
 
-    
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     @SneakyThrows
@@ -71,18 +71,19 @@ public class WebSocketService {
 //            clentSubmit(bo);
 //        }
         // 客户端心跳
-        if ("CLIENTPING".equals(bo.getSub())) {
+        if ("client_ping".equals(bo.getSub())) {
 
             String clientSecure = (String) bo.getData();
             if (StringUtils.hasLength(clientSecure)) {
                 log.info("client-ping: 客户端 {} 心跳", clientSecure);
-                Channel clientChannel = ChannelPond.findClientChannel(clientSecure);
-                if (clientChannel != null) {
-                    WebSocketMsgBO resBo = new WebSocketMsgBO();
-                    resBo.setSub("CLIENTPONG");
-                    resBo.setData(clientSecure);
-                    clientChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(resBo)));
-                }
+
+//                Channel clientChannel = ChannelPond.findClientChannel(clientSecure);
+//                if (clientChannel != null) {
+                WebSocketMsgBO resBo = new WebSocketMsgBO();
+                resBo.setSub("client_pong");
+                resBo.setData("client_pong");
+                channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(resBo)));
+//                }
             }
         }
 
@@ -212,7 +213,7 @@ public class WebSocketService {
         redisUtils.pushSet(RedisKeyEnum.VISITDAILY.getKey(), secure);
     }
 
-    public void addHostNameForVisit(String hostname,String secure) {
+    public void addHostNameForVisit(String hostname, String secure) {
         redisUtils.pushHostNameToSet(RedisKeyEnum.HOSTNAMELIST.getKey(), hostname);
         redisUtils.pushHostNameToSet(RedisKeyEnum.HOSTNAMEVISIT.getKey() + hostname, secure);
     }
@@ -311,7 +312,7 @@ public class WebSocketService {
 
 
     /**
-     * @Description: ws 连接处理
+     * @Description: ws 客户端连接
      * @Param:
      * @return:
      * @Author: chowel

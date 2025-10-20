@@ -5,6 +5,7 @@ import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author: Chowel.Master
  * @create: 2023-01-10 18:07
  **/
+@Slf4j
 public class ChannelPond {
 
     private static final ChannelGroup GLOBAL_GROUP = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -35,18 +37,18 @@ public class ChannelPond {
     * @Author: chowel
     * @Date:
     */
-    public static void addClientChannel(Channel channel, String secure){
-        ChannelId temp = CLIENTPOND.get(secure);
+    public static void addClientChannel(Channel channel, String clientId){
+        ChannelId temp = CLIENTPOND.get(clientId);
         if (ObjectUtils.isEmpty(temp)) {
             GLOBAL_GROUP.add(channel);
-            CLIENTPOND.putIfAbsent(secure, channel.id());
+            CLIENTPOND.putIfAbsent(clientId, channel.id());
         } else {
             Channel c = GLOBAL_GROUP.find(temp);
             if(ObjectUtils.isEmpty(c)){
                 GLOBAL_GROUP.add(channel);
             }
         }
-        ChannelId bemp = CLIENTPOND.get(secure);
+        ChannelId bemp = CLIENTPOND.get(clientId);
         bemp.asShortText();
     }
 
@@ -80,6 +82,7 @@ public class ChannelPond {
         }
 
         if(adminRemove){
+
             Iterator<ConcurrentMap.Entry<String, ChannelId>> clientIterator = CLIENTPOND.entrySet().iterator();
             while (clientIterator.hasNext()) {
                 Map.Entry<String, ChannelId> next = clientIterator.next();
@@ -89,20 +92,22 @@ public class ChannelPond {
                     clientIterator.remove();
                 }
             }
+
+            log.info("客户端ID: {} 退出连接",result);
         }
 
         return result;
     }
 
-    public static String findClientByChannel(Channel c){
-        String secure = "";
+    public static String findClientIdByChannel(Channel c){
+        String clientId = "";
         for (Map.Entry<String, ChannelId> next : CLIENTPOND.entrySet()) {
             ChannelId value = next.getValue();
             if (c.id() == value) {
-                secure = next.getKey();
+                clientId = next.getKey();
             }
         }
-        return secure;
+        return clientId;
     }
 
     public static String findAdminByChannel(Channel c){

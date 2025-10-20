@@ -1,10 +1,12 @@
 package com.julia.controller;
 
 import com.julia.model.dto.LoginDto;
+import com.julia.model.game.CaluRoleBo;
 import com.julia.model.vo.MinaPlayerEntityVO;
 import com.julia.model.vo.MinaSysAdminEntityVO;
 import com.julia.service.IMinaPlayerService;
 import com.julia.service.IMinaSysAdminService;
+import com.julia.tool.GameUtils;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -12,6 +14,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @program: julia
@@ -47,11 +50,15 @@ public class ApiController {
     @ApiOperation("test")
     @GetMapping("/test")
     public Rv<String> test() {
-//        Channel c  = ChannelPond.findChannel("5");
-//        if(!ObjectUtils.isEmpty(c)){
-//            ChannelPond.removeChannel(c);
-//        }
-//
+//        String[] game = GameUtils.genGameFri(15);
+        String[] gen_game = {   "1","1","2","2","1",
+                                "2","2","2","3","6",
+                                "7","1","4","6","1" };
+        List<CaluRoleBo> list = GameUtils.calcuFri(gen_game);
+        log.info(list.toString());
+        for (CaluRoleBo c : list){
+            log.info(c.toString());
+        }
         return new Rv<>("OK: ");
     }
 
