@@ -22,6 +22,8 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * @program: skychain
@@ -88,16 +90,27 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                     new PongWebSocketFrame(frame.content().retain()));
             return;
         }
-        // 仅支持文本消息，不支持二进制消息
-        if (!(frame instanceof TextWebSocketFrame)) {
-            log.info("本例程仅支持文本消息，不支持二进制消息");
-            throw new UnsupportedOperationException(String.format(
-                    "%s frame types not supported", frame.getClass().getName()));
+        if (frame instanceof BinaryWebSocketFrame) {
+            BinaryWebSocketFrame binaryFrame = (BinaryWebSocketFrame) frame;
+            ByteBuf buffer = binaryFrame.content();
+            int len = buffer.readableBytes();
+            byte[] data = new byte[len];
+            buffer.readBytes(data);
+            ByteBuffer byteBuffer = ByteBuffer.wrap(data);
+
+            if(len>0){
+                nioWebSocketHandler.service.handleBinaryMsg(byteBuffer, ctx.channel());
+            }
+
+//            log.info("msgType: {}",msgType);
+
         }
         // 收到消息体
-        String request = ((TextWebSocketFrame) frame).text();
+//        String request = ((TextWebSocketFrame) frame).text();
+
+//        log.info("二进制:{}",request);
         // 需要当前频道的业务处理
-        nioWebSocketHandler.service.handleMsgWhitChannel(request, ctx.channel());
+//        nioWebSocketHandler.service.handleMsgWhitChannel(request, ctx.channel());
 
     }
 

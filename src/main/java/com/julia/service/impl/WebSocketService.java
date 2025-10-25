@@ -6,8 +6,11 @@ import com.julia.enums.RedisKeyEnum;
 import com.julia.model.*;
 import com.julia.socket.ChannelPond;
 import com.julia.tool.RedisUtils;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelId;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -16,6 +19,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,10 +44,22 @@ public class WebSocketService {
         WebSocketMsgBO bo = mapper.readValue(requestMsg, WebSocketMsgBO.class);
     }
 
+    public void handleBinaryMsg(ByteBuffer buffer, Channel channel) {
+
+        // 消息类型 66 心跳
+        short msgType = buffer.getShort();
+
+        // 处理心跳 服务端 66 客户端 67
+        if (msgType == 66) {
+            ByteBuf byteBuf = channel.alloc().buffer(2);
+            byteBuf.writeShort(67);
+            channel.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
+        }
+    }
+
     @SneakyThrows
     public void handleMsgWhitChannel(String requestMsg, Channel channel) {
         WebSocketMsgBO bo = mapper.readValue(requestMsg, WebSocketMsgBO.class);
-        // log.info("SUB: {}",bo.getSub());
         // 客户端连接
         if ("CLIENTCONNECT".equals(bo.getSub())) {
             clientConnect(channel, bo);
@@ -66,10 +83,6 @@ public class WebSocketService {
         if ("CURRENTPAGE".equals(bo.getSub())) {
             clentPage(bo);
         }
-
-//        if ("CLIENTSUBMIT".equals(bo.getSub())) {
-//            clentSubmit(bo);
-//        }
         // 客户端心跳
         if ("client_ping".equals(bo.getSub())) {
 
@@ -331,16 +344,20 @@ public class WebSocketService {
             }
 //            yaoClientService.saveFromConnect((String) msgMap.get("secure"), (String) msgMap.get("secure"));
             //  客户端连接返回
-            WebSocketMsgBO clientbo = new WebSocketMsgBO();
-            clientbo.setSub("CLIENTCONNECTED");
-            clientbo.setData("OK");
-            c.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(clientbo)));
+//            WebSocketMsgBO clientbo = new WebSocketMsgBO();
+//            clientbo.setSub("CLIENTCONNECTED");
+//            clientbo.setData("OK");
+//            c.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(clientbo)));
 
             // 通知后台 有客户端连接
-            WebSocketMsgBO adminInform = new WebSocketMsgBO();
-            adminInform.setSub("CLIENTIN");
-            adminInform.setData(bo.getData());
-            adminSendMsg(adminInform);
+//            WebSocketMsgBO adminInform = new WebSocketMsgBO();
+//            adminInform.setSub("CLIENTIN");
+//            adminInform.setData(bo.getData());
+//            adminSendMsg(adminInform);
+
+            byte[] responseData = "Hell".getBytes(StandardCharsets.UTF_8);
+            ByteBuf buf = Unpooled.copiedBuffer(responseData);
+            c.writeAndFlush(new BinaryWebSocketFrame(buf));
         }
 
 
