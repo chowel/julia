@@ -1,6 +1,8 @@
 package com.julia.tool;
 
+import com.julia.enums.RedisKeyEnum;
 import com.julia.model.ClientInputRo;
+import com.julia.model.game.MinaGame;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.ReturnType;
@@ -626,6 +628,25 @@ public class RedisUtils {
             return false;
         }
     }
+
+
+    /**
+     * 将Game放入缓存
+     *
+     * @param playerId   键
+     * @param value 值
+     * @return
+     */
+    public boolean pushGames(Long playerId, List<MinaGame> value) {
+        try {
+            redisTemplate.opsForList().rightPushAll(RedisKeyEnum.GAMEPOOL.getKey()+playerId, value);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 
     /**
      * 将list放入缓存

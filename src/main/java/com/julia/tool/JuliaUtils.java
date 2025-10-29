@@ -187,7 +187,7 @@ public class JuliaUtils {
      * @Author: chowel
      * @Date:
      */
-    public static String randomOrderNo(long orderId) {
+    public static String genGameNo(long playerId) {
         char[] arr = {'a', 'b', 'c', 'd'};
         for (int j = 0; j < 4; j++) {
             Random rom = new Random();
@@ -200,7 +200,7 @@ public class JuliaUtils {
             }
             arr[j] = (char) a;
         }
-        return String.valueOf(System.currentTimeMillis()) + String.valueOf(orderId) + String.valueOf(arr);
+        return "EG" + System.currentTimeMillis() + playerId + String.valueOf(arr);
     }
 
     /**

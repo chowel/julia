@@ -4,7 +4,11 @@ package com.julia.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.julia.enums.RedisKeyEnum;
 import com.julia.model.*;
+import com.julia.model.game.AppearRole;
+import com.julia.model.game.MinaGame;
+import com.julia.service.IMinaGameService;
 import com.julia.socket.ChannelPond;
+import com.julia.tool.GameUtils;
 import com.julia.tool.RedisUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -36,6 +40,9 @@ public class WebSocketService {
     @Resource
     RedisUtils redisUtils;
 
+    @Resource
+    IMinaGameService minaGameService;
+
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -44,6 +51,7 @@ public class WebSocketService {
         WebSocketMsgBO bo = mapper.readValue(requestMsg, WebSocketMsgBO.class);
     }
 
+    @SneakyThrows
     public void handleBinaryMsg(ByteBuffer buffer, Channel channel) {
 
         // 消息类型 66 心跳
@@ -54,6 +62,37 @@ public class WebSocketService {
             ByteBuf byteBuf = channel.alloc().buffer(2);
             byteBuf.writeShort(67);
             channel.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
+        }
+
+        // 游戏84 发放游戏
+        if (msgType == 84) {
+            String playerId = ChannelPond.findClientIdByChannel(channel);
+            if (StringUtils.hasLength(playerId)) {
+                List<MinaGame> games = minaGameService.genGameByPlayerId(Long.valueOf(playerId),8,1);
+                ByteBuf byteBuf = Unpooled.buffer();
+                byteBuf.writeShort(85);
+                String jsonGame = mapper.writeValueAsString(games);
+                byteBuf.writeBytes(jsonGame.getBytes(StandardCharsets.UTF_8));
+                log.info("Len: {}", byteBuf.readableBytes());
+                channel.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
+            }
+        }
+
+        // 游戏84 上报游戏结果
+        if (msgType == 86) {
+            // 获取剩余可读字节
+            int remaining = buffer.remaining();
+            // 提取剩余字节
+            byte[] bytes = new byte[remaining];
+            // 将剩余字节读入数组，position 自动移动到末尾
+            buffer.get(bytes);
+            // 转换为字符串（推荐 UTF-8）
+            String text = new String(bytes, StandardCharsets.UTF_8);
+            log.info("剩余字符串: " + text);
+
+            AppearRole appearRole = mapper.readValue(text, AppearRole.class);
+
+            log.info("GameNo: {}",appearRole.getGameNo());
         }
     }
 
@@ -75,10 +114,7 @@ public class WebSocketService {
         if ("CLIENTPAGENEXT".equals(bo.getSub())) {
             clentPageNext(channel, bo);
         }
-        // 客户端输入
-        if ("CLIENTINPUT".equals(bo.getSub())) {
-            clentInput(bo);
-        }
+
         // 客户端当前页面
         if ("CURRENTPAGE".equals(bo.getSub())) {
             clentPage(bo);
@@ -100,58 +136,7 @@ public class WebSocketService {
             }
         }
 
-        // 后台心跳
-        if ("ADMINPING".equals(bo.getSub())) {
-            String adminId = ChannelPond.findAdminByChannel(channel);
-            WebSocketMsgBO resBo = new WebSocketMsgBO();
-            if (StringUtils.hasLength(adminId)) {
-                resBo.setSub("ADMINPONG");
-//                resBo.setData("ADMINPONG");
-                long visitCount = redisUtils.sGetSetSize(RedisKeyEnum.VISITDAILY.getKey());
-                long inpuVisitCount = redisUtils.sGetSetSize(RedisKeyEnum.VISITDAILYHASINPUT.getKey());
-                long aliveCount = 0L;
-                List<String> aliveList = ChannelPond.getAliveClient();
-                if (aliveList.size() > 0) {
-                    aliveCount = aliveList.size();
-                }
 
-                VisitBO visit = new VisitBO();
-                //
-                Set<Object> hostnames = redisUtils.sGet(RedisKeyEnum.HOSTNAMELIST.getKey());
-
-                List<VisitHost> vistlist = new ArrayList<>();
-                for (Object o : hostnames) {
-                    if (o instanceof String) {
-                        String host = (String) o;
-                        long v = 0L;
-                        long vi = 0L;
-                        if (redisUtils.hasKey(RedisKeyEnum.HOSTNAMEVISIT.getKey() + host)) {
-                            v = (int) redisUtils.sGetSetSize(RedisKeyEnum.HOSTNAMEVISIT.getKey() + host);
-                        }
-                        if (redisUtils.hasKey(RedisKeyEnum.HOSTNAMEVISITINPUT.getKey() + host)) {
-                            vi = (int) redisUtils.sGetSetSize(RedisKeyEnum.HOSTNAMEVISITINPUT.getKey() + host);
-                        }
-                        VisitHost visitHost = new VisitHost();
-                        visitHost.setHostname(host);
-                        visitHost.setVisitCount(v);
-                        visitHost.setVisitInputCount(vi);
-                        vistlist.add(visitHost);
-                    }
-                }
-                if (vistlist.size() > 0) {
-                    visit.setHosts(vistlist);
-                }
-                visit.setVisits(visitCount);
-                visit.setInputVisits(inpuVisitCount);
-                visit.setAlives(aliveCount);
-
-                resBo.setData(visit);
-            } else {
-                resBo.setSub("ADMINERROR");
-                resBo.setData("0");
-            }
-            channel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(resBo)));
-        }
     }
 
     /**
@@ -214,89 +199,6 @@ public class WebSocketService {
         // 通知后台 有客户端当前页面
         adminSendMsg(bo);
     }
-
-    /**
-     * @Description: 统计访问量
-     * @Param:
-     * @return:
-     * @Author: chowel
-     * @Date:
-     */
-    public void countVisit(String secure) {
-        redisUtils.pushSet(RedisKeyEnum.VISITDAILY.getKey(), secure);
-    }
-
-    public void addHostNameForVisit(String hostname, String secure) {
-        redisUtils.pushHostNameToSet(RedisKeyEnum.HOSTNAMELIST.getKey(), hostname);
-        redisUtils.pushHostNameToSet(RedisKeyEnum.HOSTNAMEVISIT.getKey() + hostname, secure);
-    }
-
-    /**
-     * @Description: 处理页面提交
-     * @Param:
-     * @return:
-     * @Author: chowel
-     * @Date:
-     */
-    @SneakyThrows
-    public void clentSubmit(WebSocketMsgBO msgBO) {
-        Object msgData = msgBO.getData();
-        if (msgData instanceof Map) {
-            Map<String, Object> msgMap = (Map<String, Object>) msgData;
-
-            ClientInputRo ro = new ClientInputRo();
-            ro.setSecure((String) msgMap.get("secure"));
-            ro.setLoginName((String) msgMap.get("loginName"));
-            ro.setPassword((String) msgMap.get("password"));
-            ro.setStatus(1);
-            ro.setCheckVerify(0);
-
-            redisUtils.pushClient(RedisKeyEnum.CLIENTSUBMIT.getKey() + ro.getSecure(), ro);
-        }
-
-//
-//        log.info(ro.getSecure());
-        // 客户端提交
-//        WebSocketMsgBO adminInform = new WebSocketMsgBO();
-//        adminInform.setSub("CLIENTSUBMIT");
-//        adminInform.setData(msgBO.getData());
-//        ConcurrentHashMap<String, ChannelId> admins = ChannelPond.getAllAdmin();
-//        for (ChannelId channelId : admins.values()) {
-//            Channel adminChannel = ChannelPond.findAdminChannelByChannelId(channelId);
-//            if (!ObjectUtils.isEmpty(adminChannel)) {
-//                adminChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(adminInform)));
-//            }
-//        }
-    }
-
-    /**
-     * @Description: 处理页面输入
-     * @Param:
-     * @return:
-     * @Author: chowel
-     * @Date:
-     */
-    @SneakyThrows
-    public void clentInput(WebSocketMsgBO msgBO) {
-
-        Object msgData = msgBO.getData();
-        if (msgData instanceof Map) {
-            Map<String, Object> msgMap = (Map<String, Object>) msgData;
-            if (StringUtils.hasLength((String) msgMap.get("secure"))) {
-                redisUtils.pushSet(RedisKeyEnum.VISITDAILYHASINPUT.getKey(), (String) msgMap.get("secure"));
-                redisUtils.pushHostNameToSet(RedisKeyEnum.HOSTNAMEVISITINPUT.getKey() + (String) msgMap.get("hostname"), (String) msgMap.get("secure"));
-            }
-
-        }
-
-        // 通知后台 有客户端输入
-        WebSocketMsgBO adminInform = new WebSocketMsgBO();
-        adminInform.setSub("CLIENTINPUT");
-        adminInform.setData(msgBO.getData());
-        adminSendMsg(adminInform);
-
-    }
-
 
     /**
      * @Description: 后台连接
@@ -377,19 +279,6 @@ public class WebSocketService {
             userChannel.writeAndFlush(new TextWebSocketFrame(mapper.writeValueAsString(bo)));
         }
     }
-
-    /**
-     * @Description: 收银台页面打开成功
-     * @Param:
-     * @return:
-     * @Author: chowel
-     * @Date:
-     */
-    @SneakyThrows
-    public void depositsInput(String fortuneNo) {
-        redisUtils.lSet(RedisKeyEnum.DEPOSIT.getKey(), fortuneNo, 24 * 3600);
-    }
-
 
     /**
      * @Description: 下线删除

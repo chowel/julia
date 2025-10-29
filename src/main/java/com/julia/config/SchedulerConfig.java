@@ -1,6 +1,7 @@
 package com.julia.config;
 
 import com.julia.enums.RedisKeyEnum;
+import com.julia.enums.RedisKeys;
 import com.julia.tool.RedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -51,24 +52,10 @@ public class SchedulerConfig implements SchedulingConfigurer {
         taskRegistrar.addTriggerTask(
                 // 定义执行任务内容
                 () -> {
-// 每日统计
-                    if (now.getHour() == 18 && now.getMinute() == 0) {
-                        int count = 0;
-                        if(redisUtils.hasKey(RedisKeyEnum.VISITDAILY.getKey())){
-                            count = (int)redisUtils.get(RedisKeyEnum.VISITDAILY.getKey());
-                        }
 
-                        // 获取昨天的日期
-                        LocalDate yesterday = LocalDate.now().minusDays(1);
-                        // 定义格式
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                        // 转为字符串
-                        String yesterdayStr = yesterday.format(formatter);
-
-                    }
 //                    log.info("每30秒执行一次 redis 保活");
-                    if (!redisUtils.hasKey(RedisKeyEnum.ALIVE.getKey())) {
-                        redisUtils.set(RedisKeyEnum.ALIVE.getKey(), 1, 300);
+                    if (!redisUtils.hasKey(RedisKeys.ALIVE.getKey())) {
+                        redisUtils.set(RedisKeys.ALIVE.getKey(), 1, 300);
                     }
                 },
                 // 定义执行周期

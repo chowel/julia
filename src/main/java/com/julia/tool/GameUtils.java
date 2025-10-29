@@ -33,7 +33,7 @@ public class GameUtils {
 
     private static final Integer[] ROLE_FRI_7 = {0, 6, 2, 8, 4};
 
-    private static final Integer[] ROLE_FRI_8 = {10, 6, 12, 8, 9};
+    private static final Integer[] ROLE_FRI_8 = {10, 6, 12, 8, 14};
 
     private static final Integer[] ROLE_FRI_9 = {10, 11, 7, 3, 4};
 
