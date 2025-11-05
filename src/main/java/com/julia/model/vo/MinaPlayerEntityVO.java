@@ -1,13 +1,7 @@
 package com.julia.model.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.julia.tool.BaseEntity;
 
-import org.springframework.beans.BeanUtils;
-import com.julia.entity.MinaPlayerEntity;
+import com.julia.tool.BaseEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -19,7 +13,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2025-10-17
+ * @since 2025-11-03
  */
 @Getter
 @Setter
@@ -51,10 +45,10 @@ public class MinaPlayerEntityVO extends BaseEntity {
     private String password;
 
     @ApiModelProperty("用户金币")
-    private Integer coin;
+    private Long coin;
 
-    @ApiModelProperty("1 租客 2 房东")
-    private Integer houseType;
+    @ApiModelProperty("等级")
+    private Integer level;
 
     @ApiModelProperty("1 正常 0 停用(删除)")
     private Integer status;
@@ -71,7 +65,10 @@ public class MinaPlayerEntityVO extends BaseEntity {
     @ApiModelProperty("预约留言")
     private String note;
 
-    @ApiModelProperty("Token")
+    @ApiModelProperty("消费")
+    private Long spend;
+
+    @ApiModelProperty("token")
     private String token;
 
     @Override
@@ -86,12 +83,13 @@ public class MinaPlayerEntityVO extends BaseEntity {
             ", loginName = " + loginName +
             ", password = " + password +
             ", coin = " + coin +
-            ", houseType = " + houseType +
+            ", level = " + level +
             ", status = " + status +
             ", wechat = " + wechat +
             ", qq = " + qq +
             ", email = " + email +
             ", note = " + note +
+            ", spend = " + spend +
         "}";
     }
 }

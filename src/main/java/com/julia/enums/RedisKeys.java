@@ -12,6 +12,14 @@ public enum RedisKeys {
      */
     ALIVE("MINA:ALIVE"),
     /**
+     * 玩家池
+     */
+    PLAYERINFO("MINA:PLAYER:%s"),
+    /**
+     * 玩家金币
+     */
+    PLAYERCOIN("MINA:PLAYERCOIN:%s"),
+    /**
      * 玩家fridayGame
      */
     FRIDAYGAMEPOOL("MINA:FRIDAYGAMEPOOL:%s"),

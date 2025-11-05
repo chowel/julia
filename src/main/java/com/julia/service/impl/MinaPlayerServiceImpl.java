@@ -58,6 +58,14 @@ public class MinaPlayerServiceImpl extends ServiceImpl<MinaPlayerMapper, MinaPla
     }
 
     @Override
+    public Boolean updateCoinSpend(Long playerId, Long coin,Long spend) {
+        return this.lambdaUpdate()
+                .eq(MinaPlayerEntity::getUserId,playerId)
+                .set(MinaPlayerEntity::getCoin,coin)
+                .set(MinaPlayerEntity::getSpend,spend).update();
+    }
+
+    @Override
     public MinaPlayerEntityVO login(LoginDto dto) {
         MinaPlayerEntity player = lambdaQuery().eq(MinaPlayerEntity::getLoginName,dto.getName()).one();
         if (ObjectUtils.isEmpty(player)) {

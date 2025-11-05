@@ -1,7 +1,7 @@
 package com.julia.tool;
 
 import com.julia.enums.RedisKeyEnum;
-import com.julia.model.ClientInputRo;
+import com.julia.enums.RedisKeys;
 import com.julia.model.game.MinaGame;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.redis.connection.RedisStringCommands;
@@ -187,6 +187,20 @@ public class RedisUtils {
         return key == null ? null : redisTemplate.opsForValue().get(key);
     }
 
+    public Long getPlayerCoin(String playerId){
+
+        Object obj = redisTemplate.opsForValue().get(RedisKeys.PLAYERCOIN.getKey(playerId));
+        long coin = 0L;
+
+        if (obj instanceof Number) {
+            // Integer、Long、Short 都支持
+            coin = ((Number) obj).longValue();
+        } else if (obj instanceof String) {
+            coin = Long.parseLong((String) obj);
+        }
+        return coin;
+    }
+
     /**
      * 普通缓存放入
      *
@@ -211,15 +225,15 @@ public class RedisUtils {
      * @param ro 值
      * @return true成功 false失败
      */
-    public boolean pushClient(String key, ClientInputRo ro) {
-        try {
-            redisTemplate.opsForValue().set(key, ro);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+//    public boolean pushClient(String key, ClientInputRo ro) {
+//        try {
+//            redisTemplate.opsForValue().set(key, ro);
+//            return true;
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
 
     /**
      * 普通缓存放入并设置时间
@@ -243,33 +257,38 @@ public class RedisUtils {
         }
     }
 
-    /**
-     * 递增
-     *
-     * @param key   键
-     * @param delta 要增加几(大于0)
-     * @return
-     */
-    public long incr(String key, long delta) {
-        if (delta < 0) {
-            throw new RuntimeException("递增因子必须大于0");
-        }
-        return redisTemplate.opsForValue().increment(key, delta);
+//    /**
+//     * 递增
+//     *
+//     * @param key   键
+//     * @param delta 要增加几(大于0)
+//     * @return
+//     */
+//    public long incr(String key, long delta) {
+//        if (delta < 0) {
+//            throw new RuntimeException("递增因子必须大于0");
+//        }
+//        return redisTemplate.opsForValue().increment(key, delta);
+//    }
+    public long calcCoin(String playerId, long delta) {
+        return redisTemplate.opsForValue().increment(
+                RedisKeys.PLAYERCOIN.getKey(playerId),
+                delta);
     }
 
-    /**
-     * 递减
-     *
-     * @param key   键
-     * @param delta 要减少几(小于0)
-     * @return
-     */
-    public long decr(String key, long delta) {
-        if (delta < 0) {
-            throw new RuntimeException("递减因子必须大于0");
-        }
-        return redisTemplate.opsForValue().increment(key, -delta);
-    }
+//    /**
+//     * 递减
+//     *
+//     * @param key   键
+//     * @param delta 要减少几(小于0)
+//     * @return
+//     */
+//    public long decr(String key, long delta) {
+//        if (delta < 0) {
+//            throw new RuntimeException("递减因子必须大于0");
+//        }
+//        c
+//    }
 
     /**
      * HashGet
@@ -462,7 +481,7 @@ public class RedisUtils {
         }
     }
 
-    public long pushHostNameToSet(String key, String values){
+    public long pushHostNameToSet(String key, String values) {
         try {
             return redisTemplate.opsForSet().add(key, values);
         } catch (Exception e) {
@@ -633,13 +652,13 @@ public class RedisUtils {
     /**
      * 将Game放入缓存
      *
-     * @param playerId   键
-     * @param value 值
+     * @param playerId 键
+     * @param value    值
      * @return
      */
     public boolean pushGames(Long playerId, List<MinaGame> value) {
         try {
-            redisTemplate.opsForList().rightPushAll(RedisKeyEnum.GAMEPOOL.getKey()+playerId, value);
+            redisTemplate.opsForList().rightPushAll(RedisKeyEnum.GAMEPOOL.getKey() + playerId, value);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -783,12 +802,14 @@ public class RedisUtils {
         return redisTemplate.opsForZSet().score(key, value);
     }
 
-    /** * 增加有序集合 *
-     *
+    /**
+     * 增加有序集合 *
+     * <p>
      * * @param key
      * * @param value
      * * @param seqNo
-     * * @return */
+     * * @return
+     */
     public Boolean addZset(String key, Object value, double seqNo) {
         try {
             return redisTemplate.opsForZSet().addIfAbsent(key, value, seqNo);
@@ -798,39 +819,47 @@ public class RedisUtils {
         }
     }
 
-    /** * 指定元素增加指定值
+    /**
+     * 指定元素增加指定值
      * * * @param key
      * * @param obj
      * * @param score
-     * * @return */
+     * * @return
+     */
     public Object addScore(String key, Object obj, double score) {
         return redisTemplate.opsForZSet().incrementScore(key, obj, score);
     }
 
-    /** * 指定范围内元素排序
+    /**
+     * 指定范围内元素排序
      * *
      * * @param key
      * * @param v1
      * * @param v2
-     * * @return */
+     * * @return
+     */
     public Set<Object> rangeByScore(String key, double v1, double v2) {
         return redisTemplate.opsForZSet().rangeByScore(key, v1, v2);
     }
-    /** * 删除指定value的值
+
+    /**
+     * 删除指定value的值
      * *
      * * @param key
-     * * @return */
-    public Long removeByValue(String key,String value){
-       return redisTemplate.opsForZSet().remove(key, value);
+     * * @return
+     */
+    public Long removeByValue(String key, String value) {
+        return redisTemplate.opsForZSet().remove(key, value);
     }
+
     /**
-    * @Description: 查找指定前缀的key
-    * @Param:
-    * @return:
-    * @Author: chowel
-    * @Date:
-    */
-    public Set<String> getSetByKey(String prefix){
+     * @Description: 查找指定前缀的key
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public Set<String> getSetByKey(String prefix) {
         return redisTemplate.keys(prefix + "*");
     }
 }

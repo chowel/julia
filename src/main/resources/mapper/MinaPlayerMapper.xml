@@ -15,19 +15,20 @@
         <result column="login_name" property="loginName" />
         <result column="password" property="password" />
         <result column="coin" property="coin" />
-        <result column="house_type" property="houseType" />
+        <result column="level" property="level" />
         <result column="status" property="status" />
         <result column="wechat" property="wechat" />
         <result column="qq" property="qq" />
         <result column="email" property="email" />
         <result column="note" property="note" />
+        <result column="spend" property="spend" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        user_id, union_id, open_id, nick_name, avatar_url, phone_number, login_name, password, coin, house_type, status, wechat, qq, email, note
+        user_id, union_id, open_id, nick_name, avatar_url, phone_number, login_name, password, coin, level, status, wechat, qq, email, note, spend
     </sql>
 
 </mapper>

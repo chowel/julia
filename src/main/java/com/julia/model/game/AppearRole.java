@@ -17,4 +17,8 @@ public class AppearRole {
     private String gameNo;
 
     private List<AppearRoleItem> roles;
+
+    private Long gamePoint;
+
+    private Long totalCoin;
 }

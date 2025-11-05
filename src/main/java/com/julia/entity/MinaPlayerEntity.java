@@ -1,5 +1,6 @@
 package com.julia.entity;
 
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -14,7 +15,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2025-10-17
+ * @since 2025-11-03
  */
 @Getter
 @Setter
@@ -73,13 +74,13 @@ public class MinaPlayerEntity extends BaseEntity {
      * 用户金币
      */
     @TableField("coin")
-    private Integer coin;
+    private Long coin;
 
     /**
      * 1 租客 2 房东
      */
-    @TableField("house_type")
-    private Integer houseType;
+    @TableField("level")
+    private Integer level;
 
     /**
      * 1 正常 0 停用(删除)
@@ -110,4 +111,10 @@ public class MinaPlayerEntity extends BaseEntity {
      */
     @TableField("note")
     private String note;
+
+    /**
+     * 消费
+     */
+    @TableField("spend")
+    private Long spend;
 }

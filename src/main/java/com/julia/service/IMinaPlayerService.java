@@ -61,6 +61,8 @@ public interface IMinaPlayerService extends IService<MinaPlayerEntity> {
     */
     Boolean remove(Long id);
 
+    Boolean updateCoinSpend(Long playerId, Long coin,Long spend);
+
     MinaPlayerEntityVO login(LoginDto dto);
 }
 
