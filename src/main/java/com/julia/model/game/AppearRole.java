@@ -16,9 +16,13 @@ public class AppearRole {
 
     private String gameNo;
 
-    private List<AppearRoleItem> roles;
+    private List<AppearFriRoleItem> friRoles;
+
+    private List<AppearStaRoleItem> staRoles;
 
     private Long gamePoint;
 
     private Long totalCoin;
+
+    private Integer type;
 }

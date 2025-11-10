@@ -9,11 +9,11 @@ import lombok.Data;
  * @create: 2025-10-28 13:12
  **/
 @Data
-public class AppearRoleItem {
+public class AppearStaRoleItem {
 
     private String roleName;
 
     private Integer type;
 
-    private Integer score;
+    private Integer point;
 }

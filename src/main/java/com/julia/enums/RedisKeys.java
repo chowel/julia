@@ -20,9 +20,13 @@ public enum RedisKeys {
      */
     PLAYERCOIN("MINA:PLAYERCOIN:%s"),
     /**
+     * 玩家StaturdyGame
+     */
+    STATURDAYGAMEPOOL("MINA:STAGAME:%s"),
+    /**
      * 玩家fridayGame
      */
-    FRIDAYGAMEPOOL("MINA:FRIDAYGAMEPOOL:%s"),
+    FRIDAYGAMEPOOL("MINA:FRIGAME:%s"),
     ;
 
     private final String keyTemplate;

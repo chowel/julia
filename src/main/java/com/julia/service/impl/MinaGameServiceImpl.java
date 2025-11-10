@@ -70,20 +70,26 @@ public class MinaGameServiceImpl extends ServiceImpl<MinaGameMapper, MinaGameEnt
 
     @Override
     public List<MinaGame> genGameByPlayerId(Long playerId, int len, int type) {
-        if (type == 1) {
-            List<MinaGame> genGames = new ArrayList<>(len);
+        List<MinaGame> genGames = new ArrayList<>(len);
+
             for (int i = 0; i < len; i++) {
                 MinaGame g = new MinaGame();
-                g.setContents(GameUtils.genGameFri(15));
                 g.setGameNo(JuliaUtils.genGameNo(playerId));
                 g.setPlayerId(playerId);
-                g.setStatus(1);
-                redisUtils.set(RedisKeys.FRIDAYGAMEPOOL.getKey(g.getGameNo()), g, 3600 * 48);
+                g.setStatus(type);
+                if(type == 1){
+                    g.setContents(GameUtils.genGameFri(15));
+                    redisUtils.set(RedisKeys.FRIDAYGAMEPOOL.getKey(g.getGameNo()), g, 3600 * 48);
+                }
+
+                if(type == 2){
+                    g.setContents(GameUtils.genGameSta(30));
+                    redisUtils.set(RedisKeys.STATURDAYGAMEPOOL.getKey(g.getGameNo()), g, 3600 * 48);
+                }
                 genGames.add(g);
             }
             return genGames;
-        }
-        return null;
+
     }
 
 }

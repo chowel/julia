@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Slf4j
 public class GameUtils {
 
-    private static final String[] BOX_TYPE = {"1", "2", "3", "4", "5", "6", "7", "8", "s", "y", "x", "z"};
+    private static final String[] FRIGAMEBOX = {"1", "2", "3", "4", "5", "6", "7"};
 
     private static final Integer[] ROLE_FRI_1 = {0, 1, 2, 3, 4};
 
@@ -36,6 +36,10 @@ public class GameUtils {
     private static final Integer[] ROLE_FRI_8 = {10, 6, 12, 8, 14};
 
     private static final Integer[] ROLE_FRI_9 = {10, 11, 7, 3, 4};
+
+    private static final String[] STAGAMEBOX = {"1", "2", "3", "4", "5", "6", "7"};
+
+
 
     public static List<CaluRoleBo> calcuFri(String[] gameFri) {
         List<CaluRoleBo> roles = new ArrayList<>();
@@ -90,7 +94,7 @@ public class GameUtils {
     }
 
     /**
-     * @Description: 生成游戏
+     * @Description: 生成Fri游戏
      * @Param:
      * @return:
      * @Author: chowel
@@ -101,7 +105,25 @@ public class GameUtils {
         Random random = ThreadLocalRandom.current();
 
         for (int i = 0; i < length; i++) {
-            result[i] = BOX_TYPE[random.nextInt(BOX_TYPE.length)];
+            result[i] = FRIGAMEBOX[random.nextInt(FRIGAMEBOX.length)];
+        }
+
+        return result;
+    }
+
+    /**
+     * @Description: 生成Fri游戏
+     * @Param:
+     * @return:
+     * @Author: chowel
+     * @Date:
+     */
+    public static String[] genGameSta(int length) {
+        String[] result = new String[length];
+        Random random = ThreadLocalRandom.current();
+
+        for (int i = 0; i < length; i++) {
+            result[i] = STAGAMEBOX[random.nextInt(STAGAMEBOX.length)];
         }
 
         return result;
