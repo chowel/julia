@@ -16,7 +16,7 @@ spring:
       max-lifetime: 180000
   redis:
     database: 0
-    host: 14.103.129.113
+    host: 115.190.240.34
     password: PDY1k6wFxN
     port: 6379
     lettuce:
