@@ -29,7 +29,7 @@ import java.util.List;
 @Log4j2
 @Api(tags = "通用接口不要token")
 @RestController
-@RequestMapping("/kitano/api")
+@RequestMapping("/guji/api")
 public class ApiController {
 
 

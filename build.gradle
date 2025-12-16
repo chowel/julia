@@ -56,7 +56,7 @@ dependencies {
 }
 
 bootJar {
-    archiveBaseName = 'kitano'
+    archiveBaseName = 'jinguji'
     archiveVersion = '1.0.0'
 }
 jar {

@@ -43,9 +43,9 @@ public class SwaggerConfig implements WebMvcConfigurer {
         ParameterBuilder platformToken = new ParameterBuilder();
         ParameterBuilder playerToken = new ParameterBuilder();
         List<Parameter> pars = new ArrayList<Parameter>();
-        platformToken.name("mina-admin").description("后台").modelRef(new ModelRef("string")).parameterType("header")
+        platformToken.name("jinguji-admin").description("后台").modelRef(new ModelRef("string")).parameterType("header")
                 .required(false).build();
-        playerToken.name("mina-player").description("客户端").modelRef(new ModelRef("string")).parameterType("header")
+        playerToken.name("jinguji-player").description("客户端").modelRef(new ModelRef("string")).parameterType("header")
                 .required(false).build();
         pars.add(platformToken.build());
         ResponseMessage message500 = new ResponseMessageBuilder()

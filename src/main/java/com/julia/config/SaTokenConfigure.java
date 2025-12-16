@@ -1,4 +1,4 @@
-package com.yoki.config;
+package com.julia.config;
 
 import cn.dev33.satoken.interceptor.SaRouteInterceptor;
 import cn.dev33.satoken.router.SaRouter;
@@ -22,9 +22,9 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册Sa-Token的路由拦截器
         registry.addInterceptor(new SaRouteInterceptor((req, res, handler)->{
-            SaRouter.match("/kitano/profess/**", AdminToken::checkLogin);
-            SaRouter.match("/kitano/v1/**", PlayerToken::checkLogin);
+            SaRouter.match("/guji/profess/**", AdminToken::checkLogin);
+            SaRouter.match("/guji/v1/**", PlayerToken::checkLogin);
         })).addPathPatterns("/**").excludePathPatterns("/swagger-resources/**","/swagger-**","/swagger-ui.**",
-                "/kitano/api/**");
+                "/guji/api/**");
     }
 }
