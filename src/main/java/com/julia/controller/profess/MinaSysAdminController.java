@@ -23,7 +23,7 @@ import javax.annotation.Resource;
  */
 @Api(tags = "账号")
 @RestController
-@RequestMapping("/kitano/profess/minaSys")
+@RequestMapping("/guji/profess/minaSys")
 public class MinaSysAdminController {
     @Resource
     IMinaSysAdminService serviceImpl;

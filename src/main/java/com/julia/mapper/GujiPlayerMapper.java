@@ -1,6 +1,6 @@
 package com.julia.mapper;
 
-import com.julia.entity.MinaPlayerEntity;
+import com.julia.entity.GujiPlayerEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -10,10 +10,10 @@ import org.apache.ibatis.annotations.Mapper;
  * </p>
  *
  * @author chowel
- * @since 2025-10-17
+ * @since 2025-12-17
  */
 @Mapper
 
-public interface MinaPlayerMapper extends BaseMapper<MinaPlayerEntity> {
+public interface GujiPlayerMapper extends BaseMapper<GujiPlayerEntity> {
 
 }

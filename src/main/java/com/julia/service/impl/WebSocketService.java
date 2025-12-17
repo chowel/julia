@@ -3,16 +3,13 @@ package com.julia.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.julia.entity.MinaPlayerEntity;
-import com.julia.enums.RedisKeyEnum;
 import com.julia.enums.RedisKeys;
 import com.julia.model.*;
 import com.julia.model.game.AppearRole;
 import com.julia.model.game.MinaGame;
 import com.julia.model.game.PlayerBo;
 import com.julia.service.IMinaGameService;
-import com.julia.service.IMinaPlayerService;
 import com.julia.socket.ChannelPond;
-import com.julia.tool.GameUtils;
 import com.julia.tool.RedisUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -47,8 +44,7 @@ public class WebSocketService {
     @Resource
     IMinaGameService minaGameService;
 
-    @Resource
-    IMinaPlayerService playerService;
+
 
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -82,57 +78,13 @@ public class WebSocketService {
         // 90 进入Sta房间
         if (msgType == 90) {
             String playerId = ChannelPond.findClientIdByChannel(channel);
-            if (StringUtils.hasLength(playerId)) {
-                MinaPlayerEntity playerEntity = playerService.getById(Long.valueOf(playerId));
-                PlayerBo bo = new PlayerBo();
-                if (redisUtils.hasKey(RedisKeys.PLAYERCOIN.getKey(playerId))) {
-                    bo.setCoin((redisUtils.getPlayerCoin(playerId)));
-                } else {
-                    redisUtils.calcCoin(playerId, playerEntity.getCoin());
-                    bo.setCoin(playerEntity.getCoin());
-                }
 
-                // 发牌
-                List<MinaGame> games = minaGameService.genGameByPlayerId(Long.valueOf(playerId), 8, 2);
-                bo.setGames(games);
-                bo.setLevel(playerEntity.getLevel());
-                bo.setSpend(playerEntity.getSpend());
-                ByteBuf byteBuf = Unpooled.buffer();
-                byteBuf.writeShort(91);
-                String json = mapper.writeValueAsString(bo);
-                byteBuf.writeBytes(json.getBytes(StandardCharsets.UTF_8));
-                log.info("StaGame JSON: {}", json);
-                channel.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
-
-            }
         }
 
         // 80 进入Fri房间
         if (msgType == 80) {
             String playerId = ChannelPond.findClientIdByChannel(channel);
-            if (StringUtils.hasLength(playerId)) {
-                MinaPlayerEntity playerEntity = playerService.getById(Long.valueOf(playerId));
-                PlayerBo bo = new PlayerBo();
-                if (redisUtils.hasKey(RedisKeys.PLAYERCOIN.getKey(playerId))) {
-                    bo.setCoin((redisUtils.getPlayerCoin(playerId)));
-                } else {
-                    redisUtils.calcCoin(playerId, playerEntity.getCoin());
-                    bo.setCoin(playerEntity.getCoin());
-                }
 
-                // 发牌
-                List<MinaGame> games = minaGameService.genGameByPlayerId(Long.valueOf(playerId), 8, 1);
-                bo.setGames(games);
-                bo.setLevel(playerEntity.getLevel());
-                bo.setSpend(playerEntity.getSpend());
-                ByteBuf byteBuf = Unpooled.buffer();
-                byteBuf.writeShort(81);
-                String json = mapper.writeValueAsString(bo);
-                byteBuf.writeBytes(json.getBytes(StandardCharsets.UTF_8));
-                log.info("JSON: {}", json);
-                channel.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
-
-            }
         }
 
         // 游戏 发放游戏
@@ -161,18 +113,7 @@ public class WebSocketService {
         // 退出friday 房间
         if (msgType == 82) {
             String playerId = ChannelPond.findClientIdByChannel(channel);
-            if (StringUtils.hasLength(playerId)) {
-                long playerCoin = redisUtils.getPlayerCoin(playerId);
-                redisUtils.del(RedisKeys.PLAYERINFO.getKey(playerId));
-                redisUtils.del(RedisKeys.PLAYERCOIN.getKey(playerId));
-                log.info("log: {}", "更新数据库");
-                playerService.updateCoinSpend(Long.valueOf(playerId), playerCoin, 0L);
 
-                // 总数不一致，以服务端下发为准
-                PlayerBo bo = new PlayerBo();
-                bo.setCoin(playerCoin);
-                this.sendInfo(channel, bo);
-            }
         }
 
         // 统一上报 上报游戏结果

@@ -1,15 +1,12 @@
 package com.julia.controller;
 
-import com.julia.enums.RedisKeys;
 import com.julia.model.dto.LoginDto;
-import com.julia.model.game.CaluRoleBo;
 import com.julia.model.game.MinaGame;
-import com.julia.model.vo.MinaPlayerEntityVO;
+import com.julia.model.vo.GujiPlayerEntityVO;
 import com.julia.model.vo.MinaSysAdminEntityVO;
+import com.julia.service.IGujiPlayerService;
 import com.julia.service.IMinaGameService;
-import com.julia.service.IMinaPlayerService;
 import com.julia.service.IMinaSysAdminService;
-import com.julia.tool.GameUtils;
 import com.julia.tool.RedisUtils;
 import com.julia.tool.Rv;
 import io.swagger.annotations.Api;
@@ -37,7 +34,7 @@ public class ApiController {
     IMinaSysAdminService sysAdminService;
 
     @Resource
-    IMinaPlayerService playerService;
+    IGujiPlayerService  gujiPlayerService;
 
     @Resource
     IMinaGameService gameService;
@@ -53,8 +50,8 @@ public class ApiController {
 
     @ApiOperation("游戏登陆")
     @PostMapping("/gameLogin")
-    public Rv<MinaPlayerEntityVO> gameLogin(@RequestBody LoginDto dto) {
-        return new Rv<>(playerService.login(dto));
+    public Rv<GujiPlayerEntityVO> gameLogin(@RequestBody LoginDto dto) {
+        return new Rv<>(gujiPlayerService.login(dto));
     }
 
     @ApiOperation("test")

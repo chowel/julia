@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.julia.mapper.GujiPlayerMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.julia.entity.GujiPlayerEntity">
+        <id column="user_id" property="userId" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="union_id" property="unionId" />
+        <result column="open_id" property="openId" />
+        <result column="nick_name" property="nickName" />
+        <result column="avatar_url" property="avatarUrl" />
+        <result column="phone_number" property="phoneNumber" />
+        <result column="login_name" property="loginName" />
+        <result column="password" property="password" />
+        <result column="gold" property="gold" />
+        <result column="energy" property="energy" />
+        <result column="max_energy" property="maxEnergy" />
+        <result column="diamond" property="diamond" />
+        <result column="battle_level" property="battleLevel" />
+        <result column="battle_wave" property="battleWave" />
+        <result column="status" property="status" />
+        <result column="wechat" property="wechat" />
+        <result column="qq" property="qq" />
+        <result column="email" property="email" />
+        <result column="note" property="note" />
+        <result column="guide_child" property="guideChild" />
+        <result column="play_speed" property="playSpeed" />
+        <result column="box_level" property="boxLevel" />
+        <result column="box_exp" property="boxExp" />
+        <result column="box_point" property="boxPoint" />
+        <result column="box_left" property="boxLeft" />
+        <result column="box_mid" property="boxMid" />
+        <result column="box_right" property="boxRight" />
+        <result column="proxy_count" property="proxyCount" />
+        <result column="proxy" property="proxy" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        create_time,
+        update_time,
+        user_id, union_id, open_id, nick_name, avatar_url, phone_number, login_name, password, gold, energy, max_energy, diamond, battle_level, battle_wave, status, wechat, qq, email, note, guide_child, play_speed, box_level, box_exp, box_point, box_left, box_mid, box_right, proxy_count, proxy
+    </sql>
+
+</mapper>

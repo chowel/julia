@@ -15,6 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Log4j2
 @Api(tags = "通用接口不要token")
 @RestController
-@RequestMapping("/kitano/v1")
+@RequestMapping("/guji/v1")
 public class MainController {
 }

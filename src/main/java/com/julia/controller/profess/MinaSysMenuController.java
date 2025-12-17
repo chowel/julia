@@ -26,7 +26,7 @@ import java.util.List;
  */
 @Api(tags = "系统菜单")
 @RestController
-@RequestMapping("/kitano/profess/minaSysMenu")
+@RequestMapping("/guji/profess/minaSysMenu")
 public class MinaSysMenuController {
     @Resource
     IMinaSysMenuService serviceImpl;

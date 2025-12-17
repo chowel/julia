@@ -1,8 +1,8 @@
 package com.julia.service;
 
-import com.julia.entity.MinaPlayerEntity;
+import com.julia.entity.GujiPlayerEntity;
 import com.julia.model.dto.LoginDto;
-import com.julia.model.vo.MinaPlayerEntityVO;
+import com.julia.model.vo.GujiPlayerEntityVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.julia.model.QueryPagement;
@@ -12,57 +12,55 @@ import com.julia.model.QueryPagement;
  * </p>
  *
  * @author chowel
- * @since 2025-10-17
+ * @since 2025-12-17
  */
 
-public interface IMinaPlayerService extends IService<MinaPlayerEntity> {
+public interface IGujiPlayerService extends IService<GujiPlayerEntity> {
     /**
     * @Description: 分页查找
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2025-10-17
+    * @Date: 2025-12-17
     */
-    Page<MinaPlayerEntityVO> findForPage(QueryPagement queryPagement);
+    Page<GujiPlayerEntityVO> findForPage(QueryPagement queryPagement);
 
     /**
     * @Description: 根据id查找
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2025-10-17
+    * @Date: 2025-12-17
     */
-    MinaPlayerEntityVO findOneById(Long id);
+    GujiPlayerEntityVO findOneById(Long id);
 
     /**
     * @Description: 添加
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2025-10-17
+    * @Date: 2025-12-17
     */
-    Boolean saveMinaPlayerEntity(MinaPlayerEntityVO vo);
+    Boolean saveGujiPlayerEntity(GujiPlayerEntityVO vo);
 
     /**
     * @Description: 修改
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2025-10-17
+    * @Date: 2025-12-17
     */
-    Boolean alter(MinaPlayerEntityVO vo);
+    Boolean alter(GujiPlayerEntityVO vo);
 
     /**
     * @Description: 删除
     * @Param:
     * @return:
     * @Author: chowel
-    * @Date: 2025-10-17
+    * @Date: 2025-12-17
     */
     Boolean remove(Long id);
 
-    Boolean updateCoinSpend(Long playerId, Long coin,Long spend);
-
-    MinaPlayerEntityVO login(LoginDto dto);
+    GujiPlayerEntityVO login(LoginDto dto);
 }
 
