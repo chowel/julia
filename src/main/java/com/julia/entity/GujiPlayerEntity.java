@@ -14,7 +14,7 @@ import lombok.Setter;
  * </p>
  *
  * @author chowel
- * @since 2025-12-17
+ * @since 2025-12-19
  */
 @Getter
 @Setter
@@ -136,7 +136,13 @@ public class GujiPlayerEntity extends BaseEntity {
     private String note;
 
     /**
-     * 是否新手 1 新手
+     * 0 新手
+     */
+    @TableField("guide_root")
+    private Integer guideRoot;
+
+    /**
+     * 新手的步数
      */
     @TableField("guide_child")
     private Integer guideChild;

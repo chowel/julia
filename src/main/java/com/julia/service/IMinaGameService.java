@@ -70,7 +70,7 @@ public interface IMinaGameService extends IService<MinaGameEntity> {
     * @Author: chowel
     * @Date:
     */
-    List<MinaGame> genGameByPlayerId(Long playerId,int len,int type);
+//    List<MinaGame> genGameByPlayerId(Long playerId,int len,int type);
 
 }
 

@@ -78,5 +78,21 @@ public class GujiPlayerServiceImpl extends ServiceImpl<GujiPlayerMapper, GujiPla
         vo.setPassword("******");
         return vo;
     }
+
+    @Override
+    public GujiPlayerEntityVO register(LoginDto dto) {
+        GujiPlayerEntity player = new GujiPlayerEntity();
+        player.setLoginName(dto.getName());
+        player.setPassword( BCrypt.hashpw(dto.getPassword()));
+        if (save(player)) {
+            player = lambdaQuery().eq(GujiPlayerEntity::getLoginName,dto.getName()).one();
+            GujiPlayerEntityVO vo = JuliaUtils.convertTo(new GujiPlayerEntityVO(), player);
+            PlayerToken.login(vo.getUserId());
+            vo.setToken(PlayerToken.getTokenValue());
+            vo.setPassword("******");
+            return vo;
+        }
+        return null;
+    }
 }
 

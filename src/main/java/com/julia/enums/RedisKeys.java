@@ -10,23 +10,23 @@ public enum RedisKeys {
     /**
      * redis保活
      */
-    ALIVE("MINA:ALIVE"),
+    ALIVE("JINGUJI:ALIVE"),
     /**
      * 玩家池
      */
-    PLAYERINFO("MINA:PLAYER:%s"),
-    /**
-     * 玩家金币
-     */
-    PLAYERCOIN("MINA:PLAYERCOIN:%s"),
-    /**
-     * 玩家StaturdyGame
-     */
-    STATURDAYGAMEPOOL("MINA:STAGAME:%s"),
-    /**
-     * 玩家fridayGame
-     */
-    FRIDAYGAMEPOOL("MINA:FRIGAME:%s"),
+//    PLAYERINFO("MINA:PLAYER:%s"),
+//    /**
+//     * 玩家金币
+//     */
+//    PLAYERCOIN("MINA:PLAYERCOIN:%s"),
+//    /**
+//     * 玩家StaturdyGame
+//     */
+//    STATURDAYGAMEPOOL("MINA:STAGAME:%s"),
+//    /**
+//     * 玩家fridayGame
+//     */
+//    FRIDAYGAMEPOOL("MINA:FRIGAME:%s"),
     ;
 
     private final String keyTemplate;

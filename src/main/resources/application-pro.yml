@@ -2,7 +2,7 @@ server:
   port: 9022
 spring:
   datasource:
-    url: jdbc:mysql://mall_db:3306/mina?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://mall_db:3306/jinguji?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
     password: F9r8@bs5uYA
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -27,7 +27,7 @@ spring:
         min-idle: 0
       shutdown-timeout: 20000ms
   application:
-    name: kitano-pro
+    name: jinguji-pro
 # 日志配置
 logging:
   config: classpath:logback-spring-pro.xml

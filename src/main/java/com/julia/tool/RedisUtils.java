@@ -1,8 +1,6 @@
 package com.julia.tool;
 
-import com.julia.enums.RedisKeyEnum;
 import com.julia.enums.RedisKeys;
-import com.julia.model.game.MinaGame;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.ReturnType;
@@ -187,19 +185,19 @@ public class RedisUtils {
         return key == null ? null : redisTemplate.opsForValue().get(key);
     }
 
-    public Long getPlayerCoin(String playerId){
-
-        Object obj = redisTemplate.opsForValue().get(RedisKeys.PLAYERCOIN.getKey(playerId));
-        long coin = 0L;
-
-        if (obj instanceof Number) {
-            // Integer、Long、Short 都支持
-            coin = ((Number) obj).longValue();
-        } else if (obj instanceof String) {
-            coin = Long.parseLong((String) obj);
-        }
-        return coin;
-    }
+//    public Long getPlayerCoin(String playerId){
+//
+//        Object obj = redisTemplate.opsForValue().get(RedisKeys.PLAYERCOIN.getKey(playerId));
+//        long coin = 0L;
+//
+//        if (obj instanceof Number) {
+//            // Integer、Long、Short 都支持
+//            coin = ((Number) obj).longValue();
+//        } else if (obj instanceof String) {
+//            coin = Long.parseLong((String) obj);
+//        }
+//        return coin;
+//    }
 
     /**
      * 普通缓存放入
@@ -270,11 +268,11 @@ public class RedisUtils {
 //        }
 //        return redisTemplate.opsForValue().increment(key, delta);
 //    }
-    public long calcCoin(String playerId, long delta) {
-        return redisTemplate.opsForValue().increment(
-                RedisKeys.PLAYERCOIN.getKey(playerId),
-                delta);
-    }
+//    public long calcCoin(String playerId, long delta) {
+//        return redisTemplate.opsForValue().increment(
+//                RedisKeys.PLAYERCOIN.getKey(playerId),
+//                delta);
+//    }
 
 //    /**
 //     * 递减
@@ -656,15 +654,15 @@ public class RedisUtils {
      * @param value    值
      * @return
      */
-    public boolean pushGames(Long playerId, List<MinaGame> value) {
-        try {
-            redisTemplate.opsForList().rightPushAll(RedisKeyEnum.GAMEPOOL.getKey() + playerId, value);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+//    public boolean pushGames(Long playerId, List<MinaGame> value) {
+//        try {
+//            redisTemplate.opsForList().rightPushAll(RedisKeyEnum.GAMEPOOL.getKey() + playerId, value);
+//            return true;
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
 
 
     /**

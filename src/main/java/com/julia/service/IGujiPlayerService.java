@@ -62,5 +62,9 @@ public interface IGujiPlayerService extends IService<GujiPlayerEntity> {
     Boolean remove(Long id);
 
     GujiPlayerEntityVO login(LoginDto dto);
+
+    GujiPlayerEntityVO register(LoginDto dto);
+
+
 }
 

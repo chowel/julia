@@ -54,23 +54,12 @@ public class ApiController {
         return new Rv<>(gujiPlayerService.login(dto));
     }
 
-    @ApiOperation("test")
-    @GetMapping("/test")
-    public Rv<String> test() {
-//        String[] game = GameUtils.genGameFri(15);
-//        String[] gen_game = {   "1","1","2","2","1",
-//                                "2","2","2","3","6",
-//                                "7","1","4","6","1" };
-//        List<CaluRoleBo> list = GameUtils.calcuFri(gen_game);
-//        log.info(list.toString());
-//        for (CaluRoleBo c : list){
-//            log.info(c.toString());
-//        }
-        List<MinaGame> games = gameService.genGameByPlayerId(1L,8,1);
-        log.info("Size: {}",games.size());
-//        redisUtils.set(RedisKeys.FRIDAYGAMEPOOL.getKey("1:","2"),"123",1800);
-        return new Rv<>("OK: ");
+    @ApiOperation("游戏注册")
+    @PostMapping("/gameRegister")
+    public Rv<GujiPlayerEntityVO> gameRegister(@RequestBody LoginDto dto) {
+        return new Rv<>(gujiPlayerService.register(dto));
     }
+
 
 
 

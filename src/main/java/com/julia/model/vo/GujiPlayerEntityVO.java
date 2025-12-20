@@ -86,8 +86,11 @@ public class GujiPlayerEntityVO extends BaseEntity {
     @ApiModelProperty("token")
     private String token;
 
-    @ApiModelProperty("是否新手 1 新手")
+    @ApiModelProperty("新手提示页面")
     private Integer guideChild;
+
+    @ApiModelProperty("是否新手 0 新手")
+    private Integer guideRoot;
 
     @ApiModelProperty("游戏速度")
     private Integer playSpeed;

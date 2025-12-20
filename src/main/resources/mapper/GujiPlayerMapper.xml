@@ -25,6 +25,7 @@
         <result column="qq" property="qq" />
         <result column="email" property="email" />
         <result column="note" property="note" />
+        <result column="guide_root" property="guideRoot" />
         <result column="guide_child" property="guideChild" />
         <result column="play_speed" property="playSpeed" />
         <result column="box_level" property="boxLevel" />
@@ -41,7 +42,7 @@
     <sql id="Base_Column_List">
         create_time,
         update_time,
-        user_id, union_id, open_id, nick_name, avatar_url, phone_number, login_name, password, gold, energy, max_energy, diamond, battle_level, battle_wave, status, wechat, qq, email, note, guide_child, play_speed, box_level, box_exp, box_point, box_left, box_mid, box_right, proxy_count, proxy
+        user_id, union_id, open_id, nick_name, avatar_url, phone_number, login_name, password, gold, energy, max_energy, diamond, battle_level, battle_wave, status, wechat, qq, email, note, guide_root, guide_child, play_speed, box_level, box_exp, box_point, box_left, box_mid, box_right, proxy_count, proxy
     </sql>
 
 </mapper>

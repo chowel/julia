@@ -89,26 +89,26 @@ public class WebSocketService {
 
         // 游戏 发放游戏
         if (msgType == 84 || msgType == 94) {
-            String playerId = ChannelPond.findClientIdByChannel(channel);
-            if (StringUtils.hasLength(playerId)) {
-                List<MinaGame> games = null;
-                ByteBuf byteBuf = Unpooled.buffer();
-
-                if( msgType == 84){
-                    games = minaGameService.genGameByPlayerId(Long.valueOf(playerId), 8, 1);
-                    byteBuf.writeShort(85);
-                }
-
-                if( msgType == 94){
-                    games = minaGameService.genGameByPlayerId(Long.valueOf(playerId), 8, 2);
-                    byteBuf.writeShort(95);
-                }
-
-                String jsonGame = mapper.writeValueAsString(games);
-                byteBuf.writeBytes(jsonGame.getBytes(StandardCharsets.UTF_8));
-                log.info("发牌: {}", byteBuf.readableBytes());
-                channel.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
-            }
+//            String playerId = ChannelPond.findClientIdByChannel(channel);
+//            if (StringUtils.hasLength(playerId)) {
+//                List<MinaGame> games = null;
+//                ByteBuf byteBuf = Unpooled.buffer();
+//
+//                if( msgType == 84){
+//                    games = minaGameService.genGameByPlayerId(Long.valueOf(playerId), 8, 1);
+//                    byteBuf.writeShort(85);
+//                }
+//
+//                if( msgType == 94){
+//                    games = minaGameService.genGameByPlayerId(Long.valueOf(playerId), 8, 2);
+//                    byteBuf.writeShort(95);
+//                }
+//
+//                String jsonGame = mapper.writeValueAsString(games);
+//                byteBuf.writeBytes(jsonGame.getBytes(StandardCharsets.UTF_8));
+//                log.info("发牌: {}", byteBuf.readableBytes());
+//                channel.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
+//            }
         }
         // 退出friday 房间
         if (msgType == 82) {
@@ -118,33 +118,6 @@ public class WebSocketService {
 
         // 统一上报 上报游戏结果
         if (msgType == 68) {
-            String playerId = ChannelPond.findClientIdByChannel(channel);
-            if (StringUtils.hasLength(playerId)) {
-                // 获取剩余可读字节
-                int remaining = buffer.remaining();
-                // 提取剩余字节
-                byte[] bytes = new byte[remaining];
-                // 将剩余字节读入数组，position 自动移动到末尾
-                buffer.get(bytes);
-                // 转换为字符串（推荐 UTF-8）
-                String text = new String(bytes, StandardCharsets.UTF_8);
-
-
-                AppearRole appearRole = mapper.readValue(text, AppearRole.class);
-
-                log.info("游戏类型: {}",appearRole.getType());
-
-                long calc_coin = redisUtils.calcCoin(playerId, appearRole.getGamePoint());
-
-                log.info("GameNo: {} -- Coin: {}", appearRole.getGameNo(), calc_coin);
-
-                if (appearRole.getTotalCoin() != calc_coin) {
-                    // 总数不一致，以服务端下发为准
-                    PlayerBo bo = new PlayerBo();
-                    bo.setCoin(calc_coin);
-                    this.sendInfo(channel, bo);
-                }
-            }
 
         }
     }

@@ -1,6 +1,5 @@
 package com.julia.config;
 
-import com.julia.enums.RedisKeyEnum;
 import com.julia.enums.RedisKeys;
 import com.julia.tool.RedisUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -13,9 +12,7 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.scheduling.support.CronTrigger;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ThreadPoolExecutor;
 
 
