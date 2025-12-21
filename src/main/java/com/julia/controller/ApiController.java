@@ -60,7 +60,15 @@ public class ApiController {
         return new Rv<>(gujiPlayerService.register(dto));
     }
 
-
+    @ApiOperation("test")
+    @GetMapping("/test")
+    public Rv<String> test() {
+        GujiPlayerEntityVO vo = new GujiPlayerEntityVO();
+        vo.setUserId(2L);
+        vo.setGuideRoot(0);
+        gujiPlayerService.alter(vo);
+        return new Rv<>("OK");
+    }
 
 
 
